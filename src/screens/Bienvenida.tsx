@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
 import { actualizar } from "../lib/estado";
+import { useCuenta } from "../lib/nube";
 import { navegar } from "../lib/rutas";
 
 const t = { fill: "none", stroke: "currentColor", strokeWidth: 2.3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -27,6 +28,7 @@ const PUNTOS: { titulo: string; texto: string; icono: ReactNode }[] = [
 
 /** Primera pantalla. No pide cuenta: primero se juega. */
 export default function Bienvenida() {
+  const cuenta = useCuenta();
   function jugar() {
     // Una lección de ejemplo, ya: la cuenta llega después del primer logro.
     actualizar(() => ({ bienvenidaVista: true, cursoId: "fotosintesis" }));
@@ -74,21 +76,11 @@ export default function Bienvenida() {
           variante="secundario"
           onClick={() => {
             actualizar(() => ({ bienvenidaVista: true }));
-            navegar("/studio/material");
+            navegar(cuenta.modo === "invitado" ? "/studio/inicio" : "/studio/material");
           }}
         >
-          Tengo mi material
+          {cuenta.modo === "invitado" ? "Crear mi cuenta gratis" : "Tengo mi material"}
         </Boton>
-        <button
-          type="button"
-          onClick={() => {
-            actualizar(() => ({ bienvenidaVista: true }));
-            navegar("/studio/cuenta?volver=/studio/inicio");
-          }}
-          className="h-11 cursor-pointer text-[16px] font-extrabold text-brand"
-        >
-          Ya tengo cuenta
-        </button>
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
       </div>
     </main>

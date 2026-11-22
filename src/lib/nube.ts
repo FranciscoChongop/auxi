@@ -16,6 +16,8 @@ export type EstadoCuenta = {
   modo: "sin-nube" | "cargando" | "invitado" | "conectado";
   email?: string;
   guardando: boolean;
+  /** Ya se unió el avance del celular con el de la cuenta. */
+  sincronizado?: boolean;
   ultimoGuardado?: number;
   error?: string;
 };
@@ -36,6 +38,22 @@ export function useCuenta() {
     },
     () => cuenta,
   );
+}
+
+/** Antes de tener cuenta se puede jugar una lección de prueba para conocer la app. */
+export const enModoPrueba = () => {
+  try {
+    return localStorage.getItem("auxi.prueba") === "1";
+  } catch {
+    return false;
+  }
+};
+export function empezarPrueba() {
+  try {
+    localStorage.setItem("auxi.prueba", "1");
+  } catch {
+    // sin almacenamiento
+  }
 }
 
 let usuario: User | null = null;
@@ -68,15 +86,16 @@ async function subirArchivosPendientes(e: Estado) {
 async function conectar(u: User) {
   if (!supabase) return;
   usuario = u;
-  cambiar({ modo: "conectado", email: u.email ?? undefined });
+  cambiar({ modo: "conectado", email: u.email ?? undefined, sincronizado: false });
   const { data, error } = await supabase.from("perfiles").select("estado").eq("id", u.id).maybeSingle();
   if (error) {
-    cambiar({ error: "No pude traer tu avance. Revisa tu internet." });
+    cambiar({ error: "No pude traer tu avance. Revisa tu internet.", sincronizado: true });
     return;
   }
   const local = obtener();
   const unido = data?.estado ? unir(local, completar(data.estado as Partial<Estado>)) : { ...local, avisoCuentaVisto: true };
   actualizar(() => unido);
+  cambiar({ sincronizado: true });
   await subir();
   dejarDeEscuchar?.();
   dejarDeEscuchar = alCambiarEstado(programarSubida);
@@ -98,7 +117,7 @@ export function iniciarNube() {
       usuario = null;
       dejarDeEscuchar?.();
       dejarDeEscuchar = null;
-      cambiar({ modo: "invitado", email: undefined });
+      cambiar({ modo: "invitado", email: undefined, sincronizado: undefined });
     }
   });
   // Antes de cerrar o esconder la app, sube lo pendiente.
@@ -113,12 +132,37 @@ export function iniciarNube() {
 
 /* ---------- Acciones de la pantalla de cuenta ---------- */
 
-const urlDeVuelta = () => `${location.origin}/studio/cuenta`;
+const urlDeVuelta = () => `${location.origin}/studio`;
 
 export async function entrarConGoogle() {
   if (!supabase) return "Las cuentas aún no están activadas.";
   const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: urlDeVuelta() } });
   return error ? "No se pudo abrir Google. Prueba con tu correo." : null;
+}
+
+function traducir(error: { message?: string; status?: number; code?: string }) {
+  const m = (error.message ?? "").toLowerCase();
+  if (error.status === 429 || m.includes("rate limit")) return "Demasiados intentos. Espera un minuto.";
+  if (m.includes("invalid login")) return "Correo o contraseña incorrectos.";
+  if (m.includes("already registered") || m.includes("already been registered")) return "Ese correo ya tiene cuenta. Toca Entrar.";
+  if (m.includes("password") && m.includes("characters")) return "La contraseña debe tener al menos 8 caracteres.";
+  if (m.includes("email not confirmed")) return "Falta confirmar tu correo. Revisa tu bandeja.";
+  return "No pude hacerlo. Revisa tu internet e inténtalo otra vez.";
+}
+
+export async function entrarConClave(email: string, clave: string) {
+  if (!supabase) return "Las cuentas aún no están activadas.";
+  const { error } = await supabase.auth.signInWithPassword({ email, password: clave });
+  return error ? traducir(error) : null;
+}
+
+/** Crea la cuenta. Devuelve "confirmar" si hay que abrir un enlace del correo antes de entrar. */
+export async function crearCuentaConClave(email: string, clave: string): Promise<string | null> {
+  if (!supabase) return "Las cuentas aún no están activadas.";
+  const { data, error } = await supabase.auth.signUp({ email, password: clave, options: { emailRedirectTo: `${location.origin}/studio` } });
+  if (error) return traducir(error);
+  if (!data.session) return "confirmar";
+  return null;
 }
 
 export async function pedirCodigo(email: string) {

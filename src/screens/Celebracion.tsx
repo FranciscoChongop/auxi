@@ -53,6 +53,10 @@ export default function Celebracion() {
   }
 
   function seguir() {
+    if (cuenta.modo === "invitado") {
+      reemplazar("/studio/inicio");
+      return;
+    }
     if (c!.primera && !e.avisoCuentaVisto && cuenta.modo !== "conectado") {
       setGuardar(true);
       return;

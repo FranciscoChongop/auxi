@@ -27,6 +27,8 @@ export type Celebracion = {
   primera: boolean;
 };
 
+export type DatosPersona = { nombre: string; anio: number | null; carrera: string; universidad: string; pais: string };
+
 export type Estado = {
   bienvenidaVista: boolean;
   cursoId: string | null;
@@ -63,6 +65,9 @@ export type Estado = {
   reportes: Reporte[];
   /** id de la solicitud de apoyo cuyo premio ya se entregó. */
   apoyoReclamado: string | null;
+  /** Datos opcionales de la persona (para entender quién usa Auxi). */
+  datos: DatosPersona | null;
+  datosOmitidos: boolean;
   /** Repaso espaciado: para cada pregunta fallada, cuándo toca repasarla y en qué paso va (1, 3 y 7 días). */
   repaso: Record<string, Record<string, { p: string; n: number }>>;
 };
@@ -108,6 +113,8 @@ function inicial(): Estado {
     tomates: {},
     reportes: [],
     apoyoReclamado: null,
+    datos: null,
+    datosOmitidos: false,
     repaso: {},
   };
 }

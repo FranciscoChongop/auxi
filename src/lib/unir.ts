@@ -89,6 +89,8 @@ export function unir(local: Estado, nube: Estado): Estado {
     pasePorVida: local.pasePorVida || nube.pasePorVida,
     tomates: maximos(local.tomates, nube.tomates),
     apoyoReclamado: local.apoyoReclamado ?? nube.apoyoReclamado,
+    datos: local.datos ?? nube.datos,
+    datosOmitidos: local.datosOmitidos || nube.datosOmitidos,
     repaso: { ...nube.repaso, ...local.repaso },
     reportes: porId(local.reportes, nube.reportes).sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 20),
     misCursos: [...cursos.values()],

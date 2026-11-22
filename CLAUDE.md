@@ -57,7 +57,7 @@ Sigue SIEMPRE la skill `auxi-design` (en `.claude/skills/auxi-design/SKILL.md`):
 
 ## Reglas de experiencia
 
-- La primera lección se juega ANTES de pedir cuenta. El registro llega después del primer logro.
+- Decisión del dueño: hay que iniciar sesión (correo + contraseña, o Google) para usar la app. Antes solo se ofrece una lección de prueba (mini tutorial) sin cuenta. Después del registro se piden, de forma opcional, nombre, año de nacimiento, carrera, universidad y país (solo para métricas; el nombre no va a las estadísticas).
 - Una acción principal por pantalla; el botón principal abajo, al alcance del pulgar.
 - Todo toque responde en menos de 100 ms con movimiento y, si corresponde, sonido.
 - Vibración solo en Android (`navigator.vibrate`); en iPhone no existe en la web: compensar con sonido y animación.

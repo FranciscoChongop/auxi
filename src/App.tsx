@@ -4,6 +4,7 @@ import { ApoyaAlCreador } from "./components/ApoyaAlCreador";
 import { Intro } from "./components/Intro";
 import { ProveedorAvisos, useAviso } from "./components/Aviso";
 import { obtener } from "./lib/estado";
+import { enModoPrueba, useCuenta } from "./lib/nube";
 import { reemplazar, useRuta } from "./lib/rutas";
 
 // Código dividido por pantalla: cada una se descarga solo cuando se abre.
@@ -31,6 +32,8 @@ const pantallas = {
   entregas: lazy(() => import("./screens/Entregas")),
   perfil: lazy(() => import("./screens/Perfil")),
   cuenta: lazy(() => import("./screens/Cuenta")),
+  entrada: lazy(() => import("./screens/Entrada")),
+  datos: lazy(() => import("./screens/Datos")),
   catalogo: lazy(() => import("./screens/Catalogo")),
 };
 
@@ -75,25 +78,31 @@ export function App() {
   useEffect(() => {
     if (ruta === "/") reemplazar("/studio");
   }, [ruta]);
-  const nombre = elegir(ruta);
-  const Pantalla = pantallas[nombre];
+  const cuenta = useCuenta();
+  // Hay que iniciar sesión para entrar (el catálogo de diseño queda libre).
+  const destino = elegir(ruta);
+  const enPrueba = enModoPrueba() && ["bienvenida", "leccion", "celebracion"].includes(destino);
+  const bloqueada = cuenta.modo === "invitado" && ruta !== "/catalogo" && !enPrueba;
+  const pideDatos = cuenta.modo === "conectado" && cuenta.sincronizado && !obtener().datos && !obtener().datosOmitidos && ruta !== "/catalogo";
+  const nombre = cuenta.modo === "cargando" || (cuenta.modo === "conectado" && !cuenta.sincronizado) ? null : bloqueada ? "entrada" : pideDatos ? "datos" : destino;
+  const Pantalla = nombre ? pantallas[nombre] : null;
 
   return (
     <MotionConfig reducedMotion="user">
       <ProveedorAvisos>
         <SinConexion />
-        <ApoyaAlCreador lateral />
-        <Intro />
+        {!bloqueada && <ApoyaAlCreador lateral />}
+        {!bloqueada && <Intro />}
         <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
-              key={nombre + ruta}
+              key={String(nombre) + (bloqueada ? "" : ruta)}
               initial={{ opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              <Pantalla />
+              {Pantalla ? <Pantalla /> : <div className="min-h-dvh bg-bg" />}
             </motion.div>
           </AnimatePresence>
         </Suspense>

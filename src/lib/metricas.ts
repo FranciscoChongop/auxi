@@ -62,6 +62,8 @@ export const metricas = {
   invitacion: (via: string) => registrar("invitacion", { via }),
   clicVendoe: (desde: string) => registrar("clic_vendoe", { desde }, "negocio"),
   apoyoSolicitado: () => registrar("apoyo_solicitado"),
+  /** Sin nombre ni correo: solo datos para saber a qué público llegar. */
+  perfilCompletado: (d: { pais: string; carrera: string; universidad: string; edad: string }) => registrar("perfil_completado", d),
 };
 
 export const primerDiaDeUso = () => {
