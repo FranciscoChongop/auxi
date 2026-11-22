@@ -145,8 +145,17 @@ export async function crearCuentaConClave(email: string, clave: string): Promise
   if (!supabase) return "Las cuentas aún no están activadas.";
   const { data, error } = await supabase.auth.signUp({ email, password: clave, options: { emailRedirectTo: `${location.origin}/studio` } });
   if (error) return traducir(error);
+  // Si el correo ya tenía cuenta (por ejemplo, entró antes con código), Supabase no crea otra ni envía nada.
+  if (!data.session && data.user && data.user.identities?.length === 0) return "existe";
   if (!data.session) return "confirmar";
   return null;
+}
+
+/** Pone o cambia la contraseña de la cuenta que tiene la sesión abierta. */
+export async function ponerClave(clave: string) {
+  if (!supabase) return "Las cuentas aún no están activadas.";
+  const { error } = await supabase.auth.updateUser({ password: clave });
+  return error ? "No pude guardar la contraseña. Prueba con otra de 8 o más caracteres." : null;
 }
 
 export async function pedirCodigo(email: string) {

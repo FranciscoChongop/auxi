@@ -12,7 +12,7 @@ import { metricas } from "../lib/metricas";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
-import { salir, useCuenta } from "../lib/nube";
+import { ponerClave, salir, useCuenta } from "../lib/nube";
 import { navegar, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
@@ -50,6 +50,9 @@ export default function Perfil() {
   const [textoOpinion, setTextoOpinion] = useState("");
   const [permiso, setPermiso] = useState(false);
   const [borrar, setBorrar] = useState(false);
+  const [claveAbierta, setClaveAbierta] = useState(false);
+  const [clave, setClave] = useState("");
+  const [claveError, setClaveError] = useState<string | null>(null);
   const animoHoy = e.animo.find((a) => a.dia === hoy());
   const precision = e.totales.respuestas ? Math.round((100 * e.totales.aciertos) / e.totales.respuestas) : 0;
 
@@ -240,6 +243,12 @@ export default function Perfil() {
         </button>
         <ApoyaAlCreador />
         {cuenta.modo === "conectado" && (
+          <button type="button" onClick={() => setClaveAbierta(true)} className="flex min-h-11 w-full cursor-pointer items-center justify-between font-bold text-left">
+            Crear o cambiar mi contraseña
+            <span className="text-ayuda font-extrabold text-brand">Abrir</span>
+          </button>
+        )}
+        {cuenta.modo === "conectado" && (
           <button
             type="button"
             onClick={async () => {
@@ -316,6 +325,34 @@ export default function Perfil() {
             }}
           >
             Enviar opinión
+          </Boton>
+        </div>
+      </Ventana>
+
+      <Ventana abierta={claveAbierta} alCerrar={() => setClaveAbierta(false)} titulo="Tu contraseña">
+        <p className="text-text-soft">Con una contraseña entras con tu correo sin esperar un código.</p>
+        <input
+          type="password"
+          autoComplete="new-password"
+          value={clave}
+          onChange={(ev) => setClave(ev.target.value)}
+          placeholder="Mínimo 8 caracteres"
+          className="mt-3 h-14 w-full rounded-boton border-2 border-surface bg-card px-4 text-[17px] font-semibold text-text outline-none focus:border-brand"
+        />
+        {claveError && <p role="alert" className="mt-2 font-bold text-error-dark">{claveError}</p>}
+        <div className="mt-4">
+          <Boton
+            deshabilitado={clave.length < 8}
+            onClick={async () => {
+              const r = await ponerClave(clave);
+              if (r) return setClaveError(r);
+              setClave("");
+              setClaveError(null);
+              setClaveAbierta(false);
+              aviso("Contraseña guardada.", "exito");
+            }}
+          >
+            Guardar contraseña
           </Boton>
         </div>
       </Ventana>

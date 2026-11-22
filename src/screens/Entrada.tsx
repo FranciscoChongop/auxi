@@ -36,6 +36,7 @@ export default function Entrada() {
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [espera, setEspera] = useState(0);
+  const [nota, setNota] = useState<string | null>(null);
   const entradaCodigo = useRef<HTMLInputElement>(null);
   const correo = email.trim().toLowerCase();
   const yaJugo = obtener().totales.lecciones > 0;
@@ -48,6 +49,7 @@ export default function Entrada() {
 
   const cambiarModo = (m: Modo) => {
     setModo(m);
+    setNota(null);
     setError(null);
     setCodigo("");
   };
@@ -68,12 +70,23 @@ export default function Entrada() {
   const crear = () =>
     correr(
       () => crearCuentaConClave(correo, clave),
-      (r) => {
-        if (r === "confirmar") return cambiarModo("confirmar");
-        if (r) {
-          sonidos.error();
-          setError(r);
+      async (r) => {
+        if (r !== "confirmar" && r !== "existe") {
+          if (r) {
+            sonidos.error();
+            setError(r);
+          }
+          return;
         }
+        // La cuenta se confirma con un código de números que llega al correo.
+        setOcupado(true);
+        const e = await pedirCodigo(correo);
+        setOcupado(false);
+        if (e) return setError(e);
+        setNota(r === "existe" ? "Ese correo ya tenía cuenta. Con este código entras." : "Para activar tu cuenta, escribe el código que te enviamos.");
+        setModo("codigo-enviado");
+        setEspera(60);
+        setTimeout(() => entradaCodigo.current?.focus(), 250);
       },
     );
   const enviarCodigo = () =>
@@ -216,8 +229,9 @@ export default function Entrada() {
           <div className="rounded-tarjeta bg-surface p-4 text-center">
             <p className="text-tarjeta font-extrabold">Revisa tu correo</p>
             <p className="mt-1">
-              Te envié un código a <span className="font-extrabold break-all">{correo}</span>. Mira también en spam.
+              Te envié un código de números a <span className="font-extrabold break-all">{correo}</span>. Mira también en spam.
             </p>
+            {nota && <p className="mt-2 font-bold text-brand">{nota}</p>}
           </div>
           <input
             ref={entradaCodigo}
