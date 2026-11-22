@@ -5,14 +5,14 @@ import { Boton } from "../components/Boton";
 import { AjustesDeSonido } from "../components/Interruptor";
 import { CaraDeLeon, type CaraLeon } from "../components/Leon";
 import { Escudo, Llama, Moneda, Pantalla } from "../components/Navegacion";
+import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
 import { reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
-/** Enlace a Vendoe: pendiente de la dirección final. */
-const VENDOE_URL = "";
+const VENDOE_URL = "https://www.vendoe.es/";
 
 const ANIMOS: { valor: number; texto: string; cara: CaraLeon; respuesta: string }[] = [
   { valor: 5, texto: "Muy bien", cara: "guino", respuesta: "¡Qué bueno! Aprovechemos esa energía." },
@@ -27,7 +27,7 @@ const MISIONES = [
   { id: "invitar", texto: "Invita a alguien a estudiar", premio: 30 },
   { id: "opinar", texto: "Danos tu opinión", premio: 25 },
   { id: "video", texto: "Comenta nuestro video", premio: 20, pronto: true },
-  { id: "instagram", texto: "Síguenos en Instagram", premio: 20, pronto: true },
+  { id: "instagram", texto: "Sigue a @soydanielchong en Instagram", premio: 20 },
 ];
 
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
@@ -71,6 +71,10 @@ export default function Perfil() {
     if (id === "compartir") compartir(id, `Llevo ${rachaVigente(e)} días de racha estudiando con León en Auxi Studio.`, premio);
     if (id === "invitar") compartir(id, "Estudia jugando conmigo en Auxi Studio. Es gratis.", premio);
     if (id === "opinar") setOpinion(true);
+    if (id === "instagram") {
+      window.open(INSTAGRAM_URL, "_blank", "noopener");
+      premiar(id, premio);
+    }
   }
 
   return (
@@ -169,6 +173,7 @@ export default function Perfil() {
           <span className="font-bold">Avisos de entregas</span>
           <span className="text-ayuda font-bold text-text-soft">Muy pronto</span>
         </div>
+        <ApoyaAlCreador />
         <button type="button" onClick={() => setBorrar(true)} className="mt-2 h-11 cursor-pointer font-extrabold text-error">
           Borrar mi avance de este celular
         </button>
@@ -182,7 +187,7 @@ export default function Perfil() {
         </div>
         <button
           type="button"
-          onClick={() => (VENDOE_URL ? window.open(VENDOE_URL, "_blank", "noopener") : aviso("El enlace a Vendoe llega pronto.", "info"))}
+          onClick={() => window.open(VENDOE_URL, "_blank", "noopener")}
           className="h-11 cursor-pointer rounded-[10px] bg-card px-3 font-extrabold text-negocio"
         >
           Ver
