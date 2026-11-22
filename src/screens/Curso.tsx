@@ -9,7 +9,6 @@ import { Ventana } from "../components/Ventana";
 import { abrirArchivo, borrarArchivo, guardarArchivo, pesoBonito, PESO_MAXIMO } from "../lib/archivos";
 import { actualizar, nuevoId, useEstado, type MiCurso, type Tema } from "../lib/estado";
 import { bonita, diasEntre, hoy } from "../lib/fechas";
-import { DIAS_CORTOS } from "../lib/horario";
 import { navegar, reemplazar, useRuta } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
@@ -189,7 +188,6 @@ export default function Curso() {
     );
   }
 
-  const clases = e.horario.filter((c) => c.curso.toLowerCase() === curso.nombre.toLowerCase()).sort((a, b) => a.dia - b.dia || a.inicio.localeCompare(b.inicio));
   const entregas = e.entregas.filter((x) => x.curso.toLowerCase() === curso.nombre.toLowerCase()).sort((a, b) => a.fecha.localeCompare(b.fecha));
 
   return (
@@ -207,16 +205,6 @@ export default function Curso() {
         {curso.profesor ? `Prof. ${curso.profesor}` : "Toca Editar para poner a tu profe"}
       </div>
 
-      {clases.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {clases.map((c) => (
-            <span key={c.id} className="numeros rounded-full bg-surface px-3 py-2 text-ayuda font-extrabold">
-              {DIAS_CORTOS[c.dia]} {c.inicio}–{c.fin}
-              {c.aula ? ` · ${c.aula}` : ""}
-            </span>
-          ))}
-        </div>
-      )}
 
       {entregas.length > 0 && (
         <div className="rounded-tarjeta bg-surface p-3">
@@ -283,8 +271,7 @@ export default function Curso() {
               const despues = datos.nombre.trim();
               actualizar((s) => ({
                 misCursos: s.misCursos.map((c) => (c.id === curso.id ? { ...c, nombre: despues, profesor: datos.profesor.trim() || undefined, color: datos.color } : c)),
-                // El horario y las entregas siguen al curso si cambia de nombre.
-                horario: s.horario.map((h) => (h.curso.toLowerCase() === antes.toLowerCase() ? { ...h, curso: despues } : h)),
+                // Las entregas siguen al curso si cambia de nombre.
                 entregas: s.entregas.map((x) => (x.curso.toLowerCase() === antes.toLowerCase() ? { ...x, curso: despues } : x)),
               }));
               setEditar(false);

@@ -28,3 +28,10 @@ export function bonita(fecha: string) {
   const f = new Date(a, m - 1, d);
   return `${DIAS[f.getDay()]} ${d} ${MESES[m - 1]}`;
 }
+
+export const DIAS_CORTOS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+/** Día de hoy con lunes = 0. */
+export function diaDeHoy(fecha = new Date()) {
+  return (fecha.getDay() + 6) % 7;
+}

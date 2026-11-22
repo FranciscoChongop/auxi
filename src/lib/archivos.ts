@@ -1,5 +1,5 @@
 /**
- * Archivos de la persona (PDF del curso, foto del horario) guardados en el celular con IndexedDB.
+ * Archivos de la persona (los PDF de cada tema) guardados en el celular con IndexedDB.
  * Solo viven en este dispositivo hasta que llegue la cuenta (Fase 3).
  */
 const BD = "auxi-archivos";

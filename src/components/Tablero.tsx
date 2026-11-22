@@ -3,8 +3,7 @@ import type { ReactNode } from "react";
 import type { Curso } from "../data/tipos";
 import type { Nodo } from "../lib/curso";
 import { rachaEnPausa, rachaVigente, type Estado } from "../lib/estado";
-import { clave, diasEntre, hoy, sumarDias } from "../lib/fechas";
-import { DIAS_CORTOS, diaDeHoy } from "../lib/horario";
+import { DIAS_CORTOS, diaDeHoy, diasEntre, hoy, sumarDias } from "../lib/fechas";
 import { entradaEnCascada } from "../lib/movimiento";
 import { navegar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
@@ -172,10 +171,6 @@ function Fila({ izquierda, children, derecha, onClick, color }: { izquierda: Rea
 }
 
 export function Hoy({ e }: { e: Estado }) {
-  const d = diaDeHoy();
-  const ahora = new Date();
-  const hhmm = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
-  const clases = e.horario.filter((c) => c.dia === d && c.fin >= hhmm).sort((a, b) => a.inicio.localeCompare(b.inicio)).slice(0, 3);
   const pendientes = [...e.entregas].filter((x) => diasEntre(hoy(), x.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const proxima = pendientes[0];
   const color = (nombre: string) => COLORES_CURSO[e.misCursos.find((c) => c.nombre.toLowerCase() === nombre.toLowerCase())?.color ?? 0];
@@ -184,45 +179,27 @@ export function Hoy({ e }: { e: Estado }) {
   return (
     <motion.section {...entradaEnCascada(3)} className="rounded-tarjeta border-2 border-surface bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-tarjeta font-extrabold">Hoy</h2>
-        <span className="text-ayuda font-bold text-text-soft">{clave() === hoy() ? new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : ""}</span>
+        <h2 className="text-tarjeta font-extrabold">Próxima entrega</h2>
+        <span className="text-ayuda font-bold text-text-soft">{new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" })}</span>
       </div>
-      <div className="flex flex-col gap-2">
-        {e.horario.length === 0 ? (
-          <Fila izquierda={<CaraDeLeon cara="lentes" tamano={36} />} onClick={() => navegar("/studio/cursos")} derecha={<span className="font-black text-brand">Subir</span>}>
-            <span className="block font-extrabold">Sube tu horario</span>
-            <span className="block text-ayuda text-text-soft">Excel o foto. Así sé cuándo tienes clase.</span>
-          </Fila>
-        ) : clases.length === 0 ? (
-          <p className="rounded-boton bg-bg px-4 py-3 font-bold text-text-soft">Ya no tienes clases hoy.</p>
-        ) : (
-          clases.map((c) => {
-            const enCurso = c.inicio <= hhmm && hhmm <= c.fin;
-            return (
-              <Fila key={c.id} izquierda={c.inicio} color={color(c.curso)} onClick={() => navegar("/studio/cursos")} derecha={enCurso ? <span className="rounded-full bg-success px-2 py-1 text-[12px] font-black text-text">Ahora</span> : undefined}>
-                <span className="block truncate font-extrabold">{c.curso}</span>
-                <span className="block text-ayuda text-text-soft">
-                  hasta {c.fin}
-                  {c.aula ? ` · Aula ${c.aula}` : ""}
-                </span>
-              </Fila>
-            );
-          })
-        )}
-        {proxima && (
-          <Fila
-            izquierda={<span className={`text-ayuda ${faltan <= 1 ? "text-error" : "text-text-soft"}`}>{faltan === 0 ? "Hoy" : faltan === 1 ? "Mañana" : `${faltan} días`}</span>}
-            color={color(proxima.curso)}
-            onClick={() => navegar("/studio/entregas")}
-          >
-            <span className="block truncate font-extrabold">Entrega: {proxima.titulo}</span>
-            <span className="block text-ayuda text-text-soft">
-              {proxima.curso}
-              {pendientes.length > 1 ? ` · y ${pendientes.length - 1} más` : ""}
-            </span>
-          </Fila>
-        )}
-      </div>
+      {proxima ? (
+        <Fila
+          izquierda={<span className={`text-ayuda ${faltan <= 1 ? "text-error" : "text-text-soft"}`}>{faltan === 0 ? "Hoy" : faltan === 1 ? "Mañana" : `${faltan} días`}</span>}
+          color={color(proxima.curso)}
+          onClick={() => navegar("/studio/entregas")}
+        >
+          <span className="block truncate font-extrabold">{proxima.titulo}</span>
+          <span className="block text-ayuda text-text-soft">
+            {proxima.curso}
+            {pendientes.length > 1 ? ` · y ${pendientes.length - 1} más` : ""}
+          </span>
+        </Fila>
+      ) : (
+        <Fila izquierda={<CaraDeLeon cara="feliz" tamano={36} />} onClick={() => navegar("/studio/entregas")} derecha={<span className="font-black text-brand">Ver</span>}>
+          <span className="block font-extrabold">Nada pendiente</span>
+          <span className="block text-ayuda text-text-soft">Pega tu sílabo y te aviso antes de cada entrega.</span>
+        </Fila>
+      )}
     </motion.section>
   );
 }
@@ -293,7 +270,7 @@ export function Accesos({ errores }: { errores: number }) {
       />
       <Acceso
         titulo="Mis cursos"
-        ayuda="Horario y PDF"
+        ayuda="Temas y PDF"
         onClick={() => navegar("/studio/cursos")}
         icono={
           <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
