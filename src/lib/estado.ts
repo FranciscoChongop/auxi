@@ -67,6 +67,11 @@ export type Estado = {
   apoyoReclamado: string | null;
   /** Datos opcionales de la persona (para entender quién usa Auxi). */
   datos: DatosPersona | null;
+  /** Ya vio el recorrido de bienvenida. */
+  tourVisto: boolean;
+  /** Pantallas de la guía de inicio que ya abrió. */
+  guia: string[];
+  guiaCerrada: boolean;
   datosOmitidos: boolean;
   /** Repaso espaciado: para cada pregunta fallada, cuándo toca repasarla y en qué paso va (1, 3 y 7 días). */
   repaso: Record<string, Record<string, { p: string; n: number }>>;
@@ -114,6 +119,9 @@ function inicial(): Estado {
     reportes: [],
     apoyoReclamado: null,
     datos: null,
+    tourVisto: false,
+    guia: [],
+    guiaCerrada: false,
     datosOmitidos: false,
     repaso: {},
   };

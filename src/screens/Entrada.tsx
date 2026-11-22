@@ -2,7 +2,6 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
-import { obtener } from "../lib/estado";
 import { crearCuentaConClave, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
 import { sonidos } from "../lib/sonidos";
 
@@ -39,7 +38,6 @@ export default function Entrada() {
   const [nota, setNota] = useState<string | null>(null);
   const entradaCodigo = useRef<HTMLInputElement>(null);
   const correo = email.trim().toLowerCase();
-  const yaJugo = obtener().totales.lecciones > 0;
 
   useEffect(() => {
     if (espera <= 0) return;
@@ -119,7 +117,7 @@ export default function Entrada() {
         <CaraDeLeon cara="guino" tamano={64} />
         <div>
           <h1 className="text-[26px] leading-tight font-black">Auxi Studio</h1>
-          <p className="font-bold text-text-soft">{yaJugo ? "¡Buen comienzo! Crea tu cuenta para guardarlo." : "Entra a tu cuenta. Es gratis."}</p>
+          <p className="font-bold text-text-soft">Entra a tu cuenta. Es gratis.</p>
         </div>
       </div>
 

@@ -2,8 +2,6 @@ import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
-import { actualizar, useEstado } from "../lib/estado";
-import { useCuenta } from "../lib/nube";
 import { navegar } from "../lib/rutas";
 
 const t = { fill: "none", stroke: "currentColor", strokeWidth: 2.3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -26,17 +24,8 @@ const PUNTOS: { titulo: string; texto: string; icono: ReactNode }[] = [
   },
 ];
 
-/** Primera pantalla. No pide cuenta: primero se juega. */
+/** Portada: invita a iniciar sesión o crear la cuenta. */
 export default function Bienvenida() {
-  const cuenta = useCuenta();
-  const e = useEstado();
-  const tutorialObligatorio = cuenta.modo !== "sin-nube" && e.totales.lecciones === 0;
-  function jugar() {
-    // Una lección de ejemplo, ya: la cuenta llega después del primer logro.
-    actualizar(() => ({ bienvenidaVista: true, cursoId: "fotosintesis" }));
-    navegar("/studio/leccion?n=0-0");
-  }
-
   return (
     <main
       className="mx-auto flex min-h-dvh max-w-md flex-col px-5"
@@ -73,23 +62,7 @@ export default function Bienvenida() {
       </ul>
 
       <div className="mt-auto flex flex-col gap-3 pt-6">
-        <Boton onClick={jugar}>{tutorialObligatorio ? "Empezar el tutorial" : "Probar una lección ya"}</Boton>
-        {!tutorialObligatorio && (
-          <Boton
-            variante="secundario"
-            onClick={() => {
-              actualizar(() => ({ bienvenidaVista: true }));
-              navegar("/studio/material");
-            }}
-          >
-            Tengo mi material
-          </Boton>
-        )}
-        {cuenta.modo === "invitado" && (
-          <button type="button" onClick={() => navegar("/studio/entrada")} className="h-11 cursor-pointer text-[16px] font-extrabold text-brand">
-            Ya tengo cuenta
-          </button>
-        )}
+        <Boton onClick={() => navegar("/studio/entrada")}>Iniciar sesión o crear cuenta</Boton>
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
       </div>
     </main>

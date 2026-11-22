@@ -1,9 +1,8 @@
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ApoyaAlCreador } from "./components/ApoyaAlCreador";
-import { Intro } from "./components/Intro";
 import { ProveedorAvisos, useAviso } from "./components/Aviso";
-import { obtener, useEstado } from "./lib/estado";
+import { actualizar, obtener, useEstado } from "./lib/estado";
 import { useCuenta } from "./lib/nube";
 import { reemplazar, useRuta } from "./lib/rutas";
 
@@ -33,6 +32,7 @@ const pantallas = {
   perfil: lazy(() => import("./screens/Perfil")),
   cuenta: lazy(() => import("./screens/Cuenta")),
   entrada: lazy(() => import("./screens/Entrada")),
+  tour: lazy(() => import("./screens/Tour")),
   datos: lazy(() => import("./screens/Datos")),
   catalogo: lazy(() => import("./screens/Catalogo")),
 };
@@ -82,36 +82,41 @@ export function App() {
   // Hay que iniciar sesión para entrar (el catálogo de diseño queda libre).
   const destino = elegir(ruta);
   const estado = useEstado();
-  const sinLecciones = estado.totales.lecciones === 0;
   const invitado = cuenta.modo === "invitado" && ruta !== "/catalogo";
-  // Sin cuenta: primero el tutorial obligatorio (una lección de ejemplo) y luego hay que iniciar sesión.
-  const tutorialInvitado = invitado && sinLecciones && destino !== "entrada";
-  const bloqueada = invitado && !tutorialInvitado && !(destino === "celebracion" && !sinLecciones);
+  // Sin cuenta: solo la portada y el inicio de sesión.
+  const bloqueada = invitado && destino !== "bienvenida";
   const listo = cuenta.modo === "conectado" && cuenta.sincronizado;
   const pideDatos = listo && !estado.datos && ruta !== "/catalogo";
-  // Con cuenta, el tutorial sigue siendo obligatorio si aún no se hizo.
-  const pideTutorial = listo && !pideDatos && sinLecciones && ruta !== "/catalogo" && !["bienvenida", "leccion", "celebracion"].includes(destino);
-  const pantallaTutorial = ["bienvenida", "leccion", "celebracion"].includes(destino) ? destino : "bienvenida";
+  // Recorrido de bienvenida (solo tocar «Siguiente») antes de ver la app por primera vez.
+  const pideTour = listo && !pideDatos && !estado.tourVisto && ruta !== "/catalogo";
   const nombre =
     cuenta.modo === "cargando" || (cuenta.modo === "conectado" && !cuenta.sincronizado)
       ? null
-      : tutorialInvitado
-        ? pantallaTutorial
-        : bloqueada
-          ? "entrada"
+      : bloqueada
+        ? "entrada"
+        : invitado
+          ? "bienvenida"
           : pideDatos
             ? "datos"
-            : pideTutorial
-              ? "bienvenida"
+            : pideTour
+              ? "tour"
               : destino;
+
+  // Guía de inicio: anota las partes de la app que ya abrió.
+  useEffect(() => {
+    if (!listo) return;
+    const id = ruta.split("/").filter(Boolean)[1];
+    if (id && ["cursos", "camino", "metodos", "entregas", "perfil"].includes(id) && !obtener().guia.includes(id)) {
+      actualizar((s) => ({ guia: [...s.guia, id] }));
+    }
+  }, [ruta, listo]);
   const Pantalla = nombre ? pantallas[nombre] : null;
 
   return (
     <MotionConfig reducedMotion="user">
       <ProveedorAvisos>
         <SinConexion />
-        {!bloqueada && <ApoyaAlCreador lateral />}
-        {!bloqueada && !tutorialInvitado && <Intro />}
+        {!bloqueada && !invitado && <ApoyaAlCreador lateral />}
         <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div

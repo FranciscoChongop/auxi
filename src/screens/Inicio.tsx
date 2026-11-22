@@ -4,6 +4,7 @@ import { Boton } from "../components/Boton";
 import { esIphone, estaInstalada, GuiaIphone } from "../components/GuiaIphone";
 import { CaraDeLeon } from "../components/Leon";
 import { Icono, Pantalla } from "../components/Navegacion";
+import { GuiaInicio } from "../components/GuiaInicio";
 import { Accesos, Continuar, Hoy, MisTemas, ResumenCamino, Saludo, SemanaYMeta, TarjetaExamen } from "../components/Tablero";
 import { Ventana } from "../components/Ventana";
 import { avance, cursoDe, nodos } from "../lib/curso";
@@ -32,6 +33,7 @@ export default function Inicio() {
   return (
     <Pantalla>
       <Saludo />
+      <GuiaInicio e={e} />
       <TarjetaExamen e={e} />
       <SemanaYMeta e={e} />
       <Continuar e={e} curso={curso} actual={actual} avance={avance(curso, e)} />

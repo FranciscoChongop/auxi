@@ -57,7 +57,7 @@ Sigue SIEMPRE la skill `auxi-design` (en `.claude/skills/auxi-design/SKILL.md`):
 
 ## Reglas de experiencia
 
-- Decisión del dueño: hay que iniciar sesión (correo + contraseña, o Google) para usar la app. Antes solo se ofrece una lección de prueba (mini tutorial) sin cuenta. Después del registro se piden, de forma opcional, nombre, año de nacimiento, carrera, universidad y país (solo para métricas; el nombre no va a las estadísticas).
+- Decisión del dueño: hay que iniciar sesión (correo + contraseña o código, y Google) para usar la app. La portada solo ofrece "Iniciar sesión o crear cuenta". Después: 5 preguntas obligatorias (nombre, año de nacimiento, carrera, universidad, país; solo métricas), un recorrido de bienvenida de solo tocar "Siguiente" (sin jugar ni leer de más) y una guía de inicio en la pantalla principal que lleva a cada parte (se cierra con X).
 - Una acción principal por pantalla; el botón principal abajo, al alcance del pulgar.
 - Todo toque responde en menos de 100 ms con movimiento y, si corresponde, sonido.
 - Vibración solo en Android (`navigator.vibrate`); en iPhone no existe en la web: compensar con sonido y animación.
