@@ -87,10 +87,34 @@ async function conectar(u: User) {
   void reclamarSiAprobada();
 }
 
+/** Si Google (u otro proveedor) devolvió un error, lo guarda para mostrarlo en la pantalla de entrada. */
+function capturarErrorDeEntrada() {
+  try {
+    const q = new URLSearchParams(location.search.slice(1) + "&" + location.hash.slice(1));
+    const err = q.get("error_description") ?? q.get("error");
+    if (!err) return;
+    sessionStorage.setItem("auxi.errorEntrada", err.replace(/\+/g, " "));
+    history.replaceState(null, "", "/studio/entrada");
+  } catch {
+    // sin almacenamiento
+  }
+}
+
+export function errorDeEntrada() {
+  try {
+    const e = sessionStorage.getItem("auxi.errorEntrada");
+    if (e) sessionStorage.removeItem("auxi.errorEntrada");
+    return e;
+  } catch {
+    return null;
+  }
+}
+
 let iniciada = false;
 export function iniciarNube() {
   if (!supabase || iniciada) return;
   iniciada = true;
+  capturarErrorDeEntrada();
   supabase.auth.getSession().then(({ data }) => {
     if (data.session?.user) void conectar(data.session.user);
     else cambiar({ modo: "invitado" });

@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
-import { crearCuentaConClave, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
+import { errorDeEntrada, crearCuentaConClave, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
 import { sonidos } from "../lib/sonidos";
 
 function LogoGoogle() {
@@ -36,6 +36,7 @@ export default function Entrada() {
   const [error, setError] = useState<string | null>(null);
   const [espera, setEspera] = useState(0);
   const [nota, setNota] = useState<string | null>(null);
+  const [errorGoogle] = useState(() => errorDeEntrada());
   const entradaCodigo = useRef<HTMLInputElement>(null);
   const correo = email.trim().toLowerCase();
 
@@ -256,6 +257,12 @@ export default function Entrada() {
             </button>
           </div>
         </motion.div>
+      )}
+
+      {errorGoogle && !error && (
+        <p role="alert" className="rounded-boton border-2 border-error bg-card px-4 py-3 font-bold text-error-dark">
+          No se pudo entrar con Google. Prueba de nuevo o usa tu correo. ({errorGoogle.slice(0, 80)})
+        </p>
       )}
 
       {error && (
