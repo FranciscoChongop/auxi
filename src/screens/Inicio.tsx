@@ -5,9 +5,11 @@ import { esIphone, estaInstalada, GuiaIphone } from "../components/GuiaIphone";
 import { CaraDeLeon } from "../components/Leon";
 import { Icono, Pantalla } from "../components/Navegacion";
 import { GuiaInicio } from "../components/GuiaInicio";
+import { Recordatorios } from "../components/Recordatorios";
+import { SinTema } from "../components/SinTema";
 import { Accesos, Continuar, Hoy, MisTemas, ResumenCamino, Saludo, SemanaYMeta, TarjetaExamen } from "../components/Tablero";
 import { Ventana } from "../components/Ventana";
-import { avance, cursoDe, nodos } from "../lib/curso";
+import { avance, cursoDe, nodos, esVacio } from "../lib/curso";
 import { actualizar, debidosDeRepaso, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
 import { navegar } from "../lib/rutas";
@@ -34,10 +36,17 @@ export default function Inicio() {
     <Pantalla>
       <Saludo />
       <GuiaInicio e={e} />
+      <Recordatorios e={e} />
       <TarjetaExamen e={e} />
       <SemanaYMeta e={e} />
-      <Continuar e={e} curso={curso} actual={actual} avance={avance(curso, e)} />
-      <ResumenCamino curso={curso} lista={lista} />
+      {esVacio(curso) ? (
+        <SinTema />
+      ) : (
+        <>
+          <Continuar e={e} curso={curso} actual={actual} avance={avance(curso, e)} />
+          <ResumenCamino curso={curso} lista={lista} />
+        </>
+      )}
       <MisTemas e={e} />
       <Hoy e={e} />
       <Accesos errores={errores} />

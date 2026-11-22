@@ -1,4 +1,3 @@
-import { CELULA, CURSOS, FOTOSINTESIS } from "../data/cursos";
 import type { Curso, Ejercicio, TarjetaEstudio } from "../data/tipos";
 import { mezclar } from "../juegos/corregir";
 import { diasEntre, hoy } from "./fechas";
@@ -15,8 +14,13 @@ export type Nodo = {
   resultado?: Resultado;
 };
 
+/** Curso vacío: lo que se usa cuando la persona todavía no agregó ningún tema. */
+export const VACIO: Curso = { id: "vacio", titulo: "", materia: "", unidades: [] };
+export const esVacio = (c: Curso) => c.unidades.length === 0;
+
+/** El tema que se estudia ahora: solo los que la persona agregó. */
 export function cursoDe(e: Estado): Curso {
-  return (e.cursoId && (CURSOS[e.cursoId] ?? e.importados[e.cursoId])) || FOTOSINTESIS;
+  return (e.cursoId && e.importados[e.cursoId]) || Object.values(e.importados)[0] || VACIO;
 }
 
 /** Lecciones y pruebas de unidad en orden. Cada una abre la siguiente. */
@@ -153,14 +157,6 @@ export function opcionesDeTema(e: Estado): OpcionTema[] {
   const propios: OpcionTema[] = temasPorPrioridad(e)
     .filter((t) => t.contenido)
     .map((t) => ({ id: t.contenido!.id, titulo: t.tema.nombre, subtitulo: t.curso.nombre, avance: t.avance, diasExamen: t.diasExamen, ejemplo: false, actual: t.contenido!.id === actual }));
-  const ejemplos: OpcionTema[] = [FOTOSINTESIS, CELULA].map((c) => ({
-    id: c.id,
-    titulo: c.titulo,
-    subtitulo: "Tema de ejemplo",
-    avance: avance(c, e),
-    ejemplo: true,
-    actual: c.id === actual,
-  }));
-  const todos = [...propios, ...ejemplos];
+  const todos = propios;
   return [...todos.filter((o) => o.avance < 1), ...todos.filter((o) => o.avance >= 1)];
 }

@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon, Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
+import { SinTema } from "../components/SinTema";
 import { SelectorTema } from "../components/SelectorTema";
 import { normalizar } from "../juegos/corregir";
 import { lanzarConfeti } from "../lib/confeti";
@@ -49,7 +50,7 @@ export default function ExplicaLeon() {
   const [resultado, setResultado] = useState<Evaluacion | null>(null);
   const [escuchando, setEscuchando] = useState(false);
   const rec = useRef<Reconocimiento | null>(null);
-  const t = tarjetas[indice % tarjetas.length];
+  const t = tarjetas.length ? tarjetas[indice % tarjetas.length] : undefined;
 
   const Voz = (window as unknown as { SpeechRecognition?: new () => Reconocimiento; webkitSpeechRecognition?: new () => Reconocimiento })
     .SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: new () => Reconocimiento }).webkitSpeechRecognition;
@@ -71,6 +72,7 @@ export default function ExplicaLeon() {
   }
 
   function enviar() {
+    if (!t) return;
     const ev = evaluar(texto, t.reverso);
     setResultado(ev);
     if (ev.estrellas === 3) {
@@ -84,6 +86,14 @@ export default function ExplicaLeon() {
     setIndice((i) => i + 1);
     setTexto("");
     setResultado(null);
+  }
+
+  if (!t) {
+    return (
+      <Pantalla titulo="Explícaselo a León" atras="/studio/metodos" conBarra={false}>
+        <SinTema texto="Para explicárselo a León necesitas un tema. Agrega el primero." />
+      </Pantalla>
+    );
   }
 
   return (

@@ -3,10 +3,11 @@ import { useState } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
+import { SinTema } from "../components/SinTema";
 import { Pantalla } from "../components/Navegacion";
 import { SelectorTema } from "../components/SelectorTema";
 import { Ventana } from "../components/Ventana";
-import { avance, cursoDe, nodos, type Nodo } from "../lib/curso";
+import { avance, cursoDe, esVacio, nodos, type Nodo } from "../lib/curso";
 import { useEstado } from "../lib/estado";
 import { navegar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
@@ -121,6 +122,14 @@ export default function Camino() {
       return;
     }
     setElegido(n);
+  }
+
+  if (esVacio(curso)) {
+    return (
+      <Pantalla titulo="Tu camino" atras="/studio/inicio">
+        <SinTema texto="Cuando agregues un tema, aquí verás tu camino de lecciones." />
+      </Pantalla>
+    );
   }
 
   let k = 0;

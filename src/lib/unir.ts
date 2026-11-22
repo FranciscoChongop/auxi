@@ -90,6 +90,7 @@ export function unir(local: Estado, nube: Estado): Estado {
     tomates: maximos(local.tomates, nube.tomates),
     apoyoReclamado: local.apoyoReclamado ?? nube.apoyoReclamado,
     datos: local.datos ?? nube.datos,
+    recordatorios: { ...nube.recordatorios, ...local.recordatorios },
     tourVisto: local.tourVisto || nube.tourVisto,
     guia: [...new Set([...nube.guia, ...local.guia])],
     guiaCerrada: local.guiaCerrada || nube.guiaCerrada,

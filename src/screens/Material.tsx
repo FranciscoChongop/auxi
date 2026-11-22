@@ -1,12 +1,9 @@
 import { motion } from "motion/react";
-import { useState, type ReactNode } from "react";
-import { Boton } from "../components/Boton";
-import { Leon } from "../components/Leon";
+import type { ReactNode } from "react";
 import { Pantalla } from "../components/Navegacion";
-import { CELULA, FOTOSINTESIS } from "../data/cursos";
-import { actualizar, useEstado } from "../lib/estado";
+import { useEstado } from "../lib/estado";
 import { entradaEnCascada } from "../lib/movimiento";
-import { navegar, reemplazar } from "../lib/rutas";
+import { navegar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
 function Icono({ tipo }: { tipo: "ia" | "curso" }) {
@@ -51,14 +48,7 @@ function Opcion({ indice, titulo, ayuda, icono, onClick }: { indice: number; tit
 
 export default function Material() {
   const e = useEstado();
-  const [ejemplos, setEjemplos] = useState(false);
   const importados = Object.keys(e.importados).length;
-
-  function empezar(cursoId: string) {
-    actualizar(() => ({ cursoId, bienvenidaVista: true }));
-    // La primera lección se juega antes de pedir cuenta.
-    reemplazar("/studio/leccion?n=0-0");
-  }
 
   return (
     <Pantalla titulo="Sube lo que tengas" conBarra={!!e.cursoId} atras={e.cursoId ? "/studio/inicio" : undefined}>
@@ -81,27 +71,6 @@ export default function Material() {
         />
       )}
 
-      <div className="mt-2">
-        {!ejemplos ? (
-          <Boton variante="secundario" onClick={() => setEjemplos(true)}>
-            Probar con un tema de ejemplo
-          </Boton>
-        ) : (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-3">
-            <p className="font-extrabold">Elige un tema</p>
-            {[FOTOSINTESIS, CELULA].map((c, i) => (
-              <Opcion
-                key={c.id}
-                indice={i}
-                titulo={c.titulo}
-                ayuda={`${c.materia} · ${c.unidades.reduce((n, u) => n + u.lecciones.length, 0)} lecciones`}
-                icono={<Leon pose={i === 0 ? "concentrado" : "pensativo"} alto={56} />}
-                onClick={() => empezar(c.id)}
-              />
-            ))}
-          </motion.div>
-        )}
-      </div>
     </Pantalla>
   );
 }

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
+import { SinTema } from "../components/SinTema";
 import { SelectorTema } from "../components/SelectorTema";
 import { TarjetaVolteable } from "../juegos/TarjetaVolteable";
 import { lanzarConfeti } from "../lib/confeti";
@@ -18,6 +19,7 @@ export default function Cajas() {
   const e = useEstado();
   const tarjetas = useMemo(() => todasLasTarjetas(cursoDe(e)), [e.cursoId]); // eslint-disable-line react-hooks/exhaustive-deps
   const caja = (id: string) => e.cajas[id] ?? 1;
+  const sinTarjetas = tarjetas.length === 0;
   const [vistas, setVistas] = useState<string[]>([]);
   const [volteada, setVolteada] = useState(false);
   const [salto, setSalto] = useState<number | null>(null);
@@ -40,6 +42,14 @@ export default function Cajas() {
     setSalto(nueva);
     setVistas((v) => [...v, actual.id]);
     setVolteada(false);
+  }
+
+  if (sinTarjetas) {
+    return (
+      <Pantalla titulo="Las 5 cajas" atras="/studio/metodos" conBarra={false}>
+        <SinTema texto="Las 5 cajas usan las tarjetas de tus temas. Agrega uno para empezar." />
+      </Pantalla>
+    );
   }
 
   return (

@@ -67,6 +67,8 @@ export type Estado = {
   apoyoReclamado: string | null;
   /** Datos opcionales de la persona (para entender quién usa Auxi). */
   datos: DatosPersona | null;
+  /** Recordatorios cerrados: id → día en que se cerraron (vuelven al día siguiente). */
+  recordatorios: Record<string, string>;
   /** Ya vio el recorrido de bienvenida. */
   tourVisto: boolean;
   /** Pantallas de la guía de inicio que ya abrió. */
@@ -79,15 +81,6 @@ export type Estado = {
 
 const CLAVE = "auxi.studio.v1";
 
-function ejemploEntregas(): Entrega[] {
-  const h = hoy();
-  return [
-    { id: "e1", titulo: "Informe de laboratorio", curso: "Biología", fecha: sumarDias(h, 2) },
-    { id: "e2", titulo: "Práctica calificada 2", curso: "Matemática", fecha: sumarDias(h, 6) },
-    { id: "e3", titulo: "Exposición grupal", curso: "Comunicación", fecha: sumarDias(h, 13) },
-  ];
-}
-
 function inicial(): Estado {
   return {
     bienvenidaVista: false,
@@ -99,7 +92,7 @@ function inicial(): Estado {
     cofreDia: "",
     totales: { lecciones: 0, respuestas: 0, aciertos: 0, minutos: 0 },
     cajas: {},
-    entregas: ejemploEntregas(),
+    entregas: [],
     huecos: [],
     animo: [],
     misiones: {},
@@ -119,6 +112,7 @@ function inicial(): Estado {
     reportes: [],
     apoyoReclamado: null,
     datos: null,
+    recordatorios: {},
     tourVisto: false,
     guia: [],
     guiaCerrada: false,
@@ -127,10 +121,17 @@ function inicial(): Estado {
   };
 }
 
+const EJEMPLOS_VIEJOS = new Set(["Informe de laboratorio", "Práctica calificada 2", "Exposición grupal"]);
+
+/** Quita las entregas de ejemplo que traían las versiones anteriores. */
+function sinEjemplos(e: Estado): Estado {
+  return { ...e, entregas: e.entregas.filter((x) => !(/^e[123]$/.test(x.id) && EJEMPLOS_VIEJOS.has(x.titulo))) };
+}
+
 function cargar(): Estado {
   try {
     const crudo = localStorage.getItem(CLAVE);
-    if (crudo) return { ...inicial(), ...JSON.parse(crudo) };
+    if (crudo) return sinEjemplos({ ...inicial(), ...JSON.parse(crudo) });
   } catch {
     // Sin almacenamiento: empezamos de cero.
   }
@@ -174,7 +175,7 @@ export const alCambiarEstado = suscribir;
 
 /** Completa con valores por defecto un avance que viene de la nube (puede ser de una versión anterior). */
 export function completar(parcial: Partial<Estado>): Estado {
-  return { ...inicial(), ...parcial };
+  return sinEjemplos({ ...inicial(), ...parcial });
 }
 
 export function useEstado() {
