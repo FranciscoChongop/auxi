@@ -12,12 +12,13 @@ import { useCuenta } from "../lib/nube";
 import { navegar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
-function enlaceWhatsApp(s: { codigo: string; instagram: string | null }) {
+function enlaceWhatsApp(s: { codigo: string; instagram: string | null; tiktok?: string | null }) {
   const texto = [
     "Hola, pedí el pase libre de Auxi Studio.",
     `Código: ${s.codigo}`,
     s.instagram ? `Instagram: @${s.instagram}` : "",
-    "Te adjunto mis capturas.",
+    s.tiktok ? `TikTok: @${s.tiktok}` : "",
+    `Te adjunto mis capturas: ${REQUISITOS.map((r) => r.captura).join(", ")}.`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -31,6 +32,8 @@ export default function Apoyo() {
   const aviso = useAviso();
   const [solicitud, setSolicitud] = useState<Solicitud | null | undefined>(undefined);
   const [usuario, setUsuario] = useState("");
+  const [tiktok, setTiktok] = useState("");
+  const pideTiktok = REQUISITOS.some((r) => r.id === "tiktok");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +59,7 @@ export default function Apoyo() {
   async function enviar() {
     setEnviando(true);
     setError(null);
-    const r = await crearSolicitud({ instagram: usuario, correo: cuenta.email });
+    const r = await crearSolicitud({ instagram: usuario, tiktok: pideTiktok ? tiktok : undefined, correo: cuenta.email });
     setEnviando(false);
     if (r.error || !r.solicitud) {
       setError(r.error);
@@ -151,10 +154,13 @@ export default function Apoyo() {
                 <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-[14px] font-black text-white">{REQUISITOS.length + 1}</span>
                 Dinos tu usuario y manda tus capturas
               </p>
-              <div className="mt-3">
+              <div className="mt-3 flex flex-col gap-3">
                 <Campo etiqueta="Tu usuario de Instagram" value={usuario} onChange={(ev) => setUsuario(ev.target.value)} placeholder="@tuusuario" autoCapitalize="none" autoCorrect="off" />
+                {pideTiktok && <Campo etiqueta="Tu usuario de TikTok" value={tiktok} onChange={(ev) => setTiktok(ev.target.value)} placeholder="@tuusuario" autoCapitalize="none" autoCorrect="off" />}
               </div>
-              <p className="mt-2 text-ayuda text-text-soft">Al tocar el botón se abre WhatsApp con un código. Adjunta ahí tus capturas y envía.</p>
+              <p className="mt-2 text-ayuda text-text-soft">
+                Manda {REQUISITOS.length === 1 ? "1 captura" : `${REQUISITOS.length} capturas`}: {REQUISITOS.map((r) => r.captura).join(", ").replace(/, ([^,]*)$/, " y $1")}. Al tocar el botón se abre WhatsApp con un código; adjunta ahí tus capturas y envía.
+              </p>
             </div>
           </section>
 
@@ -163,7 +169,7 @@ export default function Apoyo() {
               {error}
             </p>
           )}
-          <Boton deshabilitado={limpiarUsuario(usuario).length < 2 || enviando} onClick={enviar}>
+          <Boton deshabilitado={limpiarUsuario(usuario).length < 2 || (pideTiktok && limpiarUsuario(tiktok).length < 2) || enviando} onClick={enviar}>
             {enviando ? "Enviando…" : "Pedir mi pase y abrir WhatsApp"}
           </Boton>
           <p className="text-center text-ayuda text-text-soft">Lo revisamos a mano para que sea justo. El premio es el mismo para todos.</p>

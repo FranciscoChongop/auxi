@@ -13,8 +13,16 @@ export const CORREO_DUENO = "chongdaniel91@gmail.com";
 export const WHATSAPP_REVISION = "https://wa.me/51960650372";
 export const MONEDAS_BONO = 100;
 
-/** Pasos que se piden. Para sumar TikTok o un video, agrega una fila con su enlace. */
-export type Requisito = { id: string; titulo: string; detalle: string; enlace?: string; accion?: string };
+/**
+ * Enlaces del dueño. Cada paso aparece SOLO cuando su enlace está lleno.
+ * Pon aquí el enlace de tu TikTok y el del video donde deben comentar.
+ */
+export const TIKTOK_URL: string = "";
+export const TIKTOK_USUARIO: string = "";
+export const VIDEO_URL: string = "";
+
+/** Pasos que se piden para el pase libre. */
+export type Requisito = { id: string; titulo: string; detalle: string; enlace?: string; accion?: string; captura: string };
 export const REQUISITOS: Requisito[] = [
   {
     id: "instagram",
@@ -22,7 +30,32 @@ export const REQUISITOS: Requisito[] = [
     detalle: "Toca el botón, sigue la cuenta y toma una captura que se vea que ya la sigues.",
     enlace: "https://www.instagram.com/soydanielchong/",
     accion: "Abrir Instagram",
+    captura: "que ya sigues en Instagram",
   },
+  ...(TIKTOK_URL
+    ? [
+        {
+          id: "tiktok",
+          titulo: `Sigue ${TIKTOK_USUARIO ? "a @" + TIKTOK_USUARIO.replace(/^@/, "") + " " : ""}en TikTok`,
+          detalle: "Toca el botón, sigue la cuenta y toma una captura que se vea que ya la sigues.",
+          enlace: TIKTOK_URL,
+          accion: "Abrir TikTok",
+          captura: "que ya sigues en TikTok",
+        },
+      ]
+    : []),
+  ...(VIDEO_URL
+    ? [
+        {
+          id: "video",
+          titulo: "Comenta el video",
+          detalle: "Abre el video, deja un comentario con tus palabras y toma una captura donde se vea tu comentario.",
+          enlace: VIDEO_URL,
+          accion: "Abrir el video",
+          captura: "que comentaste el video",
+        },
+      ]
+    : []),
 ];
 
 export type Solicitud = {
