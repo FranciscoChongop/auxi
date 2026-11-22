@@ -1,0 +1,13 @@
+node_modules/
+dist/
+dev-dist/
+.env
+.env.*
+!.env.example
+.vercel/
+*.log
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
+# Copia repetida del proyecto dentro de la carpeta de imágenes (pendiente de borrar)
+public/leon/IUMAGENES AUXI STUDIO/
