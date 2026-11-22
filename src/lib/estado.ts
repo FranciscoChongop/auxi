@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { Curso } from "../data/tipos";
 import type { InfoArchivo } from "./archivos";
 import { diasEntre, hoy, sumarDias } from "./fechas";
 
@@ -8,7 +9,7 @@ export type Resultado = { estrellas: 1 | 2 | 3; precision: number };
 export type Entrega = { id: string; titulo: string; curso: string; fecha: string };
 
 /** Un curso de la persona (Mis cursos), con sus temas y PDF. */
-export type Tema = { id: string; nombre: string; archivos: InfoArchivo[] };
+export type Tema = { id: string; nombre: string; archivos: InfoArchivo[]; /** id del curso importado (lecciones armadas con tu IA) */ contenidoId?: string };
 export type MiCurso = { id: string; nombre: string; color: number; profesor?: string; temas: Tema[] };
 
 export type Celebracion = {
@@ -47,6 +48,12 @@ export type Estado = {
   /** Lecciones terminadas por día, para la semana de racha y la meta diaria. */
   diasEstudio: Record<string, number>;
   metaDiaria: number;
+  /** Cursos armados con una IA externa y pegados en la app. */
+  importados: Record<string, Curso>;
+  /** Cupos de temas importados comprados con monedas (se suman a los gratis). */
+  cupoExtra: number;
+  /** Pase libre: temas importados sin límite, de por vida. */
+  pasePorVida: boolean;
 };
 
 const CLAVE = "auxi.studio.v1";
@@ -84,6 +91,9 @@ function inicial(): Estado {
     estudiando: null,
     diasEstudio: {},
     metaDiaria: 2,
+    importados: {},
+    cupoExtra: 0,
+    pasePorVida: false,
   };
 }
 

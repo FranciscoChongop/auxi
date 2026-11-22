@@ -87,10 +87,15 @@ export function Marcadores() {
         <Llama activa={dias > 0} />
         <ContadorAnimado valor={dias} className={dias > 0 ? "text-reward-dark" : "text-text-soft"} />
       </span>
-      <span className="flex items-center gap-1 font-black" aria-label={`${e.monedas} monedas`}>
+      <button
+        type="button"
+        onClick={() => navegar("/studio/monedas")}
+        className="-m-2 flex min-h-11 cursor-pointer items-center gap-1 p-2 font-black"
+        aria-label={`${e.monedas} monedas. Ver en qué usarlas`}
+      >
         <Moneda />
         <ContadorAnimado valor={e.monedas} />
-      </span>
+      </button>
     </div>
   );
 }

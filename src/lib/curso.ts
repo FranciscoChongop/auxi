@@ -15,7 +15,7 @@ export type Nodo = {
 };
 
 export function cursoDe(e: Estado): Curso {
-  return (e.cursoId && CURSOS[e.cursoId]) || FOTOSINTESIS;
+  return (e.cursoId && (CURSOS[e.cursoId] ?? e.importados[e.cursoId])) || FOTOSINTESIS;
 }
 
 /** Lecciones y pruebas de unidad en orden. Cada una abre la siguiente. */

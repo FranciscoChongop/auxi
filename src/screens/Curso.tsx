@@ -10,6 +10,7 @@ import { abrirArchivo, borrarArchivo, guardarArchivo, pesoBonito, PESO_MAXIMO } 
 import { actualizar, nuevoId, useEstado, type MiCurso, type Tema } from "../lib/estado";
 import { bonita, diasEntre, hoy } from "../lib/fechas";
 import { navegar, reemplazar, useRuta } from "../lib/rutas";
+import { moverTema, quitarContenido, renombrarContenido } from "../lib/tienda";
 import { sonidos } from "../lib/sonidos";
 
 function IconoPdf() {
@@ -21,8 +22,10 @@ function IconoPdf() {
 function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: Tema; abierto: boolean; alAbrir: () => void }) {
   const aviso = useAviso();
   const entrada = useRef<HTMLInputElement>(null);
-  const [elegir, setElegir] = useState(false);
-  const [elegidos, setElegidos] = useState<string[]>([]);
+  const e = useEstado();
+  const contenido = tema.contenidoId ? e.importados[tema.contenidoId] : undefined;
+  const [editarContenido, setEditarContenido] = useState(false);
+  const [mover, setMover] = useState(false);
   const [renombrar, setRenombrar] = useState(false);
   const [nombre, setNombre] = useState(tema.nombre);
 
@@ -47,9 +50,12 @@ function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: 
   }
 
   function estudiar() {
-    if (!tema.archivos.length) return entrada.current?.click();
-    setElegidos(tema.archivos.map((a) => a.id));
-    setElegir(true);
+    if (tema.contenidoId && contenido) {
+      actualizar(() => ({ cursoId: contenido.id, estudiando: { cursoId: curso.id, temaId: tema.id } }));
+      navegar("/studio/camino");
+      return;
+    }
+    navegar(`/studio/importar?curso=${curso.id}`);
   }
 
   return (
@@ -58,7 +64,8 @@ function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: 
         <span className="flex-1">
           <span className="block text-[18px] leading-6 font-extrabold">{tema.nombre}</span>
           <span className="block text-ayuda text-text-soft">
-            {tema.archivos.length} {tema.archivos.length === 1 ? "PDF" : "PDF"}
+            {contenido ? `${contenido.unidades.reduce((n, u) => n + u.lecciones.length, 0)} lecciones · ` : ""}
+            {tema.archivos.length} PDF
           </span>
         </span>
         <motion.svg viewBox="0 0 24 24" className="size-5 text-text-soft" animate={{ rotate: abierto ? 180 : 0 }} aria-hidden="true">
@@ -94,7 +101,18 @@ function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: 
               <Boton variante="secundario" onClick={() => entrada.current?.click()}>
                 Agregar PDF
               </Boton>
-              <Boton onClick={estudiar}>{tema.archivos.length ? "Estudiar este tema" : "Sube un PDF para estudiar"}</Boton>
+              <Boton onClick={estudiar}>{contenido ? "Estudiar este tema" : "Crear lección con mi IA"}</Boton>
+              {contenido && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Boton variante="secundario" onClick={() => setEditarContenido(true)}>
+                    Editar nombres
+                  </Boton>
+                  <Boton variante="secundario" onClick={() => setMover(true)}>
+                    Mover
+                  </Boton>
+                </div>
+              )}
+              {!contenido && tema.archivos.length > 0 && <p className="text-ayuda text-text-soft">Sube este PDF a tu IA con el prompt de Auxi, y pega el resultado.</p>}
               <div className="flex justify-between">
                 <button type="button" onClick={() => setRenombrar(true)} className="h-11 cursor-pointer font-extrabold text-brand">
                   Cambiar nombre
@@ -103,6 +121,7 @@ function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: 
                   type="button"
                   onClick={() => {
                     tema.archivos.forEach((a) => void borrarArchivo(a.id));
+                    if (tema.contenidoId) quitarContenido(tema.contenidoId);
                     cambiarTema(() => null);
                   }}
                   className="h-11 cursor-pointer font-extrabold text-error"
@@ -117,35 +136,48 @@ function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: 
 
       <input ref={entrada} type="file" accept="application/pdf" multiple className="hidden" onChange={(ev) => { void subir(ev.target.files); ev.target.value = ""; }} />
 
-      <Ventana abierta={elegir} alCerrar={() => setElegir(false)} titulo="¿Qué PDF estudias?">
+      <Ventana abierta={mover} alCerrar={() => setMover(false)} titulo="Mover a otro curso">
+        <p className="mb-3 text-text-soft">El tema se va con sus lecciones, sus PDF y tu avance.</p>
         <div className="flex flex-col gap-2">
-          {tema.archivos.map((a) => {
-            const marcado = elegidos.includes(a.id);
-            return (
-              <label key={a.id} className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-boton border-2 p-2 ${marcado ? "border-brand bg-surface" : "border-surface bg-card"}`}>
-                <input
-                  type="checkbox"
-                  checked={marcado}
-                  onChange={() => setElegidos((x) => (marcado ? x.filter((y) => y !== a.id) : [...x, a.id]))}
-                  className="size-5 accent-[var(--brand)]"
-                />
-                <IconoPdf />
-                <span className="min-w-0 flex-1 truncate font-bold">{a.nombre}</span>
-              </label>
-            );
-          })}
+          {e.misCursos
+            .filter((c) => c.id !== curso.id)
+            .map((c) => (
+              <Boton
+                key={c.id}
+                variante="secundario"
+                onClick={() => {
+                  moverTema(tema.id, curso.id, c.id);
+                  setMover(false);
+                  aviso(`Lo moví a ${c.nombre}.`, "exito");
+                }}
+              >
+                {c.nombre}
+              </Boton>
+            ))}
+          {e.misCursos.length < 2 && <p className="text-text-soft">Crea otro curso en Mis cursos para poder mover el tema.</p>}
         </div>
+      </Ventana>
+
+      <Ventana abierta={editarContenido} alCerrar={() => setEditarContenido(false)} titulo="Nombres del tema">
+        {contenido && (
+          <div className="flex max-h-[55dvh] flex-col gap-4 overflow-y-auto pb-1">
+            {contenido.unidades.map((u, ui) => (
+              <div key={ui} className="flex flex-col gap-2">
+                <Campo etiqueta={`Unidad ${ui + 1}`} defaultValue={u.titulo} onBlur={(ev) => ev.target.value.trim() && renombrarContenido(contenido.id, { unidad: [ui, ev.target.value.trim()] })} />
+                {u.lecciones.map((l, li) => (
+                  <Campo
+                    key={li}
+                    etiqueta={`Lección ${li + 1}`}
+                    defaultValue={l.titulo}
+                    onBlur={(ev) => ev.target.value.trim() && renombrarContenido(contenido.id, { leccion: [ui, li, ev.target.value.trim()] })}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
         <div className="mt-4">
-          <Boton
-            deshabilitado={!elegidos.length}
-            onClick={() => {
-              actualizar(() => ({ estudiando: { cursoId: curso.id, temaId: tema.id } }));
-              setElegir(false);
-              navegar(`/studio/material?curso=${curso.id}&tema=${tema.id}&pdfs=${elegidos.length}`);
-            }}
-          >
-            Crear lección
-          </Boton>
+          <Boton onClick={() => setEditarContenido(false)}>Listo</Boton>
         </div>
       </Ventana>
 
@@ -156,6 +188,7 @@ function TarjetaTema({ curso, tema, abierto, alAbrir }: { curso: MiCurso; tema: 
             deshabilitado={!nombre.trim()}
             onClick={() => {
               cambiarTema((t) => ({ ...t, nombre: nombre.trim() }));
+              if (tema.contenidoId) renombrarContenido(tema.contenidoId, { tema: nombre.trim() });
               setRenombrar(false);
             }}
           >

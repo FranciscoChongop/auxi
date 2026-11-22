@@ -71,6 +71,8 @@ Sigue SIEMPRE la skill `auxi-design` (en `.claude/skills/auxi-design/SKILL.md`):
 - Nada de premios falsos, cuentas regresivas falsas ni probabilidades escondidas. Si hay cofre o sorpresa, las probabilidades se muestran.
 - Nada de "tu mascota se muere" ni culpa por perder la racha. Existe protector de racha y recuperación de racha.
 - Misiones de apoyo (comentar el video, seguir en Instagram, compartir un logro, invitar, opinar): siempre opcionales, nunca bloquean funciones; el premio por opinar es el mismo si la opinión es buena o mala; solo se publica una opinión con permiso expreso.
+- Monedas (decisión del dueño): lo básico siempre es gratis (jugar, repasar, métodos, entregas). Las monedas abren solo lo extra: más temas importados con IA (2 gratis; +1 cupo = 60 monedas; pase libre de por vida = 500). Lo ya importado nunca se bloquea. Se ganan estudiando, con el cofre y con misiones opcionales; los precios y premios se muestran siempre. Las misiones funcionan por confianza (no se verifica un seguimiento o comentario).
+- Crear lecciones: sin costo de API. La persona pasa el material por su propia IA (ChatGPT, Claude o Gemini) con el prompt de Auxi y pega el resultado.
 - No inventar cifras, testimonios ni resultados ("sube tus notas") en ningún texto.
 - Studio no hace terapia: el check-in de ánimo solo acompaña y muestra dónde pedir ayuda profesional.
 

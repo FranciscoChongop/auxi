@@ -24,11 +24,11 @@ const ANIMOS: { valor: number; texto: string; cara: CaraLeon; respuesta: string 
 ];
 
 const MISIONES = [
-  { id: "compartir", texto: "Comparte un logro", premio: 15 },
-  { id: "invitar", texto: "Invita a alguien a estudiar", premio: 30 },
-  { id: "opinar", texto: "Danos tu opinión", premio: 25 },
-  { id: "video", texto: "Comenta nuestro video", premio: 20, pronto: true },
-  { id: "instagram", texto: "Sigue a @soydanielchong en Instagram", premio: 20 },
+  { id: "compartir", texto: "Comparte un logro", premio: 20 },
+  { id: "invitar", texto: "Invita a alguien a estudiar", premio: 40 },
+  { id: "opinar", texto: "Danos tu opinión", premio: 30 },
+  { id: "video", texto: "Comenta nuestro video", premio: 40, pronto: true },
+  { id: "instagram", texto: "Sigue a @soydanielchong en Instagram", premio: 60 },
 ];
 
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
@@ -90,6 +90,18 @@ export default function Perfil() {
           </p>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => navegar("/studio/monedas")}
+        className="flex min-h-14 cursor-pointer items-center justify-between rounded-tarjeta border-2 border-surface bg-card px-4 text-left"
+      >
+        <span>
+          <span className="block font-extrabold">En qué usar tus monedas</span>
+          <span className="block text-ayuda text-text-soft">Más temas, pase libre y protectores</span>
+        </span>
+        <span className="font-extrabold text-brand">Ver</span>
+      </button>
 
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -249,7 +261,7 @@ export default function Perfil() {
             onClick={() => {
               setOpinion(false);
               setTextoOpinion("");
-              premiar("opinar", 25);
+              premiar("opinar", 30);
             }}
           >
             Enviar opinión

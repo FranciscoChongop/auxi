@@ -1,38 +1,27 @@
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BarraProgreso } from "../components/BarraProgreso";
+import { motion } from "motion/react";
+import { useState, type ReactNode } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
-import { Ventana } from "../components/Ventana";
 import { CELULA, FOTOSINTESIS } from "../data/cursos";
-import { entradaEnCascada } from "../lib/movimiento";
 import { actualizar, useEstado } from "../lib/estado";
-import { navegar, parametro, reemplazar } from "../lib/rutas";
+import { entradaEnCascada } from "../lib/movimiento";
+import { navegar, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
-const FRASES = ["Leyendo tu material…", "Buscando lo importante…", "Armando preguntas…", "Casi listo…"];
-
-function IconoMaterial({ tipo }: { tipo: "pdf" | "foto" | "texto" }) {
+function Icono({ tipo }: { tipo: "ia" | "curso" }) {
   const t = { fill: "none", stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
   return (
     <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-surface text-brand">
       <svg viewBox="0 0 24 24" className="size-7" aria-hidden="true">
-        {tipo === "pdf" && (
+        {tipo === "ia" ? (
           <g {...t}>
-            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-            <path d="M14 3v5h5M9 13h6M9 17h4" />
+            <path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" />
+            <path d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" />
           </g>
-        )}
-        {tipo === "foto" && (
+        ) : (
           <g {...t}>
-            <path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
-            <circle cx="12" cy="13" r="3.5" />
-          </g>
-        )}
-        {tipo === "texto" && (
-          <g {...t}>
-            <path d="M5 6h14M5 10h14M5 14h9M5 18h6" />
+            <path d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />
           </g>
         )}
       </svg>
@@ -62,97 +51,35 @@ function Opcion({ indice, titulo, ayuda, icono, onClick }: { indice: number; tit
 
 export default function Material() {
   const e = useEstado();
-  const pdf = useRef<HTMLInputElement>(null);
-  const foto = useRef<HTMLInputElement>(null);
-  const [texto, setTexto] = useState("");
-  const [pegando, setPegando] = useState(false);
   const [ejemplos, setEjemplos] = useState(false);
-  // Si viene desde Mis cursos (curso → tema → PDF), empieza a preparar la lección de una vez.
-  const [desdeCurso] = useState(() => {
-    const curso = e.misCursos.find((c) => c.id === parametro("curso"));
-    const tema = curso?.temas.find((t) => t.id === parametro("tema"));
-    return curso && tema ? { curso: curso.nombre, tema: tema.nombre, pdfs: Number(parametro("pdfs") ?? 1) } : null;
-  });
-  const [cargando, setCargando] = useState<string | null>(desdeCurso ? desdeCurso.tema : null);
-  const [avance, setAvance] = useState(0);
-
-  // Estado de carga: León piensa mientras la barra avanza.
-  useEffect(() => {
-    if (!cargando) return;
-    const inicio = Date.now();
-    const t = setInterval(() => {
-      const p = Math.min(1, (Date.now() - inicio) / 3200);
-      setAvance(p);
-      if (p >= 1) {
-        clearInterval(t);
-        empezar(FOTOSINTESIS.id);
-      }
-    }, 120);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cargando]);
+  const importados = Object.keys(e.importados).length;
 
   function empezar(cursoId: string) {
     actualizar(() => ({ cursoId, bienvenidaVista: true }));
     // La primera lección se juega antes de pedir cuenta.
-    reemplazar(`/studio/leccion?n=0-0`);
-  }
-
-  function subir(nombre: string | undefined) {
-    if (!nombre) return;
-    setPegando(false);
-    setCargando(nombre);
-  }
-
-  if (cargando) {
-    const frase = FRASES[Math.min(FRASES.length - 1, Math.floor(avance * FRASES.length))];
-    return (
-      <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-6 px-8 text-center">
-        <Leon pose="pensativo" alto={240} rebote />
-        {desdeCurso && (
-          <p className="-mb-2 font-bold text-text-soft">
-            {desdeCurso.curso} · {desdeCurso.tema} · {desdeCurso.pdfs} PDF
-          </p>
-        )}
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={frase}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="text-tarjeta font-extrabold"
-          >
-            {frase}
-          </motion.p>
-        </AnimatePresence>
-        <div className="w-full">
-          <BarraProgreso valor={avance} etiqueta="Preparando tu lección" />
-        </div>
-        <p className="text-ayuda text-text-soft">
-          Versión de prueba: mientras conectamos la IA, practicarás con el tema de ejemplo.
-        </p>
-      </main>
-    );
+    reemplazar("/studio/leccion?n=0-0");
   }
 
   return (
     <Pantalla titulo="Sube lo que tengas" conBarra={!!e.cursoId} atras={e.cursoId ? "/studio/inicio" : undefined}>
-      <p className="-mt-2 text-text-soft">León lo convierte en preguntas para que estudies jugando.</p>
-      {e.misCursos.length > 0 && (
+      <p className="-mt-2 text-text-soft">Pásalo por tu IA favorita y pega el resultado. León lo convierte en juego.</p>
+
+      <Opcion
+        indice={0}
+        titulo="Crear con mi IA"
+        ayuda="ChatGPT, Claude o Gemini lo leen; tú pegas lo que te dan"
+        icono={<Icono tipo="ia" />}
+        onClick={() => navegar("/studio/importar")}
+      />
+      {importados > 0 && (
         <Opcion
-          indice={0}
+          indice={1}
           titulo="Elegir de Mis cursos"
-          ayuda="Curso, tema y los PDF que ya guardaste"
-          icono={<IconoMaterial tipo="pdf" />}
+          ayuda={`${importados} ${importados === 1 ? "tema listo" : "temas listos"} para estudiar`}
+          icono={<Icono tipo="curso" />}
           onClick={() => navegar("/studio/cursos")}
         />
       )}
-      <Opcion indice={0} titulo="Subir PDF" ayuda="Separatas, libros o diapositivas" icono={<IconoMaterial tipo="pdf" />} onClick={() => pdf.current?.click()} />
-      <Opcion indice={1} titulo="Tomar foto de apuntes" ayuda="Tu cuaderno o la pizarra" icono={<IconoMaterial tipo="foto" />} onClick={() => foto.current?.click()} />
-      <Opcion indice={2} titulo="Pegar texto" ayuda="Lo que copiaste de cualquier lado" icono={<IconoMaterial tipo="texto" />} onClick={() => setPegando(true)} />
-
-      <input ref={pdf} type="file" accept="application/pdf" className="hidden" onChange={(ev) => subir(ev.target.files?.[0]?.name)} />
-      <input ref={foto} type="file" accept="image/*" capture="environment" className="hidden" onChange={(ev) => subir(ev.target.files?.[0]?.name)} />
 
       <div className="mt-2">
         {!ejemplos ? (
@@ -175,22 +102,6 @@ export default function Material() {
           </motion.div>
         )}
       </div>
-
-      <Ventana abierta={pegando} alCerrar={() => setPegando(false)} titulo="Pega tu texto">
-        <textarea
-          value={texto}
-          onChange={(ev) => setTexto(ev.target.value)}
-          placeholder="Pega aquí el tema que te dejaron…"
-          className="h-44 w-full resize-none rounded-boton border-2 border-surface bg-card p-3 text-[16px] font-semibold text-text outline-none focus:border-brand"
-          aria-label="Texto para estudiar"
-        />
-        <div className="mt-4">
-          <Boton deshabilitado={texto.trim().length < 20} onClick={() => subir("texto")}>
-            {texto.trim().length < 20 ? "Pega un poco más de texto" : "Crear lección"}
-          </Boton>
-        </div>
-      </Ventana>
     </Pantalla>
   );
 }
-
