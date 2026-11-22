@@ -6,7 +6,7 @@ import { diasEntre, hoy, sumarDias } from "./fechas";
 /** Todo lo que la app recuerda en este celular. En la Fase 3 se sincroniza con la cuenta. */
 export type Resultado = { estrellas: 1 | 2 | 3; precision: number };
 
-export type Entrega = { id: string; titulo: string; curso: string; fecha: string };
+export type Entrega = { id: string; titulo: string; curso: string; fecha: string; tipo?: string };
 
 /** Un curso de la persona (Mis cursos), con sus temas y PDF. */
 export type Tema = { id: string; nombre: string; archivos: InfoArchivo[]; /** id del curso importado (lecciones armadas con tu IA) */ contenidoId?: string };

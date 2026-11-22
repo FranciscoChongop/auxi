@@ -15,6 +15,7 @@ const pantallas = {
   camino: lazy(() => import("./screens/Camino")),
   importar: lazy(() => import("./screens/Importar")),
   monedas: lazy(() => import("./screens/Monedas")),
+  silabo: lazy(() => import("./screens/Silabo")),
   cofre: lazy(() => import("./screens/Cofre")),
   metodos: lazy(() => import("./screens/Metodos")),
   tomate: lazy(() => import("./screens/Tomate")),

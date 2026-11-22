@@ -2,33 +2,17 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
+import { COLORES_CURSO } from "../components/Formulario";
 import { Pantalla } from "../components/Navegacion";
 import { Ventana } from "../components/Ventana";
-import { actualizar, useEstado, type Entrega } from "../lib/estado";
-import { bonita, diasEntre, hoy, sumarDias } from "../lib/fechas";
+import { actualizar, useEstado } from "../lib/estado";
+import { bonita, clave, diasEntre, hoy, sumarDias } from "../lib/fechas";
+import { navegar, parametro } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
 const AVISOS = [7, 3, 1];
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const FRANJAS = ["Mañana", "Tarde", "Noche"];
-
-/** Lee líneas con fecha (12/05, 12-05-2026) de un sílabo pegado. Versión simple hasta que llegue la IA. */
-function leerSilabo(texto: string): Entrega[] {
-  const anio = new Date().getFullYear();
-  return texto
-    .split(/\n+/)
-    .map((linea, i) => {
-      const m = linea.match(/(\d{1,2})[/.-](\d{1,2})(?:[/.-](\d{2,4}))?/);
-      if (!m) return null;
-      const d = Number(m[1]);
-      const mes = Number(m[2]);
-      const a = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : anio;
-      if (d < 1 || d > 31 || mes < 1 || mes > 12) return null;
-      const titulo = linea.replace(m[0], "").replace(/^[\s:,.–-]+|[\s:,.–-]+$/g, "").slice(0, 60) || "Entrega";
-      return { id: `s${Date.now()}${i}`, titulo, curso: "Sílabo", fecha: `${a}-${String(mes).padStart(2, "0")}-${String(d).padStart(2, "0")}` };
-    })
-    .filter((x): x is Entrega => !!x && diasEntre(hoy(), x.fecha) >= 0);
-}
 
 function Faltan({ fecha }: { fecha: string }) {
   const d = diasEntre(hoy(), fecha);
@@ -41,9 +25,7 @@ function Faltan({ fecha }: { fecha: string }) {
 function ListaEntregas() {
   const e = useEstado();
   const aviso = useAviso();
-  const [silabo, setSilabo] = useState(false);
   const [nueva, setNueva] = useState(false);
-  const [texto, setTexto] = useState("");
   const [titulo, setTitulo] = useState("");
   const [fecha, setFecha] = useState(sumarDias(hoy(), 7));
   const lista = [...e.entregas].sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -67,6 +49,7 @@ function ListaEntregas() {
                   <p className="text-[18px] leading-6 font-extrabold">{x.titulo}</p>
                   <p className="text-ayuda text-text-soft">
                     {x.curso} · {bonita(x.fecha)}
+                    {x.tipo ? ` · ${x.tipo}` : ""}
                   </p>
                 </div>
                 <Faltan fecha={x.fecha} />
@@ -94,44 +77,15 @@ function ListaEntregas() {
           );
         })}
       </AnimatePresence>
-      {lista.length === 0 && <p className="py-6 text-center text-text-soft">No tienes entregas. Pega tu sílabo para empezar.</p>}
+      {lista.length === 0 && <p className="py-6 text-center text-text-soft">No tienes entregas. Importa tu sílabo para empezar.</p>}
 
       <div className="grid grid-cols-2 gap-3">
-        <Boton onClick={() => setSilabo(true)}>Pegar sílabo</Boton>
+        <Boton onClick={() => navegar("/studio/silabo")}>Importar sílabo</Boton>
         <Boton variante="secundario" onClick={() => setNueva(true)}>
           Agregar una
         </Boton>
       </div>
       <p className="text-center text-ayuda text-text-soft">Los avisos en tu celular se activan en la próxima versión.</p>
-
-      <Ventana abierta={silabo} alCerrar={() => setSilabo(false)} titulo="Pega tu sílabo">
-        <p className="mb-3 text-ayuda text-text-soft">Una entrega por línea, con su fecha. Ejemplo: «Informe 1 – 15/12».</p>
-        <textarea
-          value={texto}
-          onChange={(ev) => setTexto(ev.target.value)}
-          placeholder={"Práctica 1 – 05/12\nExamen parcial – 19/12"}
-          className="h-40 w-full resize-none rounded-boton border-2 border-surface bg-card p-3 text-[16px] font-semibold outline-none focus:border-brand"
-          aria-label="Texto del sílabo"
-        />
-        <div className="mt-4">
-          <Boton
-            deshabilitado={!texto.trim()}
-            onClick={() => {
-              const nuevas = leerSilabo(texto);
-              if (!nuevas.length) {
-                aviso("No encontré fechas. Usa el formato 15/12.", "error");
-                return;
-              }
-              actualizar((s) => ({ entregas: [...s.entregas, ...nuevas] }));
-              aviso(`Agregué ${nuevas.length} ${nuevas.length === 1 ? "entrega" : "entregas"}.`, "exito");
-              setTexto("");
-              setSilabo(false);
-            }}
-          >
-            Leer fechas
-          </Boton>
-        </div>
-      </Ventana>
 
       <Ventana abierta={nueva} alCerrar={() => setNueva(false)} titulo="Nueva entrega">
         <label className="block font-bold">
@@ -251,12 +205,119 @@ function Semana() {
   );
 }
 
+
+const MESES_LARGOS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"];
+
+/** Calendario del mes con un punto de color (por curso) en cada día con entregas. */
+function Calendario() {
+  const e = useEstado();
+  const [ahora] = useState(() => new Date());
+  const [mes, setMes] = useState(() => {
+    const prox = [...e.entregas].filter((x) => diasEntre(hoy(), x.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+    const [a, m] = (prox?.fecha ?? hoy()).split("-").map(Number);
+    return { a, m: m - 1 };
+  });
+  const [dia, setDia] = useState<string | null>(null);
+
+  const primero = new Date(mes.a, mes.m, 1);
+  const huecos = (primero.getDay() + 6) % 7; // lunes = 0
+  const diasMes = new Date(mes.a, mes.m + 1, 0).getDate();
+  const celdas = [...Array(huecos).fill(null), ...Array.from({ length: diasMes }, (_, i) => i + 1)];
+  const clavesDia = (d: number) => clave(new Date(mes.a, mes.m, d));
+  const colorDe = (curso: string) => COLORES_CURSO[e.misCursos.find((c) => c.nombre.toLowerCase() === curso.toLowerCase())?.color ?? 0];
+  const delMes = e.entregas.filter((x) => x.fecha.startsWith(`${mes.a}-${String(mes.m + 1).padStart(2, "0")}`)).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const mostradas = dia ? e.entregas.filter((x) => x.fecha === dia) : delMes;
+  const cambiar = (n: number) => {
+    const f = new Date(mes.a, mes.m + n, 1);
+    setMes({ a: f.getFullYear(), m: f.getMonth() });
+    setDia(null);
+    sonidos.toque();
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <button type="button" onClick={() => cambiar(-1)} aria-label="Mes anterior" className="grid size-11 cursor-pointer place-items-center rounded-full bg-surface">
+          <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <h2 className="text-tarjeta font-extrabold" aria-live="polite">
+          {MESES_LARGOS[mes.m]} {mes.a}
+        </h2>
+        <button type="button" onClick={() => cambiar(1)} aria-label="Mes siguiente" className="grid size-11 cursor-pointer place-items-center rounded-full bg-surface">
+          <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="rounded-tarjeta border-2 border-surface bg-card p-2">
+        <div className="grid grid-cols-7 text-center">
+          {DIAS.map((d) => (
+            <span key={d} className="py-1 text-[12px] font-extrabold text-text-soft">
+              {d}
+            </span>
+          ))}
+          {celdas.map((d, i) => {
+            if (d === null) return <span key={`v${i}`} />;
+            const k = clavesDia(d);
+            const entregas = e.entregas.filter((x) => x.fecha === k);
+            const esHoy = k === clave(ahora);
+            const activo = dia === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => {
+                  sonidos.toque();
+                  setDia(activo ? null : k);
+                }}
+                aria-label={`${d} de ${MESES_LARGOS[mes.m]}${entregas.length ? `, ${entregas.length} ${entregas.length === 1 ? "entrega" : "entregas"}` : ""}`}
+                aria-pressed={activo}
+                className={`flex h-12 cursor-pointer flex-col items-center justify-center rounded-[12px] text-[15px] font-bold ${activo ? "bg-brand text-white" : esHoy ? "bg-surface text-brand ring-2 ring-brand" : "text-text"}`}
+              >
+                <span className="numeros">{d}</span>
+                <span className="flex h-2 items-center gap-0.5">
+                  {entregas.slice(0, 3).map((x) => (
+                    <span key={x.id} className="size-1.5 rounded-full" style={{ background: activo ? "#fff" : colorDe(x.curso) }} />
+                  ))}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <h3 className="font-extrabold">{dia ? bonita(dia) : `Entregas de ${MESES_LARGOS[mes.m].toLowerCase()}`}</h3>
+      {mostradas.length === 0 && <p className="rounded-tarjeta bg-surface p-4 text-center text-text-soft">{dia ? "Nada para este día." : "No hay entregas este mes."}</p>}
+      {mostradas.map((x) => (
+        <div key={x.id} className="flex items-center gap-3 overflow-hidden rounded-tarjeta border-2 border-surface bg-card py-3 pr-3">
+          <span className="w-1.5 self-stretch rounded-r-full" style={{ background: colorDe(x.curso) }} />
+          <span className="flex-1">
+            <span className="block font-extrabold">{x.titulo}</span>
+            <span className="block text-ayuda text-text-soft">
+              {x.curso}
+              {x.tipo ? ` · ${x.tipo}` : ""}
+              {!dia ? ` · ${bonita(x.fecha)}` : ""}
+            </span>
+          </span>
+          <Faltan fecha={x.fecha} />
+        </div>
+      ))}
+      <Boton variante="secundario" onClick={() => navegar("/studio/silabo")}>
+        Importar sílabo
+      </Boton>
+    </>
+  );
+}
+
 export default function Entregas() {
-  const [pestana, setPestana] = useState<"lista" | "semana">("lista");
+  const [pestana, setPestana] = useState<"lista" | "calendario" | "semana">(() => (parametro("ver") === "calendario" ? "calendario" : "lista"));
   return (
     <Pantalla titulo="Entregas">
-      <div className="grid grid-cols-2 gap-1 rounded-full bg-surface p-1" role="tablist">
-        {(["lista", "semana"] as const).map((p) => (
+      <div className="grid grid-cols-3 gap-1 rounded-full bg-surface p-1" role="tablist">
+        {(["lista", "calendario", "semana"] as const).map((p) => (
           <button
             key={p}
             type="button"
@@ -266,11 +327,11 @@ export default function Entregas() {
             className={`relative h-11 cursor-pointer rounded-full font-extrabold ${pestana === p ? "text-brand" : "text-text-soft"}`}
           >
             {pestana === p && <motion.span layoutId="pestana-entregas" className="absolute inset-0 rounded-full bg-card" />}
-            <span className="relative">{p === "lista" ? "Mis entregas" : "Tu semana"}</span>
+            <span className="relative text-[15px]">{p === "lista" ? "Entregas" : p === "calendario" ? "Calendario" : "Tu semana"}</span>
           </button>
         ))}
       </div>
-      {pestana === "lista" ? <ListaEntregas /> : <Semana />}
+      {pestana === "lista" ? <ListaEntregas /> : pestana === "calendario" ? <Calendario /> : <Semana />}
     </Pantalla>
   );
 }
