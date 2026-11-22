@@ -43,17 +43,18 @@ export function registrar(evento: string, propiedades: Record<string, unknown> =
 
 /** Eventos del día 1. */
 export const metricas = {
-  appAbierta: () => {
-    // Una vez por día: sirve para medir retención de día 7 y día 30.
+  appAbierta: (miniApp: MiniApp = location.pathname.startsWith("/vida") ? "vida" : "studio") => {
+    // Una vez por día y por mini app: sirve para medir retención de día 7 y día 30.
     const hoy = new Date().toISOString().slice(0, 10);
+    const sufijo = miniApp === "studio" ? "" : `.${miniApp}`;
     try {
-      if (localStorage.getItem("auxi.ultimaApertura") === hoy) return;
-      localStorage.setItem("auxi.ultimaApertura", hoy);
-      if (!localStorage.getItem("auxi.primeraApertura")) localStorage.setItem("auxi.primeraApertura", hoy);
+      if (localStorage.getItem(`auxi.ultimaApertura${sufijo}`) === hoy) return;
+      localStorage.setItem(`auxi.ultimaApertura${sufijo}`, hoy);
+      if (!localStorage.getItem(`auxi.primeraApertura${sufijo}`)) localStorage.setItem(`auxi.primeraApertura${sufijo}`, hoy);
+      registrar("app_abierta", { primera: localStorage.getItem(`auxi.primeraApertura${sufijo}`) }, miniApp);
     } catch {
-      // sin almacenamiento
+      registrar("app_abierta", {}, miniApp);
     }
-    registrar("app_abierta", { primera: localStorage.getItem("auxi.primeraApertura") });
   },
   leccionCompletada: (datos: { precision: number; primera: boolean; primerDia: boolean }) => {
     registrar("leccion_completada", { precision: datos.precision });
@@ -63,12 +64,20 @@ export const metricas = {
   clicVendoe: (desde: string) => registrar("clic_vendoe", { desde }, "negocio"),
   apoyoSolicitado: () => registrar("apoyo_solicitado"),
   /** Sin nombre ni correo: solo datos para saber a qué público llegar. */
+  /** Vida: activación = primer gasto anotado el primer día. */
+  vidaAnotado: (datos: { tipo: string; origen: string; primero: boolean; primerDia: boolean }) => {
+    registrar("vida_anotado", { tipo: datos.tipo, origen: datos.origen }, "vida");
+    if (datos.primero) registrar("activacion", { primer_dia: datos.primerDia }, "vida");
+  },
+  vidaRevisionEstafa: (nivel: string) => registrar("vida_revision_estafa", { nivel }, "vida"),
+  vidaDiaRespetado: () => registrar("vida_dia_respetado", {}, "vida"),
   perfilCompletado: (d: { pais: string; carrera: string; universidad: string; edad: string }) => registrar("perfil_completado", d),
 };
 
-export const primerDiaDeUso = () => {
+export const primerDiaDeUso = (miniApp: MiniApp = "studio") => {
   try {
-    return localStorage.getItem("auxi.primeraApertura") === new Date().toISOString().slice(0, 10);
+    const sufijo = miniApp === "studio" ? "" : `.${miniApp}`;
+    return localStorage.getItem(`auxi.primeraApertura${sufijo}`) === new Date().toISOString().slice(0, 10);
   } catch {
     return false;
   }

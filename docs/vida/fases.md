@@ -44,5 +44,5 @@ Escribe el contenido del camino de plata: 5 temas (colchón, presupuesto diario,
 ## Fase V5: calidad y lanzamiento
 
 ```text
-Revisa Vida como un usuario con un Android barato y datos móviles, y en Safari de iPhone: velocidad, contraste, tamaños de toque, textos y errores. Revisa que ninguna pantalla avergüence por gastar y que la privacidad de las capturas se cumpla. Luego deja /vida lista para lanzar con su vista previa de enlace (imagen N5).
+Revisa Vida como un usuario con un Android barato y datos móviles, y en Safari de iPhone: velocidad, contraste, tamaños de toque, textos y errores. Revisa que ninguna pantalla avergüence por gastar y que la privacidad de las capturas se cumpla. Luego deja /vida lista para lanzar con su vista previa de enlace (imagen N8, horizontal: `marketing/vida/N8-vista-previa-enlace.webp`).
 ```

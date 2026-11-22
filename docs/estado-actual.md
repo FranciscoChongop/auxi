@@ -23,3 +23,11 @@ App publicada: https://auxi-three.vercel.app/studio (Vercel se actualiza solo al
 - Las monedas y el pase viven en el avance del usuario (se guardan en su cuenta); la aprobación del pase sí se decide en el servidor.
 - Los PNG originales de León están en `originales/leon`; `npm run imagenes` regenera los WebP.
 - Pruebas de celular (390 × 844) con Playwright: se guardan fuera del repositorio.
+
+# Estado de Auxi Vida (`/vida`)
+
+- **Fase V0:** imágenes B1–B9 en `public/leon/vida/`, publicidad N1–N8 en `marketing/vida/` (N8 = vista previa del enlace), docs en `docs/vida/`.
+- **Fase V1 (prototipo navegable):** bienvenida → 3 preguntas → "Hoy puedes gastar" → primer gasto por chat → celebración y cofre → cuenta (opcional) → inicio. Además: subir captura, colchón con frasco y antojo ahorrado, camino de plata (tema 1 con 2 lecciones), alertas ("¿Esto es estafa?" y pendientes) y perfil con "Mis datos".
+- **Sin IA todavía, pero nada fingido:** el presupuesto por día calcula de verdad; el chat entiende frases como «menú 12 y pasaje 3» con reglas; la revisión de estafas busca señales comunes y lo dice; la captura se muestra y la persona escribe el monto (la lectura automática llega en V3).
+- **Datos:** viven en el celular (`auxi.vida.v1`), con su propia racha y monedas. La cuenta es la misma de Studio; guardar Vida en la nube es la Fase V2.
+- **Código:** `src/vida/` (estado y cálculo en `estado.ts`, frases en `entender.ts`, estafas en `estafa.ts`, lecciones en `lecciones.ts`, pantallas en `pantallas/`).

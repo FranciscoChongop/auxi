@@ -20,6 +20,16 @@
   --negocio: #4a4edb;
 }
 
+/* Auxi Vida: misma familia, otra app. Turquesa profundo y oro en vez de cobalto, fondo menta. */
+html.vida {
+  --bg: #f3faf8;
+  --surface: #dcf1ee;
+  --text-soft: #4e6470;
+  --brand: #0b6f6a;       /* blanco encima: 6:1 */
+  --brand-dark: #07504c;
+  --vida-hondo: #0e5b57;  /* tarjeta del saldo, blanco encima: 7,9:1 */
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

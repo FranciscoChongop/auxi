@@ -69,9 +69,13 @@ export function Leon({ pose, alto = 200, rebote = false, className = "" }: Props
 export const CARAS = ["feliz", "guino", "sorpresa", "lengua", "tierno", "lentes"] as const;
 export type CaraLeon = (typeof CARAS)[number];
 
-/** Cara pequeña de León (hoja A8) en un círculo de 40 px, para mensajes. */
+/** En Auxi Vida, las mismas caras salen de la hoja B8 (León con su canguro). */
+const CARA_EN_VIDA: Record<CaraLeon, string> = { feliz: "feliz", guino: "risa", sorpresa: "sorpresa", lengua: "serio", tierno: "tierno", lentes: "curioso" };
+
+/** Cara pequeña de León (hoja A8, o B8 dentro de Vida) en un círculo de 40 px, para mensajes. */
 export function CaraDeLeon({ cara = "feliz", tamano = 40 }: { cara?: CaraLeon; tamano?: number }) {
   const [falla, setFalla] = useState(false);
+  const enVida = typeof document !== "undefined" && document.documentElement.classList.contains("vida");
   if (falla) return <LeonReemplazo tamano={tamano} />;
   return (
     <span
@@ -79,7 +83,7 @@ export function CaraDeLeon({ cara = "feliz", tamano = 40 }: { cara?: CaraLeon; t
       style={{ width: tamano, height: tamano }}
     >
       <img
-        src={`/leon/caras/${cara}.webp`}
+        src={enVida ? `/leon/vida/caras/${CARA_EN_VIDA[cara]}.webp` : `/leon/caras/${cara}.webp`}
         alt=""
         onError={() => setFalla(true)}
         className="size-full object-cover"

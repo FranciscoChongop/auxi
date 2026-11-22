@@ -1,3 +1,4 @@
+import type React from "react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
@@ -26,7 +27,7 @@ const campo =
 type Modo = "entrar" | "crear" | "codigo" | "codigo-enviado" | "confirmar";
 
 /** Puerta de Auxi: hay que iniciar sesión o crear la cuenta (gratis) para entrar. */
-export default function Entrada() {
+export default function Entrada({ titulo = "Auxi Studio", cabecera }: { titulo?: string; cabecera?: React.ReactNode } = {}) {
   const [modo, setModo] = useState<Modo>("entrar");
   const [email, setEmail] = useState("");
   const [clave, setClave] = useState("");
@@ -115,9 +116,9 @@ export default function Entrada() {
       style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)", paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
     >
       <div className="flex items-center gap-3">
-        <CaraDeLeon cara="guino" tamano={64} />
+        {cabecera ?? <CaraDeLeon cara="guino" tamano={64} />}
         <div>
-          <h1 className="text-[26px] leading-tight font-black">Auxi Studio</h1>
+          <h1 className="text-[26px] leading-tight font-black">{titulo}</h1>
           <p className="font-bold text-text-soft">Entra a tu cuenta. Es gratis.</p>
         </div>
       </div>

@@ -39,6 +39,9 @@ const pantallas = {
   catalogo: lazy(() => import("./screens/Catalogo")),
 };
 
+// Auxi Vida (mini app 2): su propia entrada /vida, cargada aparte.
+const VidaApp = lazy(() => import("./vida/VidaApp"));
+
 function elegir(ruta: string): keyof typeof pantallas {
   const r = ruta.replace(/\/+$/, "");
   if (r === "/catalogo") return "catalogo";
@@ -75,6 +78,23 @@ function SinConexion() {
 }
 
 export function App() {
+  const ruta = useRuta();
+  if (ruta === "/vida" || ruta.startsWith("/vida/")) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <ProveedorAvisos>
+          <SinConexion />
+          <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
+            <VidaApp />
+          </Suspense>
+        </ProveedorAvisos>
+      </MotionConfig>
+    );
+  }
+  return <AppStudio />;
+}
+
+function AppStudio() {
   const ruta = useRuta();
   // "/" lleva a Studio (cada mini app tiene su propia entrada).
   useEffect(() => {

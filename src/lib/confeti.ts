@@ -1,10 +1,11 @@
 /** Confeti con los colores de la paleta. Se carga solo cuando hace falta. */
 const COLORES = ["#2430D9", "#5FE3DC", "#F2B341", "#E6E8FA", "#2FB7B0"];
+export const COLORES_VIDA = ["#0B6F6A", "#5FE3DC", "#F2B341", "#DCF1EE", "#C98A1C"];
 
-export async function lanzarConfeti() {
+export async function lanzarConfeti(colores: string[] = COLORES) {
   const { default: confetti } = await import("canvas-confetti");
   const base = {
-    colors: COLORES,
+    colors: colores,
     disableForReducedMotion: true,
     ticks: 220,
     scalar: 1.05,

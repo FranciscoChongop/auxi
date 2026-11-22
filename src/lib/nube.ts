@@ -94,7 +94,7 @@ function capturarErrorDeEntrada() {
     const err = q.get("error_description") ?? q.get("error");
     if (!err) return;
     sessionStorage.setItem("auxi.errorEntrada", err.replace(/\+/g, " "));
-    history.replaceState(null, "", "/studio/entrada");
+    history.replaceState(null, "", location.pathname.startsWith("/vida") ? "/vida/cuenta" : "/studio/entrada");
   } catch {
     // sin almacenamiento
   }
@@ -140,7 +140,8 @@ export function iniciarNube() {
 
 /* ---------- Acciones de la pantalla de cuenta ---------- */
 
-const urlDeVuelta = () => `${location.origin}/studio`;
+/** Vuelve a la mini app desde donde se entró (Studio o Vida). */
+const urlDeVuelta = () => `${location.origin}${location.pathname.startsWith("/vida") ? "/vida/inicio" : "/studio"}`;
 
 export async function entrarConGoogle() {
   if (!supabase) return "Las cuentas aún no están activadas.";
@@ -167,7 +168,7 @@ export async function entrarConClave(email: string, clave: string) {
 /** Crea la cuenta. Devuelve "confirmar" si hay que abrir un enlace del correo antes de entrar. */
 export async function crearCuentaConClave(email: string, clave: string): Promise<string | null> {
   if (!supabase) return "Las cuentas aún no están activadas.";
-  const { data, error } = await supabase.auth.signUp({ email, password: clave, options: { emailRedirectTo: `${location.origin}/studio` } });
+  const { data, error } = await supabase.auth.signUp({ email, password: clave, options: { emailRedirectTo: urlDeVuelta() } });
   if (error) return traducir(error);
   // Si el correo ya tenía cuenta (por ejemplo, entró antes con código), Supabase no crea otra ni envía nada.
   if (!data.session && data.user && data.user.identities?.length === 0) return "existe";

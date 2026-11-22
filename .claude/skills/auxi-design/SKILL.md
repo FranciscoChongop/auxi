@@ -97,7 +97,7 @@ En Auxi Vida, León lleva canguro turquesa y su moneda de oro sin letras. Imáge
 | Avatar del chat (cara chica en círculo de 40 px) | B8-caras (`caras/feliz`, `risa`, `sorpresa`, `serio`, `tierno`, `curioso`) |
 | Ícono de Vida | B9-icono |
 
-Acento de Vida: turquesa (`--vida`); el oro, para el colchón y los premios. Montos siempre con "S/ ", dos decimales solo si hacen falta, y contador animado al cambiar. Nunca rojo alarmante en pantalla completa por gastar.
+**Identidad propia de Vida (sutil, misma familia):** con la clase `vida` en `<html>` (la pone `/vida`), los tokens cambian: `--brand` #0B6F6A turquesa profundo (blanco encima 6:1), `--brand-dark` #07504C, `--bg` #F3FAF8 menta, `--surface` #DCF1EE, `--text-soft` #4E6470 y `--vida-hondo` #0E5B57 para la tarjeta del saldo. Misma letra (Nunito) y mismo León. Marca: moneda de oro + "Auxi **Vida**". Distribución propia: tarjeta grande del saldo arriba, 3 accesos en cuadrícula, esquinas de 20 a 28 px y barra inferior flotante con botón central "+" para anotar (Studio usa 5 pestañas planas). El oro, para el colchón y los premios. Montos siempre con "S/ ", dos decimales solo si hacen falta, y contador animado al cambiar. Nunca rojo alarmante en pantalla completa por gastar.
 
 ## Tono de los textos
 

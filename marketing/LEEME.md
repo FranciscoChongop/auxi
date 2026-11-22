@@ -19,3 +19,4 @@ Estas imágenes son para redes y anuncios, no para la app. Por eso están fuera 
 - N5-story-estafa: story 9:16 oscura, León con lupa y un chat sospechoso.
 - N6-banner-moneda: banner horizontal, León con moneda y espacio libre a la derecha.
 - N7-story-noche-estrellas: story 9:16 oscura con monedas y estrellas, León pequeño abajo.
+- N8-vista-previa-enlace: horizontal 1,9:1, León con moneda sobre turquesa. Es la vista previa al compartir el enlace de /vida.
