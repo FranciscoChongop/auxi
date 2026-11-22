@@ -7,22 +7,24 @@ import { mezclar, normalizar } from "../juegos/corregir";
  * Auxi no gasta nada: la lectura del PDF la hace la IA de la persona.
  */
 
-export const PROMPT = `Eres un profesor experto y diseñador de juegos educativos. Te adjunto un material de estudio (PDF, apuntes o texto). Conviértelo en un curso para una app de estudio tipo juego.
+export const PROMPT = `Eres un profesor experto y diseñador de juegos educativos. Te adjunto un material de estudio (PDF, apuntes o texto). PRIMERO léelo completo. Luego conviértelo en un curso para una app de estudio tipo juego.
 
-Responde SOLO con un bloque de código JSON válido, sin texto antes ni después, con este formato exacto:
+Si no puedes abrir o leer el material, NO inventes nada: respóndeme solo "No pude leer el material".
 
-{"curso":"Nombre del curso (ej. Biología)","tema":"Nombre del tema (ej. La célula)","unidades":[
- {"titulo":"Nombre de la unidad","resumen":"Lo esencial en 2 frases.","lecciones":[
-  {"titulo":"Nombre de la lección",
-   "tarjetas":[{"frente":"Idea clave corta","reverso":"Explicación en máximo 2 frases, con un ejemplo."}],
+Responde SOLO con un bloque de código JSON válido, sin texto antes ni después. Todo lo que está entre < > son instrucciones: REEMPLÁZALO por contenido real sacado del material. Nunca copies esas instrucciones.
+
+{"curso":"<nombre real del curso>","tema":"<nombre real del tema>","unidades":[
+ {"titulo":"<título real de la unidad>","resumen":"<2 frases con lo esencial de esa unidad>","lecciones":[
+  {"titulo":"<título real de la lección>",
+   "tarjetas":[{"frente":"<concepto clave del material>","reverso":"<su explicación en máximo 2 frases, con un ejemplo>"}],
    "ejercicios":[
-    {"tipo":"opcion","pregunta":"¿...?","opciones":["A","B","C","D"],"correcta":0,"explicacion":"Por qué es así.","pista":"Una ayuda que NO dé la respuesta."},
-    {"tipo":"vf","afirmacion":"Una afirmación.","respuesta":true,"explicacion":"Por qué.","pista":"Ayuda."},
-    {"tipo":"completar","frase":"La ___ hace tal cosa.","respuesta":"palabra","opciones":["palabra","otra","otra","otra"],"explicacion":"Por qué.","pista":"Ayuda."},
-    {"tipo":"escribir","pregunta":"¿...?","respuestas":["respuesta","otra forma válida"],"explicacion":"Por qué.","pista":"Ayuda."},
-    {"tipo":"parejas","pares":[["Término","Definición corta"],["Término","Definición corta"],["Término","Definición corta"],["Término","Definición corta"]],"explicacion":"Por qué."},
-    {"tipo":"ordenar","instruccion":"Ordena los pasos de ...","pasos":["Primero","Segundo","Tercero","Cuarto"],"explicacion":"Por qué.","pista":"Ayuda."},
-    {"tipo":"clasificar","instruccion":"¿A qué grupo pertenece?","grupos":["Grupo A","Grupo B"],"items":[{"texto":"Elemento","grupo":0},{"texto":"Elemento","grupo":1}],"explicacion":"Por qué."}
+    {"tipo":"opcion","pregunta":"<pregunta real>","opciones":["<a>","<b>","<c>","<d>"],"correcta":0,"explicacion":"<por qué>","pista":"<ayuda que no dé la respuesta>"},
+    {"tipo":"vf","afirmacion":"<afirmación real>","respuesta":true,"explicacion":"<por qué>","pista":"<ayuda>"},
+    {"tipo":"completar","frase":"<frase real con ___ donde va la palabra>","respuesta":"<palabra>","opciones":["<palabra>","<otra>","<otra>","<otra>"],"explicacion":"<por qué>","pista":"<ayuda>"},
+    {"tipo":"escribir","pregunta":"<pregunta real>","respuestas":["<respuesta>","<variante válida>"],"explicacion":"<por qué>","pista":"<ayuda>"},
+    {"tipo":"parejas","pares":[["<término>","<definición corta>"],["<término>","<definición corta>"],["<término>","<definición corta>"],["<término>","<definición corta>"]],"explicacion":"<por qué>"},
+    {"tipo":"ordenar","instruccion":"<qué ordenar>","pasos":["<paso 1>","<paso 2>","<paso 3>"],"explicacion":"<por qué>","pista":"<ayuda>"},
+    {"tipo":"clasificar","instruccion":"<qué clasificar>","grupos":["<grupo A>","<grupo B>"],"items":[{"texto":"<elemento>","grupo":0},{"texto":"<elemento>","grupo":1},{"texto":"<elemento>","grupo":0}],"explicacion":"<por qué>"}
    ]}
  ]}
 ]}
@@ -217,8 +219,36 @@ function ejercicio(raw: unknown): Ejercicio | null {
 
 export type CursoImportado = { curso: string; tema: string; unidades: Unidad[]; cortado: boolean; descartados: number };
 
+/** Frases del ejemplo del prompt. Si llegan tal cual, la IA no leyó el material. */
+const DE_PLANTILLA = [
+  "idea clave corta",
+  "nombre de la leccion",
+  "nombre de la unidad",
+  "nombre del curso",
+  "nombre del tema",
+  "explicacion en maximo 2 frases",
+  "lo esencial en 2 frases",
+  "concepto clave del material",
+  "titulo real",
+  "pregunta real",
+  "afirmacion real",
+  "frase real",
+  "nombre real",
+];
+
+export function parecePlantilla(texto: string) {
+  const t = normalizar(texto);
+  const golpes = DE_PLANTILLA.filter((f) => t.includes(f)).length;
+  return golpes >= 2 || /<\s*(nombre|titulo|pregunta|afirmacion|frase|concepto)[^>]{0,40}>/i.test(texto.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+}
+
+const AVISO_PLANTILLA =
+  "La IA te devolvió el ejemplo sin llenar: no leyó tu material. Revisa que haya podido abrir el archivo (si es muy pesado, pega el texto en el chat) y pídele: «Lee el material y llena el JSON con su contenido real».";
+
 export function importarDeTexto(texto: string): CursoImportado {
+  if (/no pude leer el material/i.test(texto) && !/\{/.test(texto)) throw new Error("La IA dice que no pudo leer tu material. Prueba subirlo de nuevo, usar otra IA, o pegar el texto en el chat.");
   const { datos, cortado } = leerJson(texto);
+  if (parecePlantilla(JSON.stringify(datos))) throw new Error(AVISO_PLANTILLA);
   const raw = obj(datos);
   const todasRespuestas: string[] = [];
   let descartados = 0;
