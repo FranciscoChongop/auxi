@@ -59,7 +59,6 @@ export default function Cuenta() {
     if (e) return setError(e);
     setPaso("codigo");
     setEspera(60);
-    setTimeout(() => entradaCodigo.current?.focus(), 250);
   }
 
   async function entrar() {
@@ -153,37 +152,53 @@ export default function Cuenta() {
               />
             </label>
             <Boton deshabilitado={!correoValido(email) || enviando} onClick={enviar}>
-              {enviando ? "Enviando…" : "Enviarme un código"}
+              {enviando ? "Enviando…" : "Enviarme el acceso"}
             </Boton>
-            <p className="text-center text-ayuda text-text-soft">Te llega un código de 6 números. Sin contraseñas.</p>
+            <p className="text-center text-ayuda text-text-soft">Te llega un correo para entrar. Sin contraseñas.</p>
           </motion.div>
         ) : (
           <motion.div key="codigo" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} className="flex flex-col gap-4">
-            <p className="text-text-soft">
-              Te envié un código a <span className="font-extrabold break-all text-text">{email}</span>. Revisa también spam.
-            </p>
-            <input
-              ref={entradaCodigo}
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={8}
-              value={codigo}
-              onChange={(ev) => setCodigo(ev.target.value.replace(/\D/g, ""))}
-              onKeyDown={(ev) => ev.key === "Enter" && codigo.length >= 6 && !enviando && entrar()}
-              aria-label="Código de 6 números"
-              placeholder="••••••"
-              className="numeros h-16 w-full rounded-boton border-2 border-surface bg-card text-center text-[30px] font-black tracking-[0.4em] text-text outline-none placeholder:text-surface focus:border-brand"
-            />
-            <Boton deshabilitado={codigo.length < 6 || enviando} onClick={entrar}>
-              {enviando ? "Revisando…" : "Entrar"}
-            </Boton>
+            <div className="flex flex-col items-center gap-3 rounded-tarjeta bg-surface p-5 text-center">
+              <motion.svg viewBox="0 0 24 24" className="size-14 text-brand" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 1.6 }} aria-hidden="true">
+                <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+                  <path d="M3.5 7l8.5 6 8.5-6" />
+                </g>
+              </motion.svg>
+              <p className="text-tarjeta font-extrabold">Revisa tu correo</p>
+              <p>
+                Te envié un correo a <span className="font-extrabold break-all">{email}</span>. Ábrelo en este celular y toca{" "}
+                <span className="font-extrabold">«Sign in»</span>.
+              </p>
+              <p className="text-ayuda text-text-soft">Si no lo ves en un minuto, revisa spam o promociones.</p>
+            </div>
+            <details className="rounded-tarjeta border-2 border-surface bg-card p-3">
+              <summary className="flex min-h-11 cursor-pointer items-center font-extrabold text-brand">¿Te llegó un código de números?</summary>
+              <div className="mt-2 flex flex-col gap-3">
+                <input
+                  ref={entradaCodigo}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={8}
+                  value={codigo}
+                  onChange={(ev) => setCodigo(ev.target.value.replace(/\D/g, ""))}
+                  onKeyDown={(ev) => ev.key === "Enter" && codigo.length >= 6 && !enviando && entrar()}
+                  aria-label="Código de números"
+                  placeholder="••••••"
+                  className="numeros h-16 w-full rounded-boton border-2 border-surface bg-card text-center text-[30px] font-black tracking-[0.4em] text-text outline-none placeholder:text-surface focus:border-brand"
+                />
+                <Boton deshabilitado={codigo.length < 6 || enviando} onClick={entrar}>
+                  {enviando ? "Revisando…" : "Entrar con el código"}
+                </Boton>
+              </div>
+            </details>
             <div className="flex justify-between">
               <button type="button" onClick={() => { setPaso("correo"); setCodigo(""); setError(null); }} className="h-11 cursor-pointer font-extrabold text-brand">
                 Cambiar correo
               </button>
               <button type="button" disabled={espera > 0 || enviando} onClick={enviar} className="h-11 cursor-pointer font-extrabold text-brand disabled:text-text-soft">
-                {espera > 0 ? `Reenviar en ${espera} s` : "Reenviar código"}
+                {espera > 0 ? `Reenviar en ${espera} s` : "Reenviar correo"}
               </button>
             </div>
           </motion.div>

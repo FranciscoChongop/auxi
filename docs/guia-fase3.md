@@ -5,17 +5,10 @@
 1. Entra a **supabase.com** → **Start your project** → inicia sesión con GitHub.
 2. **New project**: nombre `auxi`, una contraseña de base de datos (guárdala, no me la pases), región **South America (São Paulo)**. Espera 1–2 minutos.
 3. **SQL Editor** → **New query** → pega todo `supabase/esquema.sql` → **Run**. Debe decir "Success".
-4. **Authentication → Emails → Templates → Magic Link**: reemplaza el contenido por:
-
-   ```html
-   <h2>Tu código de Auxi</h2>
-   <p>Escribe este código en la app para entrar:</p>
-   <p style="font-size:28px;font-weight:800;letter-spacing:6px">{{ .Token }}</p>
-   <p>Si no lo pediste, ignora este correo.</p>
-   ```
-
-   Guarda. (Así llega un código de 6 números en vez de un enlace.)
-5. **Project Settings → API**: copia **Project URL** y **anon public** (la clave larga). Esos dos datos son los que me pasas. La anon key es pública por diseño; la que nunca se comparte es la **service_role**.
+4. **Authentication → URL Configuration**: en **Site URL** pon `http://localhost:5173` y en **Redirect URLs** agrega `http://localhost:5173/**`. (Cuando publiquemos en Vercel se agrega también ese enlace.) Así el botón «Sign in» del correo te devuelve a la app.
+   - Supabase ya no deja editar la plantilla del correo sin un servidor de correo propio (SMTP), así que llega el correo por defecto con el enlace «Sign in». La app funciona con ese enlace.
+   - El correo de Supabase tiene un límite de pocos envíos por hora: sirve para probar. Antes del lanzamiento conviene conectar un SMTP propio (por ejemplo, Resend, que es gratis al inicio).
+5. Botón **Connect** (arriba) → pestaña **App Frameworks**: copia el **Project URL** y la clave pública (**Publishable key** `sb_publishable_…` o **anon public**). Esos dos datos son los que me pasas. La anon key es pública por diseño; la que nunca se comparte es la **service_role**.
 
 ## 2. Vercel (publicar)
 
