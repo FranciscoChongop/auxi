@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Estudia jugando · Kit gratis de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!--
+  Estudia jugando · Bonus del Kit gratis de IA
+  Convierte cualquier PDF en un juego para estudiar: niveles, vidas, XP y racha.
+  1. Toca "Nuevo" y copia el prompt.  2. Súbele tu PDF a Gemini o ChatGPT con ese prompt.
+  3. Copia lo que te responde y pégalo en la app. Tu progreso se guarda en este celular.
+-->
+<style>
+:root{--nar:#f97316;--nar2:#c2410c;--narc:#fff7ed;--neg:#111827;--txt:#1f2937;--sub:#6b7280;--borde:#e5e7eb;--gris:#f3f4f6;
+--ok:#16a34a;--ok2:#15803d;--okc:#dcfce7;--mal:#dc2626;--mal2:#b91c1c;--malc:#fee2e2;--azul:#2563eb}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#fff;color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+#app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:84px}
+.oculto{display:none!important}
+/* Barra de arriba */
+.barra{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid var(--gris);display:flex;align-items:center;gap:8px;padding:10px 14px}
+.chip-curso{display:flex;align-items:center;gap:6px;border:2px solid var(--borde);border-radius:12px;padding:5px 9px;background:#fff;font-weight:800;font-size:13px;max-width:46%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.chip-curso span:last-child{overflow:hidden;text-overflow:ellipsis}
+.stat{display:flex;align-items:center;gap:3px;font-weight:900;font-size:15px;margin-left:auto}
+.stat+.stat{margin-left:10px}
+.stat.fuego{color:var(--nar)}.stat.xp{color:#ca8a04}.stat.vida{color:var(--mal)}
+/* Meta del día */
+.meta{margin:14px 14px 4px;border:2px solid var(--borde);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.meta .anillo{width:46px;height:46px;flex:0 0 46px}
+.meta b{display:block;font-size:15px;color:var(--neg)}
+.meta small{color:var(--sub);font-size:12.5px}
+/* Camino */
+.unidad{margin:18px 14px 6px;border-radius:16px;padding:14px 16px;color:#fff;display:flex;align-items:center;gap:10px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+.unidad .t{flex:1}
+.unidad small{display:block;font-size:11px;font-weight:800;letter-spacing:1.5px;opacity:.85}
+.unidad b{font-size:17px;line-height:1.2;display:block}
+.unidad button{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.35);color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:13px}
+.resumen{margin:4px 14px 0;background:var(--gris);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.45}
+.camino{display:flex;flex-direction:column;align-items:center;gap:16px;padding:50px 0 8px}
+.nodo-w{position:relative}
+.nodo{width:72px;height:66px;border-radius:50%;border:0;font-size:28px;display:flex;align-items:center;justify-content:center;position:relative;color:#fff;
+background:var(--nar);box-shadow:0 7px 0 var(--nar2);transition:transform .08s}
+.nodo:active{transform:translateY(5px);box-shadow:0 2px 0 var(--nar2)}
+.nodo.bloq{background:#e5e7eb;box-shadow:0 7px 0 #c4c7cc;color:#9ca3af}
+.nodo.hecho{background:#facc15;box-shadow:0 7px 0 #ca8a04}
+.nodo.prueba{width:84px;height:76px;font-size:32px}
+.nodo.actual{animation:latido 1.6s infinite}
+@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.globo{position:absolute;bottom:84px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--borde);color:var(--nar);font-weight:900;font-size:13px;
+padding:6px 10px;border-radius:10px;white-space:nowrap;animation:flota 1.6s infinite}
+.globo:after{content:'';position:absolute;bottom:-8px;left:50%;margin-left:-7px;border:7px solid transparent;border-top-color:var(--borde);border-bottom:0}
+@keyframes flota{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-4px)}}
+.estrellas{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:-1px}
+.mascota{font-size:44px;margin:6px 0 0;text-align:center}
+/* Ventana de la lección */
+.pop{position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.pop .caja{background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));animation:sube .18s ease-out}
+@keyframes sube{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.pop h3{margin:0 0 4px;font-size:20px;color:var(--neg)}
+.pop p{margin:0 0 14px;color:var(--sub);font-size:14.5px;line-height:1.45}
+/* Botones grandes */
+.bt{display:block;width:100%;border:0;border-radius:16px;padding:15px 14px;font-weight:900;font-size:16px;letter-spacing:.5px;text-transform:uppercase;
+background:var(--nar);color:#fff;box-shadow:0 5px 0 var(--nar2);transition:transform .06s}
+.bt:active{transform:translateY(4px);box-shadow:0 1px 0 var(--nar2)}
+.bt:disabled{background:#e5e7eb;color:#9ca3af;box-shadow:0 5px 0 #d1d5db}
+.bt.verde{background:#22c55e;box-shadow:0 5px 0 var(--ok2)}
+.bt.rojo{background:#ef4444;box-shadow:0 5px 0 var(--mal2)}
+.bt.blanco{background:#fff;color:var(--azul);border:2px solid var(--borde);box-shadow:0 4px 0 var(--borde)}
+.bt.negro{background:var(--neg);box-shadow:0 5px 0 #000}
+.bt+.bt{margin-top:12px}
+/* Pantalla de ejercicio */
+.lec{position:fixed;inset:0;background:#fff;z-index:30;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+.lec-top{display:flex;align-items:center;gap:12px;padding:14px 16px 6px}
+.cerrar{border:0;background:none;font-size:26px;color:#9ca3af;padding:0 4px;line-height:1}
+.prog{flex:1;height:16px;background:var(--gris);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:#22c55e;border-radius:99px;transition:width .35s;position:relative}
+.prog i:after{content:'';position:absolute;left:8px;right:8px;top:4px;height:4px;border-radius:9px;background:rgba(255,255,255,.35)}
+.lec-vidas{font-weight:900;color:var(--mal);font-size:16px;min-width:38px;text-align:right}
+.combo{text-align:center;font-weight:900;color:var(--nar);font-size:14px;height:20px;transition:opacity .3s}
+.lec-cuerpo{flex:1;overflow-y:auto;padding:6px 18px 18px}
+.tipo{font-size:12px;font-weight:900;letter-spacing:1.6px;color:var(--sub);margin:6px 0 6px;text-transform:uppercase}
+.preg{font-size:21px;font-weight:800;color:var(--neg);line-height:1.3;margin:0 0 18px}
+.ops{display:flex;flex-direction:column;gap:10px}
+.op{border:2px solid var(--borde);border-bottom-width:4px;border-radius:14px;background:#fff;padding:14px;font-size:16px;font-weight:600;text-align:left;color:var(--txt);
+display:flex;gap:12px;align-items:center}
+.op .l{width:28px;height:28px;flex:0 0 28px;border:2px solid var(--borde);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--sub)}
+.op.sel{border-color:#fdba74;background:var(--narc);color:var(--nar2)}
+.op.sel .l{border-color:var(--nar);color:var(--nar)}
+.op.bien{border-color:#86efac;background:var(--okc);color:var(--ok2)}
+.op.malx{border-color:#fca5a5;background:var(--malc);color:var(--mal2)}
+.vf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vf .op{flex-direction:column;justify-content:center;font-size:18px;font-weight:800;padding:22px 10px}
+.vf .op span{font-size:30px}
+.frase{font-size:20px;line-height:1.7;font-weight:600;color:var(--neg);margin:0 0 22px}
+.hueco{display:inline-block;min-width:90px;border-bottom:3px solid var(--borde);text-align:center;color:var(--nar2);font-weight:800;padding:0 6px}
+.banco{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.ficha{border:2px solid var(--borde);border-bottom-width:4px;border-radius:12px;background:#fff;padding:10px 14px;font-size:16px;font-weight:700;color:var(--txt)}
+.ficha.usada{visibility:hidden}
+.zona{min-height:120px;border-top:2px solid var(--borde);border-bottom:2px solid var(--borde);padding:12px 0;margin-bottom:22px;display:flex;flex-direction:column;gap:8px}
+.zona .ficha{text-align:left;display:flex;gap:10px}
+.zona .ficha b{color:var(--nar)}
+.zona .vacia{color:#9ca3af;font-size:14px;text-align:center;margin:auto}
+.banco.col{flex-direction:column}
+.banco.col .ficha{text-align:left}
+.pares{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pares .ficha{font-size:14.5px;padding:12px 10px;min-height:58px;text-align:center;display:flex;align-items:center;justify-content:center}
+.pares .ficha.sel{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
+.pares .ficha.listo{border-color:#86efac;background:var(--okc);color:var(--ok2);opacity:.55;pointer-events:none}
+.pares .ficha.error{border-color:#fca5a5;background:var(--malc);color:var(--mal2);animation:tiembla .3s}
+@keyframes tiembla{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.tarjeta{perspective:900px;margin:8px 0 18px}
+.tarjeta .in{position:relative;min-height:240px;transition:transform .45s;transform-style:preserve-3d}
+.tarjeta.vuelta .in{transform:rotateY(180deg)}
+.tarjeta .cara{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:2px solid var(--borde);border-bottom-width:5px;border-radius:20px;
+padding:22px 18px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+.tarjeta .frente{background:var(--narc);border-color:#fdba74}
+.tarjeta .frente b{font-size:24px;color:var(--neg);line-height:1.25}
+.tarjeta .frente small{margin-top:14px;color:var(--nar2);font-weight:700;font-size:13px}
+.tarjeta .reverso{transform:rotateY(180deg);background:#fff;font-size:17px;line-height:1.5;color:var(--txt)}
+.lec-pie{padding:14px 18px calc(18px + env(safe-area-inset-bottom));border-top:2px solid var(--gris);background:#fff}
+.lec-pie.bien{background:var(--okc);border-color:var(--okc)}
+.lec-pie.mal{background:var(--malc);border-color:var(--malc)}
+.fb{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.fb .ic{width:40px;height:40px;flex:0 0 40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:900}
+.bien .fb .ic{background:#22c55e}.mal .fb .ic{background:#ef4444}
+.fb b{display:block;font-size:19px;font-weight:900}
+.bien .fb b{color:var(--ok2)}.mal .fb b{color:var(--mal2)}
+.fb p{margin:3px 0 0;font-size:14.5px;line-height:1.45}
+.bien .fb p{color:#166534}.mal .fb p{color:#991b1b}
+/* Final */
+.fin{text-align:center;padding:30px 20px}
+.fin .big{font-size:68px;margin:10px 0 4px}
+.fin h2{font-size:26px;color:#ca8a04;margin:6px 0 4px;font-weight:900}
+.fin .es{font-size:34px;letter-spacing:4px;margin:4px 0 18px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 26px}
+.tile{border:2px solid;border-radius:14px;overflow:hidden}
+.tile small{display:block;color:#fff;font-size:11px;font-weight:900;letter-spacing:1px;padding:5px 2px}
+.tile b{display:block;font-size:20px;font-weight:900;padding:10px 2px}
+/* Páginas */
+.pag{padding:16px}
+.pag h2{font-size:24px;color:var(--neg);margin:6px 0 4px;font-weight:900}
+.pag > p{color:var(--sub);margin:0 0 16px;font-size:14.5px;line-height:1.45}
+.paso{border:2px solid var(--borde);border-radius:16px;padding:14px;margin-bottom:12px}
+.paso .n{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--nar);color:#fff;font-weight:900;align-items:center;justify-content:center;font-size:14px;margin-right:6px}
+.paso h4{display:flex;align-items:center;margin:0 0 6px;font-size:16px;color:var(--neg)}
+.paso p{margin:0 0 10px;font-size:14px;color:var(--sub);line-height:1.45}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dos .bt{font-size:14px;padding:12px 8px;text-transform:none;margin:0}
+textarea{width:100%;min-height:150px;border:2px solid var(--borde);border-radius:14px;padding:12px;font:13px ui-monospace,Menlo,Consolas,monospace;resize:vertical;outline:none}
+textarea:focus{border-color:var(--nar)}
+.aviso{border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.45;margin:10px 0}
+.aviso.mal{background:var(--malc);color:#991b1b}.aviso.bien{background:var(--okc);color:#166534}.aviso.info{background:var(--narc);color:#9a3412}
+.curso{border:2px solid var(--borde);border-radius:16px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.curso.on{border-color:var(--nar);background:var(--narc)}
+.curso .em{font-size:30px}
+.curso .t{flex:1;min-width:0}
+.curso b{display:block;color:var(--neg);font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.curso small{color:var(--sub);font-size:12.5px}
+.barrita{height:8px;background:var(--gris);border-radius:9px;margin-top:6px;overflow:hidden}.barrita i{display:block;height:100%;background:var(--nar)}
+.mini{border:0;background:none;color:var(--sub);font-size:20px;padding:4px}
+.vacio{text-align:center;color:var(--sub);padding:30px 10px}
+.vacio .mascota{font-size:64px}
+/* Menú de abajo */
+.menu{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#fff;border-top:2px solid var(--gris);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+.menu div{display:flex;max-width:480px;width:100%}
+.menu button{flex:1;border:0;background:none;padding:10px 0 8px;font-size:22px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--sub)}
+.menu button small{font-size:11px;font-weight:800}
+.menu button.on{color:var(--nar)}
+.menu button.on span{background:var(--narc);border:2px solid #fdba74;border-radius:12px;padding:0 10px}
+.mk-pie{text-align:center;font-size:10px;color:#d1d5db;letter-spacing:.5px;margin:22px 0 8px}
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--neg);color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;font-size:14px;z-index:50;
+box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:90%;text-align:center}
+.confeti{position:fixed;top:-20px;z-index:60;font-size:22px;pointer-events:none;animation:cae linear forwards}
+@keyframes cae{to{transform:translateY(110vh) rotate(540deg)}}
+.ajuste{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gris);padding:12px 0;font-weight:700}
+.ajuste button{border:2px solid var(--borde);background:#fff;border-radius:10px;padding:6px 12px;font-weight:800}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="menu" id="menu"><div>
+  <button data-ir="camino"><span>🏠</span><small>Camino</small></button>
+  <button data-ir="practicar"><span>🎯</span><small>Practicar</small></button>
+  <button data-ir="cursos"><span>📚</span><small>Mis cursos</small></button>
+  <button data-ir="nuevo"><span>➕</span><small>Nuevo</small></button>
+</div></nav>
+<script>
+(function () {
+'use strict';
+
+// ---------- Marca del kit ----------
+var _MK = 'S2l0IGdyYXRpcyDCtyBAZGFuaWVsY2hvbmc=';
+function marca() { try { return decodeURIComponent(escape(atob(_MK))); } catch (e) { return 'Kit gratis'; } }
+
+// ---------- El prompt que se copia en Gemini o ChatGPT ----------
+var PROMPT = [
+'Eres un profesor experto y diseñador de juegos educativos. Te adjunto un PDF. Conviértelo en un curso para una app de estudio tipo juego, con niveles.',
+'',
+'Responde SOLO con un bloque de código JSON válido, sin texto antes ni después, con este formato exacto:',
+'',
+'{"titulo":"Tema corto del PDF","emoji":"📘","unidades":[',
+' {"titulo":"Nombre de la unidad","resumen":"Lo esencial de la unidad en 2 frases.","lecciones":[',
+'  {"titulo":"Nombre de la lección",',
+'   "tarjetas":[{"frente":"Idea clave corta","reverso":"Explicación en máximo 2 frases, con un ejemplo."}],',
+'   "ejercicios":[',
+'    {"tipo":"opcion","pregunta":"¿...?","opciones":["A","B","C","D"],"correcta":0,"explicacion":"Por qué es así."},',
+'    {"tipo":"vf","afirmacion":"Una afirmación.","respuesta":true,"explicacion":"Por qué."},',
+'    {"tipo":"completar","frase":"La ___ hace tal cosa.","respuesta":"palabra","opciones":["palabra","otra","otra","otra"],"explicacion":"Por qué."},',
+'    {"tipo":"parejas","pares":[["Término","Definición corta"],["Término","Definición corta"],["Término","Definición corta"],["Término","Definición corta"]]},',
+'    {"tipo":"ordenar","instruccion":"Ordena los pasos de ...","pasos":["Primero","Segundo","Tercero","Cuarto"]}',
+'   ]}',
+' ]}',
+']}',
+'',
+'Reglas:',
+'- Usa SOLO información del PDF. No inventes datos, fechas ni cifras.',
+'- Haz 3 unidades, de lo básico a lo avanzado, en el orden del PDF. Cada unidad con 2 lecciones.',
+'- Cada lección: 2 tarjetas para aprender y 6 ejercicios que mezclen los 5 tipos.',
+'- "opcion": 4 opciones creíbles y una sola correcta. "correcta" es el número de la opción correcta, empezando en 0.',
+'- "vf": "respuesta" es true o false. Que haya de los dos.',
+'- "completar": la frase lleva ___ donde va la palabra que falta; "opciones" trae esa palabra y 3 que confundan.',
+'- "parejas": 4 pares de [término, definición corta de máximo 8 palabras].',
+'- "ordenar": de 3 a 5 pasos o etapas del PDF, en el orden correcto (la app los mezcla). Si el tema no tiene pasos, no uses este tipo.',
+'- Cada "explicacion": 1 frase que diga por qué, con lo que dice el PDF.',
+'- Español sencillo y frases cortas: se va a estudiar en el celular.',
+'- Si te escribo "sigue", continúa con las unidades siguientes del PDF: mismo formato y mismo "titulo".'
+].join('\n');
+
+// ---------- Curso de ejemplo ----------
+var EJEMPLO = {"titulo":"La fotosíntesis (ejemplo)","emoji":"🌱","unidades":[
+{"titulo":"Qué es y para qué sirve","resumen":"La fotosíntesis es cómo las plantas fabrican su alimento con luz. Además, libera el oxígeno que respiramos.","lecciones":[
+{"titulo":"La idea principal","tarjetas":[
+{"frente":"Fotosíntesis","reverso":"Proceso con el que las plantas convierten luz, agua y CO₂ en glucosa (su alimento). Ej.: una hoja al sol."},
+{"frente":"Oxígeno","reverso":"Es el 'desecho' de la fotosíntesis. Gracias a él podemos respirar."}],
+"ejercicios":[
+{"tipo":"opcion","pregunta":"¿Qué fabrica la planta en la fotosíntesis?","opciones":["Glucosa","Sal","Proteína animal","Petróleo"],"correcta":0,"explicacion":"La planta produce glucosa, que es su alimento."},
+{"tipo":"vf","afirmacion":"La fotosíntesis libera oxígeno.","respuesta":true,"explicacion":"El oxígeno sale como resultado del proceso."},
+{"tipo":"completar","frase":"Para la fotosíntesis la planta necesita luz, agua y ___.","respuesta":"CO₂","opciones":["CO₂","sal","azúcar","tierra"],"explicacion":"El dióxido de carbono (CO₂) entra por las hojas."},
+{"tipo":"vf","afirmacion":"Las plantas hacen fotosíntesis de noche, sin luz.","respuesta":false,"explicacion":"Sin luz no hay fotosíntesis."},
+{"tipo":"parejas","pares":[["Luz","Fuente de energía"],["Agua","Entra por la raíz"],["CO₂","Entra por las hojas"],["Glucosa","Alimento de la planta"]]},
+{"tipo":"opcion","pregunta":"¿Qué gas respiramos gracias a las plantas?","opciones":["Nitrógeno","Oxígeno","Helio","Metano"],"correcta":1,"explicacion":"Las plantas liberan oxígeno."}]},
+{"titulo":"Dónde ocurre","tarjetas":[
+{"frente":"Cloroplasto","reverso":"Parte de la célula vegetal donde ocurre la fotosíntesis. Está sobre todo en las hojas."},
+{"frente":"Clorofila","reverso":"Pigmento verde que atrapa la luz. Por eso las hojas son verdes."}],
+"ejercicios":[
+{"tipo":"opcion","pregunta":"¿Dónde ocurre la fotosíntesis?","opciones":["En la raíz","En los cloroplastos","En las flores","En el tallo seco"],"correcta":1,"explicacion":"Ocurre en los cloroplastos, sobre todo en las hojas."},
+{"tipo":"completar","frase":"La ___ es el pigmento verde que atrapa la luz.","respuesta":"clorofila","opciones":["clorofila","glucosa","raíz","savia"],"explicacion":"La clorofila da el color verde."},
+{"tipo":"vf","afirmacion":"Las hojas son verdes por la clorofila.","respuesta":true,"explicacion":"La clorofila refleja la luz verde."},
+{"tipo":"ordenar","instruccion":"Ordena el camino del agua en la planta","pasos":["La raíz absorbe agua","El agua sube por el tallo","Llega a las hojas","Se usa en la fotosíntesis"]},
+{"tipo":"parejas","pares":[["Hoja","Órgano principal"],["Cloroplasto","Fábrica de alimento"],["Clorofila","Atrapa la luz"],["Raíz","Absorbe agua"]]},
+{"tipo":"opcion","pregunta":"¿Qué parte atrapa la luz?","opciones":["La clorofila","La raíz","El suelo","La semilla"],"correcta":0,"explicacion":"La clorofila capta la energía de la luz."}]}]},
+{"titulo":"Las dos fases","resumen":"Primero la planta captura la energía de la luz. Después usa esa energía para fabricar glucosa con el CO₂.","lecciones":[
+{"titulo":"Fase luminosa","tarjetas":[
+{"frente":"Fase luminosa","reverso":"Necesita luz. Rompe el agua, libera oxígeno y guarda energía para la siguiente fase."}],
+"ejercicios":[
+{"tipo":"vf","afirmacion":"La fase luminosa necesita luz.","respuesta":true,"explicacion":"Por eso se llama luminosa."},
+{"tipo":"opcion","pregunta":"¿Qué se libera en la fase luminosa?","opciones":["Glucosa","Oxígeno","CO₂","Sal"],"correcta":1,"explicacion":"Al romper el agua se libera oxígeno."},
+{"tipo":"completar","frase":"En la fase luminosa se rompe la molécula de ___.","respuesta":"agua","opciones":["agua","glucosa","sal","aire"],"explicacion":"El agua se rompe y libera oxígeno."},
+{"tipo":"ordenar","instruccion":"Ordena la fase luminosa","pasos":["La clorofila atrapa la luz","Se rompe el agua","Se libera oxígeno","Se guarda energía"]},
+{"tipo":"vf","afirmacion":"En la fase luminosa se fabrica la glucosa.","respuesta":false,"explicacion":"La glucosa se fabrica en la fase oscura."}]},
+{"titulo":"Fase oscura","tarjetas":[
+{"frente":"Fase oscura (ciclo de Calvin)","reverso":"No necesita luz directa. Usa la energía guardada y el CO₂ para fabricar glucosa."}],
+"ejercicios":[
+{"tipo":"opcion","pregunta":"¿Qué se fabrica en la fase oscura?","opciones":["Oxígeno","Agua","Glucosa","Clorofila"],"correcta":2,"explicacion":"La fase oscura produce glucosa."},
+{"tipo":"vf","afirmacion":"La fase oscura usa CO₂.","respuesta":true,"explicacion":"El CO₂ es la materia prima de la glucosa."},
+{"tipo":"parejas","pares":[["Fase luminosa","Libera oxígeno"],["Fase oscura","Fabrica glucosa"],["Ciclo de Calvin","Otro nombre de la fase oscura"],["Energía","Pasa de una fase a otra"]]},
+{"tipo":"completar","frase":"A la fase oscura también se le llama ciclo de ___.","respuesta":"Calvin","opciones":["Calvin","Krebs","Newton","agua"],"explicacion":"Se llama ciclo de Calvin."},
+{"tipo":"ordenar","instruccion":"Ordena toda la fotosíntesis","pasos":["Entra luz, agua y CO₂","Fase luminosa: se libera oxígeno","Fase oscura: se usa el CO₂","Sale glucosa"]}]}]}]};
+
+// ---------- Guardado ----------
+var CLAVE = 'estudia-jugando-v1';
+var MAX_VIDAS = 5, MIN_POR_VIDA = 15, META_DIA = 30;
+var S = cargar();
+function nuevoEstado() {
+  return { cursos: {}, actual: null, xp: 0, racha: 0, ultimoDia: '', xpHoy: 0, diaXp: '', vidas: MAX_VIDAS, vidaDesde: Date.now(), sonido: true };
+}
+function cargar() {
+  try {
+    var t = localStorage.getItem(CLAVE);
+    if (t) { var s = JSON.parse(t); if (s && s.cursos) return Object.assign(nuevoEstado(), s); }
+  } catch (e) {}
+  return nuevoEstado();
+}
+var avisoGuardar = false;
+function guardar() {
+  try { localStorage.setItem(CLAVE, JSON.stringify(S)); }
+  catch (e) { if (!avisoGuardar) { avisoGuardar = true; toast('No se puede guardar en este navegador: tu avance se perderá al cerrar.'); } }
+}
+
+// ---------- Utilidades ----------
+function el(tag, attrs, hijos) {
+  var n = document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    if (k === 'class') n.className = attrs[k];
+    else if (k === 'text') n.textContent = attrs[k];
+    else if (k.indexOf('on') === 0) n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
+  });
+  (hijos || []).forEach(function (h) { if (h != null) n.appendChild(typeof h === 'string' ? document.createTextNode(h) : h); });
+  return n;
+}
+function mezclar(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function norm(t) { return String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\w₀-₉]+/g, ' ').trim(); }
+function hoy() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function ayer() { var d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function toast(t, ms) {
+  var n = el('div', { class: 'toast', text: t }); document.body.appendChild(n);
+  setTimeout(function () { n.remove(); }, ms || 2600);
+}
+function confeti() {
+  var e = ['🎉', '⭐', '🔥', '✨', '🟧', '🎊'];
+  for (var i = 0; i < 26; i++) {
+    var c = el('div', { class: 'confeti', text: e[i % e.length] });
+    c.style.left = Math.random() * 100 + 'vw'; c.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    c.style.animationDelay = Math.random() * .5 + 's';
+    document.body.appendChild(c); setTimeout(c.remove.bind(c), 4000);
+  }
+}
+var ctx = null;
+function sonar(bien) {
+  if (!S.sonido) return;
+  try {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    var notas = bien ? [660, 880] : [220, 180];
+    notas.forEach(function (f, i) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = bien ? 'sine' : 'square'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, ctx.currentTime + i * .1);
+      g.gain.exponentialRampToValueAtTime(bien ? .18 : .06, ctx.currentTime + i * .1 + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + i * .1 + .16);
+      o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + i * .1); o.stop(ctx.currentTime + i * .1 + .18);
+    });
+  } catch (e) {}
+}
+
+// ---------- Vidas, racha y XP ----------
+function vidas() {
+  if (S.vidas >= MAX_VIDAS) { S.vidaDesde = Date.now(); return S.vidas; }
+  var ganadas = Math.floor((Date.now() - S.vidaDesde) / (MIN_POR_VIDA * 6e4));
+  if (ganadas > 0) { S.vidas = Math.min(MAX_VIDAS, S.vidas + ganadas); S.vidaDesde += ganadas * MIN_POR_VIDA * 6e4; guardar(); }
+  return S.vidas;
+}
+function minutosParaVida() { return Math.max(1, Math.ceil((S.vidaDesde + MIN_POR_VIDA * 6e4 - Date.now()) / 6e4)); }
+function perderVida() { vidas(); if (S.vidas >= MAX_VIDAS) S.vidaDesde = Date.now(); S.vidas = Math.max(0, S.vidas - 1); guardar(); }
+function ganarXp(n) {
+  S.xp += n;
+  if (S.diaXp !== hoy()) { S.diaXp = hoy(); S.xpHoy = 0; }
+  S.xpHoy += n;
+  if (S.ultimoDia !== hoy()) { S.racha = S.ultimoDia === ayer() ? S.racha + 1 : 1; S.ultimoDia = hoy(); }
+  guardar();
+}
+function rachaVigente() { return (S.ultimoDia === hoy() || S.ultimoDia === ayer()) ? S.racha : 0; }
+function xpDeHoy() { return S.diaXp === hoy() ? S.xpHoy : 0; }
+
+// ---------- Leer lo que responde la IA ----------
+// Acepta el texto con ```json, comillas curvas, comas de más o cortado a la mitad.
+function leerCurso(texto) {
+  var t = String(texto || '').replace(/```(?:json|JSON)?/g, '').replace(/^﻿/, '');
+  var i = t.indexOf('{'), j = t.lastIndexOf('}');
+  if (i < 0) throw new Error('No encontré el curso en lo que pegaste. Copia toda la respuesta de la IA, desde la primera llave {.');
+  var base = t.slice(i, j >= i ? j + 1 : t.length);
+  var intentos = [base, arreglar(base)];
+  for (var k = 0; k < intentos.length; k++) { try { return { datos: JSON.parse(intentos[k]), cortado: false }; } catch (e) {} }
+  // Cortado: cerramos lo que quedó abierto en el último punto completo.
+  var full = arreglar(t.slice(i));
+  for (var p = full.length; p > 0 && full.length - p < 200000; p--) {
+    var c = full.charAt(p - 1);
+    if (c !== '}' && c !== ']') continue;
+    var cerrado = cerrar(full.slice(0, p));
+    if (!cerrado) continue;
+    try { return { datos: JSON.parse(cerrado), cortado: true }; } catch (e) {}
+  }
+  throw new Error('No pude leer el curso. Pídele a la IA: «Dame solo el JSON completo, en un bloque de código» y vuelve a pegarlo.');
+}
+function arreglar(s) {
+  return s.replace(/[“”„«»]/g, function (m, off, str) { return dentroDeTexto(str, off) ? m : '"'; })
+    .replace(/,\s*([}\]])/g, '$1');
+}
+function dentroDeTexto(s, pos) {
+  var dentro = false;
+  for (var i = 0; i < pos; i++) { var c = s.charAt(i); if (c === '\\') { i++; continue; } if (c === '"') dentro = !dentro; }
+  return dentro;
+}
+function cerrar(s) {
+  var pila = [], dentro = false;
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charAt(i);
+    if (dentro) { if (c === '\\') i++; else if (c === '"') dentro = false; continue; }
+    if (c === '"') dentro = true;
+    else if (c === '{' || c === '[') pila.push(c);
+    else if (c === '}' || c === ']') pila.pop();
+  }
+  if (dentro) return null;
+  s = s.replace(/,\s*$/, '');
+  while (pila.length) s += pila.pop() === '{' ? '}' : ']';
+  return s;
+}
+function lista(x) { return Array.isArray(x) ? x : []; }
+function txt(x, max) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, max || 400); }
+function campo(o, nombres) { for (var i = 0; i < nombres.length; i++) if (o && o[nombres[i]] != null) return o[nombres[i]]; return undefined; }
+
+// Deja el curso limpio: descarta lo que vino mal y no deja que nada rompa la app.
+function limpiarCurso(raw) {
+  var c = { titulo: txt(campo(raw, ['titulo', 'title', 'tema']), 80) || 'Mi curso', emoji: Array.from(txt(campo(raw, ['emoji']), 40)).slice(0, 3).join('') || '📘', unidades: [] };
+  var todasRespuestas = [];
+  lista(campo(raw, ['unidades', 'units'])).forEach(function (u) {
+    var uni = { titulo: txt(campo(u, ['titulo', 'title']), 90) || 'Unidad', resumen: txt(campo(u, ['resumen', 'summary']), 600), lecciones: [] };
+    lista(campo(u, ['lecciones', 'lessons'])).forEach(function (l) {
+      var lec = { titulo: txt(campo(l, ['titulo', 'title']), 90) || 'Lección', tarjetas: [], ejercicios: [] };
+      lista(campo(l, ['tarjetas', 'cards'])).forEach(function (t) {
+        var f = txt(campo(t, ['frente', 'front']), 120), r = txt(campo(t, ['reverso', 'back']), 500);
+        if (f && r) lec.tarjetas.push({ frente: f, reverso: r });
+      });
+      lista(campo(l, ['ejercicios', 'exercises'])).forEach(function (e) {
+        var x = limpiarEjercicio(e);
+        if (!x) return;
+        lec.ejercicios.push(x);
+        if (x.tipo === 'completar') todasRespuestas.push(x.respuesta);
+        if (x.tipo === 'opcion') x.opciones.forEach(function (o) { if (o.split(' ').length <= 3) todasRespuestas.push(o); });
+        if (x.tipo === 'parejas') x.pares.forEach(function (p) { todasRespuestas.push(p[0]); });
+      });
+      if (lec.ejercicios.length >= 2) uni.lecciones.push(lec);
+    });
+    if (uni.lecciones.length) c.unidades.push(uni);
+  });
+  // Completar sin opciones: usa respuestas de otros ejercicios para confundir.
+  c.unidades.forEach(function (u) { u.lecciones.forEach(function (l) { l.ejercicios.forEach(function (e) {
+    if (e.tipo !== 'completar') return;
+    var ops = e.opciones.filter(function (o) { return norm(o) !== norm(e.respuesta); });
+    var extra = mezclar(todasRespuestas.filter(function (o) { return norm(o) !== norm(e.respuesta); }));
+    while (ops.length < 3 && extra.length) { var o = extra.pop(); if (ops.map(norm).indexOf(norm(o)) < 0) ops.push(o); }
+    e.opciones = mezclar([e.respuesta].concat(ops.slice(0, 3)));
+  }); }); });
+  if (!c.unidades.length) throw new Error('El curso vino vacío o sin ejercicios. Pídele a la IA que lo haga de nuevo con el prompt.');
+  return c;
+}
+function limpiarEjercicio(e) {
+  if (!e || typeof e !== 'object') return null;
+  var tipo = norm(campo(e, ['tipo', 'type']));
+  var expl = txt(campo(e, ['explicacion', 'explanation']), 400);
+  if (/opcion|multiple|alternativa/.test(tipo)) {
+    var ops = lista(campo(e, ['opciones', 'options'])).map(function (o) { return txt(o, 160); }).filter(String);
+    var cor = campo(e, ['correcta', 'answer', 'correct']);
+    if (typeof cor === 'string' && !/^\d+$/.test(cor)) {
+      var porTexto = ops.map(norm).indexOf(norm(cor));
+      cor = porTexto >= 0 ? porTexto : /^[a-d]$/i.test(cor.trim()) ? 'abcd'.indexOf(cor.trim().toLowerCase()) : -1;
+    }
+    cor = Number(cor);
+    var preg = txt(campo(e, ['pregunta', 'question']), 300);
+    if (!preg || ops.length < 2 || !(cor >= 0 && cor < ops.length)) return null;
+    return { tipo: 'opcion', pregunta: preg, opciones: ops, correcta: cor, explicacion: expl };
+  }
+  if (/^vf$|verdadero|true|falso/.test(tipo)) {
+    var af = txt(campo(e, ['afirmacion', 'statement', 'pregunta']), 300), r = campo(e, ['respuesta', 'answer']);
+    if (typeof r === 'string') r = /^(true|verdadero|v|si|sí)$/i.test(r.trim()) ? true : /^(false|falso|f|no)$/i.test(r.trim()) ? false : null;
+    if (!af || typeof r !== 'boolean') return null;
+    return { tipo: 'vf', afirmacion: af, respuesta: r, explicacion: expl };
+  }
+  if (/complet|blank/.test(tipo)) {
+    var fr = txt(campo(e, ['frase', 'sentence']), 300), res = txt(campo(e, ['respuesta', 'answer']), 60);
+    if (!fr || !res) return null;
+    if (!/_{2,}/.test(fr)) {
+      var k = norm(fr).indexOf(norm(res));
+      if (k < 0 || fr.toLowerCase().indexOf(res.toLowerCase()) < 0) return null;
+      var pos = fr.toLowerCase().indexOf(res.toLowerCase());
+      fr = fr.slice(0, pos) + '___' + fr.slice(pos + res.length);
+    }
+    var op2 = lista(campo(e, ['opciones', 'options'])).map(function (o) { return txt(o, 60); }).filter(String);
+    return { tipo: 'completar', frase: fr.replace(/_{2,}/, '___'), respuesta: res, opciones: op2, explicacion: expl };
+  }
+  if (/pareja|match|relaciona|une/.test(tipo)) {
+    var pares = lista(campo(e, ['pares', 'pairs'])).map(function (p) {
+      if (Array.isArray(p)) return [txt(p[0], 90), txt(p[1], 120)];
+      return [txt(campo(p, ['termino', 'a', 'izquierda']), 90), txt(campo(p, ['definicion', 'b', 'derecha']), 120)];
+    }).filter(function (p) { return p[0] && p[1]; }).slice(0, 5);
+    var izq = pares.map(function (p) { return norm(p[0]); }), der = pares.map(function (p) { return norm(p[1]); });
+    if (pares.length < 2 || new Set(izq).size < izq.length || new Set(der).size < der.length) return null;
+    return { tipo: 'parejas', pares: pares, explicacion: expl };
+  }
+  if (/orden|secuencia|sequence/.test(tipo)) {
+    var pasos = lista(campo(e, ['pasos', 'steps'])).map(function (p) { return txt(p, 140); }).filter(String).slice(0, 6);
+    if (pasos.length < 3 || new Set(pasos.map(norm)).size < pasos.length) return null;
+    return { tipo: 'ordenar', instruccion: txt(campo(e, ['instruccion', 'instruction']), 160) || 'Ordena los pasos', pasos: pasos, explicacion: expl };
+  }
+  return null;
+}
+function agregarCurso(c) {
+  var mismo = Object.keys(S.cursos).filter(function (id) { return norm(S.cursos[id].datos.titulo) === norm(c.titulo); })[0];
+  if (mismo) { // "sigue": se agregan las unidades nuevas al mismo curso
+    var viejo = S.cursos[mismo].datos, nombres = viejo.unidades.map(function (u) { return norm(u.titulo); });
+    var nuevas = c.unidades.filter(function (u) { return nombres.indexOf(norm(u.titulo)) < 0; });
+    viejo.unidades = viejo.unidades.concat(nuevas);
+    S.actual = mismo; guardar();
+    return { id: mismo, agregadas: nuevas.length, existia: true };
+  }
+  var id = 'c' + Date.now().toString(36);
+  S.cursos[id] = { datos: c, hecho: {}, errores: [], creado: Date.now() };
+  S.actual = id; guardar();
+  return { id: id, agregadas: c.unidades.length, existia: false };
+}
+
+// ---------- Camino ----------
+function cursoActual() { return S.actual && S.cursos[S.actual] ? S.cursos[S.actual] : null; }
+function nodos(curso) {
+  var out = [];
+  curso.datos.unidades.forEach(function (u, ui) {
+    u.lecciones.forEach(function (l, li) { out.push({ u: ui, l: li, clave: ui + '-' + li, titulo: l.titulo }); });
+    out.push({ u: ui, l: 't', clave: ui + '-t', titulo: 'Prueba de la unidad', prueba: true });
+  });
+  var anteriorHecho = true;
+  out.forEach(function (n) { n.hecho = !!curso.hecho[n.clave]; n.abierto = anteriorHecho; anteriorHecho = n.hecho; });
+  return out;
+}
+function avance(curso) {
+  var ns = nodos(curso), h = ns.filter(function (n) { return n.hecho; }).length;
+  return ns.length ? Math.round(100 * h / ns.length) : 0;
+}
+var COLORES = ['#f97316', '#111827', '#0d9488', '#6366f1', '#e11d48', '#0ea5e9', '#ca8a04', '#7c3aed'];
+var app = document.getElementById('app');
+var pantalla = 'camino';
+
+function barra() {
+  var c = cursoActual();
+  return el('div', { class: 'barra' }, [
+    el('button', { class: 'chip-curso', onclick: function () { ir('cursos'); } },
+      [el('span', { text: c ? c.datos.emoji : '📚' }), el('span', { text: c ? c.datos.titulo : 'Sin curso' })]),
+    el('div', { class: 'stat fuego', title: 'Racha de días' }, ['🔥 ', String(rachaVigente())]),
+    el('div', { class: 'stat xp', title: 'Puntos' }, ['⚡ ', String(S.xp)]),
+    el('div', { class: 'stat vida', title: 'Vidas' }, ['❤️ ', String(vidas())])
+  ]);
+}
+function anillo(p) {
+  var r = 19, cir = 2 * Math.PI * r, ns = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 46 46'); svg.setAttribute('class', 'anillo');
+  [['#f3f4f6', cir], ['#f97316', cir * (1 - Math.min(1, p))]].forEach(function (x, i) {
+    var c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', 23); c.setAttribute('cy', 23); c.setAttribute('r', r); c.setAttribute('fill', 'none');
+    c.setAttribute('stroke', x[0]); c.setAttribute('stroke-width', 6); c.setAttribute('stroke-linecap', 'round');
+    if (i) { c.setAttribute('stroke-dasharray', cir); c.setAttribute('stroke-dashoffset', x[1]); c.setAttribute('transform', 'rotate(-90 23 23)'); }
+    svg.appendChild(c);
+  });
+  return svg;
+}
+function verCamino() {
+  var c = cursoActual();
+  app.appendChild(barra());
+  if (!c) {
+    app.appendChild(el('div', { class: 'vacio' }, [
+      el('div', { class: 'mascota', text: '🦊' }),
+      el('h2', { text: 'Convierte tu PDF en un juego' }),
+      el('p', { text: 'Le pasas tu PDF a una IA gratis, pegas lo que te responde y la app te arma niveles para estudiar jugando.' }),
+      el('button', { class: 'bt', onclick: function () { ir('nuevo'); } }, ['Crear mi primer curso']),
+      el('button', { class: 'bt blanco', onclick: function () { agregarCurso(limpiarCurso(EJEMPLO)); ir('camino'); } }, ['Probar con un ejemplo'])
+    ]));
+    return;
+  }
+  var xh = xpDeHoy();
+  app.appendChild(el('div', { class: 'meta' }, [anillo(xh / META_DIA), el('div', null, [
+    el('b', { text: xh >= META_DIA ? '¡Meta del día cumplida! 🎉' : 'Meta del día: ' + xh + ' de ' + META_DIA + ' XP' }),
+    el('small', { text: xh >= META_DIA ? 'Sigue así: mañana tu racha sube.' : 'Haz ' + Math.max(1, Math.ceil((META_DIA - xh) / 10)) + ' lección(es) para cumplirla.' })])]));
+  var ns = nodos(c), offs = [0, 56, 84, 56, 0, -56, -84, -56], k = 0;
+  c.datos.unidades.forEach(function (u, ui) {
+    var col = COLORES[ui % COLORES.length], res = el('div', { class: 'resumen oculto', text: u.resumen || 'Esta unidad no trae resumen.' });
+    app.appendChild(el('div', { class: 'unidad', style: 'background:' + col }, [
+      el('div', { class: 't' }, [el('small', { text: 'UNIDAD ' + (ui + 1) }), el('b', { text: u.titulo })]),
+      el('button', { onclick: function () { res.classList.toggle('oculto'); } }, ['📖 Guía'])]));
+    app.appendChild(res);
+    var cam = el('div', { class: 'camino' });
+    ns.filter(function (n) { return n.u === ui; }).forEach(function (n) {
+      var actual = n.abierto && !n.hecho;
+      var ic = n.prueba ? (n.hecho ? '🏆' : n.abierto ? '🏆' : '🔒') : (n.hecho ? '✓' : n.abierto ? '★' : '🔒');
+      var b = el('button', { class: 'nodo' + (n.prueba ? ' prueba' : '') + (n.hecho ? ' hecho' : '') + (!n.abierto ? ' bloq' : '') + (actual ? ' actual' : ''),
+        'aria-label': n.titulo, onclick: function () { abrirNodo(n); } }, [ic]);
+      var w = el('div', { class: 'nodo-w', style: 'transform:translateX(' + offs[k++ % offs.length] + 'px)' }, [b]);
+      if (actual) w.appendChild(el('div', { class: 'globo', text: n.prueba ? '¡PRUEBA!' : 'EMPIEZA' }));
+      var est = c.hecho[n.clave];
+      if (est && est.estrellas) w.appendChild(el('div', { class: 'estrellas', text: '⭐'.repeat(est.estrellas) }));
+      cam.appendChild(w);
+    });
+    app.appendChild(cam);
+  });
+  var todo = ns.every(function (n) { return n.hecho; });
+  app.appendChild(el('div', { class: 'mascota', text: todo ? '🏁🦊' : '🦊' }));
+  if (todo) app.appendChild(el('p', { class: 'vacio', text: '¡Terminaste el curso! Repasa tus errores en 🎯 o pídele a la IA que «siga» con más unidades.' }));
+}
+function abrirNodo(n) {
+  var c = cursoActual();
+  if (!n.abierto) { toast('🔒 Termina el nivel anterior para abrir este.'); return; }
+  var u = c.datos.unidades[n.u];
+  var desc = n.prueba ? 'Ejercicios de toda la unidad «' + u.titulo + '». Pásala para abrir la siguiente unidad.'
+    : 'Unidad ' + (n.u + 1) + ' · Lección ' + (n.l + 1) + ' de ' + u.lecciones.length;
+  var cerrarPop = function () { pop.remove(); };
+  var pop = el('div', { class: 'pop', onclick: function (e) { if (e.target === pop) cerrarPop(); } }, [el('div', { class: 'caja' }, [
+    el('h3', { text: n.titulo }), el('p', { text: desc }),
+    el('button', { class: 'bt', onclick: function () { cerrarPop(); empezar(n.prueba ? 'prueba' : 'leccion', n.u, n.l); } },
+      [n.hecho ? 'Repasar · +5 XP' : (n.prueba ? 'Empezar · +20 XP' : 'Empezar · +10 XP')]),
+    el('button', { class: 'bt blanco', onclick: cerrarPop }, ['Ahora no'])])]);
+  document.body.appendChild(pop);
+}
+
+// ---------- Lección ----------
+var L = null;
+function empezar(modo, u, l) {
+  var c = cursoActual(); if (!c) return;
+  if (modo !== 'practica' && vidas() <= 0) { sinVidas(); return; }
+  var cola = [];
+  if (modo === 'leccion') {
+    var lec = c.datos.unidades[u].lecciones[l];
+    lec.tarjetas.forEach(function (t) { cola.push({ tipo: 'tarjeta', t: t }); });
+    mezclar(lec.ejercicios.map(function (e, i) { return { tipo: 'ej', e: e, ref: u + '.' + l + '.' + i }; })).forEach(function (x) { cola.push(x); });
+  } else if (modo === 'prueba') {
+    var todos = [];
+    c.datos.unidades[u].lecciones.forEach(function (lec, li) { lec.ejercicios.forEach(function (e, i) { todos.push({ tipo: 'ej', e: e, ref: u + '.' + li + '.' + i }); }); });
+    cola = mezclar(todos).slice(0, 8);
+  } else {
+    var refs = mezclar(c.errores.slice(-8)), extra = [];
+    if (refs.length < 5) {
+      nodos(c).filter(function (n) { return n.hecho && !n.prueba; }).forEach(function (n) {
+        c.datos.unidades[n.u].lecciones[n.l].ejercicios.forEach(function (e, i) { extra.push(n.u + '.' + n.l + '.' + i); });
+      });
+    }
+    // Primero tus errores; si son pocos, se completa con ejercicios que ya hiciste.
+    refs = refs.concat(mezclar(extra.filter(function (r) { return refs.indexOf(r) < 0; }))).slice(0, Math.max(5, refs.length));
+    cola = refs.map(function (r) { var p = r.split('.'); var e = ((c.datos.unidades[p[0]] || {}).lecciones || [])[p[1]]; e = e && e.ejercicios[p[2]]; return e ? { tipo: 'ej', e: e, ref: r } : null; }).filter(Boolean);
+    if (!cola.length) { toast('Termina una lección primero para tener qué practicar.'); return; }
+  }
+  L = { modo: modo, u: u, l: l, cola: cola, total: cola.length, hechos: 0, errores: 0, fallados: {}, combo: 0, inicio: Date.now(), aciertosPractica: 0 };
+  document.getElementById('menu').classList.add('oculto');
+  pintarPaso();
+}
+function marcoLeccion() {
+  var cont = el('div', { class: 'lec' });
+  var prog = el('i'); prog.style.width = Math.round(100 * L.hechos / Math.max(1, L.total)) + '%';
+  cont.appendChild(el('div', { class: 'lec-top' }, [
+    el('button', { class: 'cerrar', 'aria-label': 'Salir', onclick: salirLeccion }, ['✕']),
+    el('div', { class: 'prog' }, [prog]),
+    el('div', { class: 'lec-vidas', text: L.modo === 'practica' ? '🎯' : '❤️ ' + vidas() })]));
+  cont.appendChild(el('div', { class: 'combo', text: L.combo >= 3 ? '🔥 ¡' + L.combo + ' seguidas!' : '' }));
+  return cont;
+}
+function salirLeccion() {
+  if (L && L.hechos > 0 && !confirm('¿Salir? Perderás el avance de esta lección.')) return;
+  cerrarLeccion();
+}
+function cerrarLeccion() {
+  var x = document.querySelector('.lec'); if (x) x.remove();
+  L = null; document.getElementById('menu').classList.remove('oculto'); ir(pantalla);
+}
+function pintarPaso() {
+  var viejo = document.querySelector('.lec'); if (viejo) viejo.remove();
+  if (!L.cola.length) { terminar(); return; }
+  var paso = L.cola[0], cont = marcoLeccion(), cuerpo = el('div', { class: 'lec-cuerpo' }), pie = el('div', { class: 'lec-pie' });
+  cont.appendChild(cuerpo); cont.appendChild(pie); document.body.appendChild(cont);
+  if (paso.tipo === 'tarjeta') { pintarTarjeta(paso, cuerpo, pie); return; }
+  var btn = el('button', { class: 'bt', disabled: 'disabled' }, ['Comprobar']);
+  var ej = paso.e, resp = { valor: null };
+  var listo = function (v) { resp.valor = v; if (v == null) btn.setAttribute('disabled', 'disabled'); else btn.removeAttribute('disabled'); };
+  var revisar = function () { if (resp.valor == null) return; var r = corregir(ej, resp.valor); mostrarResultado(paso, r.bien, r.correcta, pie, cuerpo); };
+  btn.addEventListener('click', revisar);
+  pie.appendChild(btn);
+  ({ opcion: pintarOpcion, vf: pintarVf, completar: pintarCompletar, parejas: pintarParejas, ordenar: pintarOrdenar })[ej.tipo](ej, cuerpo, listo, function (bien) {
+    mostrarResultado(paso, bien, '', pie, cuerpo); });
+}
+function pintarTarjeta(paso, cuerpo, pie) {
+  var t = el('div', { class: 'tarjeta' }, [el('div', { class: 'in' }, [
+    el('div', { class: 'cara frente' }, [el('b', { text: paso.t.frente }), el('small', { text: 'Toca la tarjeta para ver la explicación 👆' })]),
+    el('div', { class: 'cara reverso', text: paso.t.reverso })])]);
+  var btn = el('button', { class: 'bt', onclick: function () { L.cola.shift(); L.total--; pintarPaso(); } }, ['¡Entendido!']);
+  t.addEventListener('click', function () { t.classList.toggle('vuelta'); btn.style.visibility = 'visible'; });
+  btn.style.visibility = 'hidden';
+  cuerpo.appendChild(el('div', { class: 'tipo', text: '✨ Aprende algo nuevo' }));
+  cuerpo.appendChild(t);
+  pie.appendChild(btn);
+}
+function pintarOpcion(ej, cuerpo, listo) {
+  cuerpo.appendChild(el('div', { class: 'tipo', text: 'Elige la respuesta correcta' }));
+  cuerpo.appendChild(el('p', { class: 'preg', text: ej.pregunta }));
+  var orden = mezclar(ej.opciones.map(function (o, i) { return i; })), caja = el('div', { class: 'ops' });
+  orden.forEach(function (i, k) {
+    var b = el('button', { class: 'op', 'data-i': i, onclick: function () {
+      caja.querySelectorAll('.op').forEach(function (x) { x.classList.remove('sel'); }); b.classList.add('sel'); listo(i); } },
+      [el('span', { class: 'l', text: String(k + 1) }), el('span', { text: ej.opciones[i] })]);
+    caja.appendChild(b);
+  });
+  cuerpo.appendChild(caja);
+}
+function pintarVf(ej, cuerpo, listo) {
+  cuerpo.appendChild(el('div', { class: 'tipo', text: '¿Verdadero o falso?' }));
+  cuerpo.appendChild(el('p', { class: 'preg', text: ej.afirmacion }));
+  var caja = el('div', { class: 'vf' });
+  [[true, '✅', 'Verdadero'], [false, '❌', 'Falso']].forEach(function (x) {
+    var b = el('button', { class: 'op', 'data-v': String(x[0]), onclick: function () {
+      caja.querySelectorAll('.op').forEach(function (y) { y.classList.remove('sel'); }); b.classList.add('sel'); listo(x[0]); } },
+      [el('span', { text: x[1] }), x[2]]);
+    caja.appendChild(b);
+  });
+  cuerpo.appendChild(caja);
+}
+function pintarCompletar(ej, cuerpo, listo) {
+  cuerpo.appendChild(el('div', { class: 'tipo', text: 'Completa la frase' }));
+  var partes = ej.frase.split('___'), hueco = el('span', { class: 'hueco', text: ' ' });
+  cuerpo.appendChild(el('p', { class: 'frase' }, [partes[0], hueco, partes.slice(1).join('___')]));
+  var banco = el('div', { class: 'banco' }), elegida = null;
+  ej.opciones.forEach(function (o) {
+    var f = el('button', { class: 'ficha', text: o, onclick: function () {
+      if (elegida) elegida.classList.remove('usada');
+      elegida = f; f.classList.add('usada'); hueco.textContent = o; listo(o); } });
+    banco.appendChild(f);
+  });
+  hueco.addEventListener('click', function () { if (elegida) { elegida.classList.remove('usada'); elegida = null; hueco.textContent = ' '; listo(null); } });
+  cuerpo.appendChild(banco);
+}
+function pintarOrdenar(ej, cuerpo, listo) {
+  cuerpo.appendChild(el('div', { class: 'tipo', text: 'Ordena' }));
+  cuerpo.appendChild(el('p', { class: 'preg', text: ej.instruccion }));
+  var zona = el('div', { class: 'zona' }), banco = el('div', { class: 'banco col' }), puestos = [];
+  var mezclados = mezclar(ej.pasos.map(function (p, i) { return i; }));
+  if (mezclados.every(function (v, i) { return v === i; })) mezclados.reverse();
+  var pintarZona = function () {
+    zona.innerHTML = '';
+    if (!puestos.length) zona.appendChild(el('div', { class: 'vacia', text: 'Toca los pasos en el orden correcto 👇' }));
+    puestos.forEach(function (x, k) {
+      zona.appendChild(el('button', { class: 'ficha', onclick: function () { puestos.splice(k, 1); x.b.classList.remove('usada'); pintarZona(); } },
+        [el('b', { text: (k + 1) + '.' }), el('span', { text: ej.pasos[x.i] })]));
+    });
+    listo(puestos.length === ej.pasos.length ? puestos.map(function (x) { return x.i; }) : null);
+  };
+  mezclados.forEach(function (i) {
+    var b = el('button', { class: 'ficha', text: ej.pasos[i], onclick: function () {
+      if (b.classList.contains('usada')) return; b.classList.add('usada'); puestos.push({ i: i, b: b }); pintarZona(); } });
+    banco.appendChild(b);
+  });
+  cuerpo.appendChild(zona); cuerpo.appendChild(banco); pintarZona();
+}
+function pintarParejas(ej, cuerpo, listo, fin) {
+  cuerpo.appendChild(el('div', { class: 'tipo', text: 'Une las parejas' }));
+  cuerpo.appendChild(el('p', { class: 'preg', text: 'Toca un término y luego su pareja' }));
+  var grid = el('div', { class: 'pares' }), izq = mezclar(ej.pares.map(function (p, i) { return i; })), der = mezclar(izq);
+  var sel = null, unidas = 0, fallo = false;
+  var fichas = [];
+  for (var k = 0; k < ej.pares.length; k++) {
+    [[izq[k], 0], [der[k], 1]].forEach(function (x) {
+      var f = el('button', { class: 'ficha', text: ej.pares[x[0]][x[1]] });
+      f._i = x[0]; f._lado = x[1]; fichas.push(f); grid.appendChild(f);
+      f.addEventListener('click', function () {
+        if (f.classList.contains('listo')) return;
+        if (!sel || sel._lado === f._lado) { if (sel) sel.classList.remove('sel'); sel = f; f.classList.add('sel'); return; }
+        if (sel._i === f._i) {
+          sel.classList.remove('sel'); sel.classList.add('listo'); f.classList.add('listo'); sel = null; unidas++; sonar(true);
+          if (unidas === ej.pares.length) setTimeout(function () { fin(!fallo); }, 250);
+        } else {
+          fallo = true; var a = sel; a.classList.remove('sel'); sel = null;
+          [a, f].forEach(function (y) { y.classList.add('error'); setTimeout(function () { y.classList.remove('error'); }, 450); });
+          sonar(false);
+        }
+      });
+    });
+  }
+  cuerpo.appendChild(grid);
+}
+function corregir(ej, v) {
+  if (ej.tipo === 'opcion') return { bien: v === ej.correcta, correcta: ej.opciones[ej.correcta] };
+  if (ej.tipo === 'vf') return { bien: v === ej.respuesta, correcta: ej.respuesta ? 'Verdadero' : 'Falso' };
+  if (ej.tipo === 'completar') return { bien: norm(v) === norm(ej.respuesta), correcta: ej.respuesta };
+  if (ej.tipo === 'ordenar') return { bien: v.every(function (x, i) { return x === i; }), correcta: ej.pasos.map(function (p, i) { return (i + 1) + '. ' + p; }).join('  ') };
+  return { bien: true, correcta: '' };
+}
+function mostrarResultado(paso, bien, correcta, pie, cuerpo) {
+  cuerpo.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+  var ej = paso.e, c = cursoActual();
+  if (ej.tipo === 'opcion') cuerpo.querySelectorAll('.op').forEach(function (b) {
+    var i = Number(b.getAttribute('data-i'));
+    if (i === ej.correcta) b.classList.add('bien'); else if (b.classList.contains('sel')) b.classList.add('malx'); });
+  if (ej.tipo === 'vf') cuerpo.querySelectorAll('.op').forEach(function (b) {
+    var v = b.getAttribute('data-v') === 'true';
+    if (v === ej.respuesta) b.classList.add('bien'); else if (b.classList.contains('sel')) b.classList.add('malx'); });
+  sonar(bien);
+  L.cola.shift();
+  var idx = c.errores.indexOf(paso.ref);
+  if (bien) {
+    L.hechos++; L.combo++;
+    if (L.modo === 'practica') {
+      if (idx >= 0) c.errores.splice(idx, 1);
+      L.aciertosPractica++;
+      if (L.aciertosPractica % 2 === 0 && vidas() < MAX_VIDAS) { S.vidas++; toast('❤️ +1 vida'); }
+    }
+  } else {
+    L.errores++; L.combo = 0; L.fallados[paso.ref] = 1;
+    if (idx < 0) c.errores.push(paso.ref);
+    if (c.errores.length > 60) c.errores.shift();
+    if (L.modo !== 'practica') perderVida();
+    L.cola.push(paso); // vuelve al final, como en los juegos de idiomas
+  }
+  guardar();
+  var frases = ['¡Bien!', '¡Excelente!', '¡Así se hace!', '¡Perfecto!', '¡Genial!'];
+  pie.innerHTML = ''; pie.className = 'lec-pie ' + (bien ? 'bien' : 'mal');
+  var msg = bien ? (ej.explicacion || '') : (correcta ? 'Respuesta correcta: ' + correcta + (ej.explicacion ? '. ' + ej.explicacion : '') : (ej.explicacion || 'Revisa las parejas: esta vuelve al final.'));
+  pie.appendChild(el('div', { class: 'fb' }, [el('div', { class: 'ic', text: bien ? '✓' : '✕' }), el('div', null, [
+    el('b', { text: bien ? frases[Math.floor(Math.random() * frases.length)] : (ej.tipo === 'parejas' ? 'Casi: hubo un error' : 'Incorrecto') }),
+    msg ? el('p', { text: msg }) : null])]));
+  var seguir = el('button', { class: 'bt ' + (bien ? 'verde' : 'rojo'), onclick: function () {
+    if (L.modo !== 'practica' && vidas() <= 0) { cerrarLeccion(); sinVidas(); return; }
+    pintarPaso(); } }, ['Continuar']);
+  pie.appendChild(seguir);
+  var vid = document.querySelector('.lec-vidas'); if (vid && L.modo !== 'practica') vid.textContent = '❤️ ' + vidas();
+  var bar = document.querySelector('.prog i'); if (bar) bar.style.width = Math.round(100 * L.hechos / Math.max(1, L.total)) + '%';
+  var cb = document.querySelector('.combo'); if (cb) cb.textContent = L.combo >= 3 ? '🔥 ¡' + L.combo + ' seguidas!' : '';
+}
+function terminar() {
+  var c = cursoActual(), n = L.total, fallos = Object.keys(L.fallados).length;
+  var prec = n ? Math.round(100 * (n - fallos) / n) : 100;
+  var estrellas = fallos === 0 ? 3 : fallos <= 2 ? 2 : 1;
+  var clave = L.u + '-' + (L.modo === 'prueba' ? 't' : L.l), ya = !!c.hecho[clave];
+  var xp = L.modo === 'practica' ? 5 + L.aciertosPractica : ya ? 5 : (L.modo === 'prueba' ? 20 : 10) + (fallos === 0 ? 5 : 0);
+  if (L.modo !== 'practica') {
+    var antes = c.hecho[clave] || {};
+    c.hecho[clave] = { estrellas: Math.max(estrellas, antes.estrellas || 0), fecha: Date.now() };
+  }
+  ganarXp(xp);
+  var seg = Math.round((Date.now() - L.inicio) / 1000), t = Math.floor(seg / 60) + ':' + ('0' + seg % 60).slice(-2);
+  var titulo = L.modo === 'prueba' ? '¡Unidad superada!' : L.modo === 'practica' ? '¡Práctica lista!' : '¡Lección completada!';
+  var vieja = document.querySelector('.lec'); if (vieja) vieja.remove();
+  var cont = el('div', { class: 'lec' }, [el('div', { class: 'lec-cuerpo fin' }, [
+    el('div', { class: 'big', text: L.modo === 'prueba' ? '🏆' : fallos === 0 ? '🦊🎉' : '🦊' }),
+    el('h2', { text: titulo }),
+    L.modo === 'practica' ? null : el('div', { class: 'es', text: '⭐'.repeat(estrellas) + '☆'.repeat(3 - estrellas) }),
+    el('div', { class: 'tiles' }, [
+      tile('XP GANADO', '⚡ ' + xp, '#facc15'), tile(prec >= 90 ? 'ASOMBROSO' : 'PRECISIÓN', '🎯 ' + prec + '%', '#22c55e'), tile('TIEMPO', '⏱ ' + t, '#0ea5e9')]),
+    xpDeHoy() >= META_DIA && xpDeHoy() - xp < META_DIA ? el('div', { class: 'aviso bien', text: '🎯 ¡Cumpliste tu meta del día! Racha: 🔥 ' + rachaVigente() + ' días' }) : null,
+    fallos ? el('div', { class: 'aviso info', text: (fallos === 1 ? 'Tu error quedó' : 'Tus ' + fallos + ' errores quedaron') + ' en 🎯 Practicar para repasarlo' + (fallos === 1 ? '.' : 's.') }) : null
+  ]), el('div', { class: 'lec-pie' }, [el('button', { class: 'bt', onclick: function () { cerrarLeccion(); } }, ['Continuar'])])]);
+  document.body.appendChild(cont);
+  sonar(true); if (L.modo !== 'practica') confeti();
+  pantalla = L.modo === 'practica' ? 'practicar' : 'camino';
+}
+function tile(t, v, col) { return el('div', { class: 'tile', style: 'border-color:' + col }, [el('small', { text: t, style: 'background:' + col }), el('b', { text: v, style: 'color:' + col })]); }
+function sinVidas() {
+  var p = el('div', { class: 'pop' }, [el('div', { class: 'caja' }, [
+    el('h3', { text: '💔 Te quedaste sin vidas' }),
+    el('p', { text: 'Recupera 1 vida cada ' + MIN_POR_VIDA + ' minutos (la próxima en ' + minutosParaVida() + ' min), o practica tus errores: cada 2 aciertos te dan 1 vida.' }),
+    el('button', { class: 'bt', onclick: function () { p.remove(); empezar('practica'); } }, ['Practicar y ganar vidas']),
+    el('button', { class: 'bt blanco', onclick: function () { p.remove(); } }, ['Esperar'])])]);
+  document.body.appendChild(p);
+}
+
+// ---------- Practicar ----------
+function verPracticar() {
+  app.appendChild(barra());
+  var c = cursoActual();
+  var pag = el('div', { class: 'pag' }, [el('h2', { text: '🎯 Practicar' }),
+    el('p', { text: 'Repasa lo que fallaste. Aquí no pierdes vidas: cada 2 aciertos ganas 1.' })]);
+  if (!c) { pag.appendChild(el('div', { class: 'aviso info', text: 'Primero crea un curso en ➕ Nuevo.' })); app.appendChild(pag); return; }
+  var n = c.errores.length;
+  pag.appendChild(el('div', { class: 'curso' }, [el('div', { class: 'em', text: n ? '🧠' : '✅' }), el('div', { class: 't' }, [
+    el('b', { text: n ? n + ' ejercicio' + (n > 1 ? 's' : '') + ' por repasar' : 'No tienes errores pendientes' }),
+    el('small', { text: n ? 'Los que fallaste en tus lecciones' : 'Igual puedes practicar lo que ya hiciste' })])]));
+  pag.appendChild(el('button', { class: 'bt', onclick: function () { empezar('practica'); } }, ['Empezar práctica · +5 XP']));
+  pag.appendChild(el('div', { class: 'aviso info', text: '❤️ Tienes ' + vidas() + ' de ' + MAX_VIDAS + ' vidas.' + (vidas() < MAX_VIDAS ? ' La próxima llega en ' + minutosParaVida() + ' min.' : '') }));
+  app.appendChild(pag);
+}
+
+// ---------- Mis cursos ----------
+function verCursos() {
+  app.appendChild(barra());
+  var pag = el('div', { class: 'pag' }, [el('h2', { text: '📚 Mis cursos' }), el('p', { text: 'Toca un curso para seguir con él. Todo se guarda en este celular.' })]);
+  var ids = Object.keys(S.cursos).sort(function (a, b) { return S.cursos[b].creado - S.cursos[a].creado; });
+  if (!ids.length) pag.appendChild(el('div', { class: 'aviso info', text: 'Todavía no tienes cursos. Crea uno en ➕ Nuevo.' }));
+  ids.forEach(function (id) {
+    var c = S.cursos[id], p = avance(c), barrita = el('i'); barrita.style.width = p + '%';
+    pag.appendChild(el('div', { class: 'curso' + (id === S.actual ? ' on' : ''), onclick: function () { S.actual = id; guardar(); ir('camino'); } }, [
+      el('div', { class: 'em', text: c.datos.emoji }),
+      el('div', { class: 't' }, [el('b', { text: c.datos.titulo }), el('small', { text: c.datos.unidades.length + ' unidades · ' + p + '% hecho' }), el('div', { class: 'barrita' }, [barrita])]),
+      el('button', { class: 'mini', 'aria-label': 'Borrar curso', onclick: function (e) {
+        e.stopPropagation();
+        if (!confirm('¿Borrar «' + c.datos.titulo + '» y su avance?')) return;
+        delete S.cursos[id]; if (S.actual === id) S.actual = Object.keys(S.cursos)[0] || null; guardar(); ir('cursos'); } }, ['🗑'])]));
+  });
+  pag.appendChild(el('button', { class: 'bt', onclick: function () { ir('nuevo'); } }, ['➕ Nuevo curso']));
+  if (!ids.some(function (id) { return /ejemplo/i.test(S.cursos[id].datos.titulo); }))
+    pag.appendChild(el('button', { class: 'bt blanco', onclick: function () { agregarCurso(limpiarCurso(EJEMPLO)); ir('camino'); } }, ['Probar con un ejemplo']));
+  pag.appendChild(el('div', { class: 'ajuste' }, [el('span', { text: '🔊 Sonidos' }),
+    el('button', { onclick: function () { S.sonido = !S.sonido; guardar(); ir('cursos'); } }, [S.sonido ? 'Activados' : 'Apagados'])]));
+  app.appendChild(pag);
+}
+
+// ---------- Nuevo curso ----------
+function verNuevo() {
+  app.appendChild(barra());
+  var area = el('textarea', { placeholder: 'Pega aquí todo lo que te respondió la IA…', 'aria-label': 'Respuesta de la IA' });
+  var aviso = el('div');
+  var pag = el('div', { class: 'pag' }, [
+    el('h2', { text: '➕ Tu PDF en un juego' }),
+    el('p', { text: 'En 3 pasos. Usa Gemini o ChatGPT gratis: los dos aceptan PDF.' }),
+    el('div', { class: 'paso' }, [el('h4', null, [el('span', { class: 'n', text: '1' }), 'Copia el prompt']),
+      el('p', { text: 'Es la instrucción que le dice a la IA cómo armar tu curso.' }),
+      el('button', { class: 'bt negro', onclick: function () { copiar(PROMPT, '📋 Prompt copiado. Ahora ábrelo en la IA.'); } }, ['📋 Copiar el prompt'])]),
+    el('div', { class: 'paso' }, [el('h4', null, [el('span', { class: 'n', text: '2' }), 'Pásale tu PDF a la IA']),
+      el('p', { text: 'Toca ＋ o 📎, sube tu PDF, pega el prompt y envía. Espera a que termine de escribir.' }),
+      el('div', { class: 'dos' }, [
+        el('a', { class: 'bt blanco', href: 'https://gemini.google.com/app', target: '_blank', rel: 'noopener', style: 'text-decoration:none;text-align:center' }, ['✨ Gemini']),
+        el('a', { class: 'bt blanco', href: 'https://chatgpt.com/', target: '_blank', rel: 'noopener', style: 'text-decoration:none;text-align:center' }, ['🤖 ChatGPT'])])]),
+    el('div', { class: 'paso' }, [el('h4', null, [el('span', { class: 'n', text: '3' }), 'Pega su respuesta aquí']),
+      el('p', { text: 'En la IA toca «Copiar» (o mantén presionado y copia todo). Si tu PDF es largo, escríbele «sigue» y pega también la nueva respuesta: se suma al mismo curso.' }),
+      area, aviso,
+      el('button', { class: 'bt', style: 'margin-top:12px', onclick: function () {
+        aviso.innerHTML = '';
+        try {
+          var r = leerCurso(area.value), c = limpiarCurso(r.datos), res = agregarCurso(c);
+          var nEj = c.unidades.reduce(function (a, u) { return a + u.lecciones.reduce(function (b, l) { return b + l.ejercicios.length; }, 0); }, 0);
+          toast(res.existia ? '✅ Se agregaron ' + res.agregadas + ' unidades a «' + c.titulo + '»' : '✅ ¡Listo! ' + c.unidades.length + ' unidades y ' + nEj + ' ejercicios', 3500);
+          if (r.cortado) setTimeout(function () { toast('La respuesta vino cortada: armé lo que llegó completo. Escríbele «sigue» a la IA para el resto.', 5000); }, 3600);
+          ir('camino');
+        } catch (e) { aviso.appendChild(el('div', { class: 'aviso mal', text: e.message })); }
+      } }, ['🎮 Crear mi juego'])])
+  ]);
+  app.appendChild(pag);
+}
+function copiar(t, ok) {
+  var hecho = function () { toast(ok); };
+  if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).then(hecho, function () { copiarViejo(t); hecho(); }); }
+  else { copiarViejo(t); hecho(); }
+}
+function copiarViejo(t) {
+  var a = el('textarea'); a.value = t; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.appendChild(a);
+  a.focus(); a.select(); try { document.execCommand('copy'); } catch (e) {} a.remove();
+}
+
+// ---------- Navegación ----------
+function ir(p) {
+  pantalla = p; app.innerHTML = '';
+  ({ camino: verCamino, practicar: verPracticar, cursos: verCursos, nuevo: verNuevo })[p]();
+  document.querySelectorAll('#menu button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-ir') === p); });
+  ponerMarca();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('#menu button').forEach(function (b) { b.addEventListener('click', function () { ir(b.getAttribute('data-ir')); }); });
+
+// La marca del kit va siempre al pie y vuelve sola si alguien la quita.
+function ponerMarca() {
+  if (!document.querySelector('#app > .mk-pie')) app.appendChild(el('div', { class: 'mk-pie', text: marca() }));
+  var m = document.querySelector('#app > .mk-pie'); if (m.textContent !== marca()) m.textContent = marca();
+  m.style.cssText = 'display:block!important;visibility:visible!important;opacity:1!important';
+}
+new MutationObserver(function () { if (!document.querySelector('#app > .mk-pie') || document.querySelector('#app > .mk-pie').textContent !== marca()) ponerMarca(); })
+  .observe(app, { childList: true, subtree: true, characterData: true });
+setInterval(ponerMarca, 4000);
+
+window.estudiaJugando = { leerCurso: leerCurso, limpiarCurso: limpiarCurso, estado: function () { return S; } };
+ir('camino');
+})();
+</script>
+</body>
+</html>
