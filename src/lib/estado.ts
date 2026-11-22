@@ -63,6 +63,8 @@ export type Estado = {
   reportes: Reporte[];
   /** id de la solicitud de apoyo cuyo premio ya se entregó. */
   apoyoReclamado: string | null;
+  /** Repaso espaciado: para cada pregunta fallada, cuándo toca repasarla y en qué paso va (1, 3 y 7 días). */
+  repaso: Record<string, Record<string, { p: string; n: number }>>;
 };
 
 const CLAVE = "auxi.studio.v1";
@@ -106,6 +108,7 @@ function inicial(): Estado {
     tomates: {},
     reportes: [],
     apoyoReclamado: null,
+    repaso: {},
   };
 }
 
@@ -210,6 +213,8 @@ export function registrarLeccion(datos: {
   const cofre = e.cofreDia !== h;
   const primera = e.totales.lecciones === 0;
   const erroresCurso = new Set([...(e.errores[datos.cursoId] ?? []), ...datos.fallados]);
+  const repasoCurso = { ...(e.repaso[datos.cursoId] ?? {}) };
+  for (const ref of datos.fallados) repasoCurso[ref] = { p: sumarDias(h, 1), n: 0 };
 
   const celebracion: Celebracion = {
     titulo: datos.titulo,
@@ -228,6 +233,7 @@ export function registrarLeccion(datos: {
     racha: { dias, ultimoDia: h, protectores },
     progreso: { ...s.progreso, [datos.cursoId]: { ...s.progreso[datos.cursoId], [datos.claveNodo]: mejor } },
     errores: { ...s.errores, [datos.cursoId]: [...erroresCurso].slice(-40) },
+    repaso: { ...s.repaso, [datos.cursoId]: repasoCurso },
     totales: {
       lecciones: s.totales.lecciones + 1,
       respuestas: s.totales.respuestas + datos.respuestas,
@@ -244,9 +250,33 @@ export function nuevoId(prefijo: string) {
   return `${prefijo}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 }
 
-/** Quita de la lista de repaso lo que ya respondiste bien. */
-export function quitarErrores(cursoId: string, refs: string[]) {
-  actualizar((s) => ({
-    errores: { ...s.errores, [cursoId]: (s.errores[cursoId] ?? []).filter((r) => !refs.includes(r)) },
-  }));
+const INTERVALOS = [1, 3, 7];
+
+/** Preguntas que toca repasar hoy (o que ya se debían). Las que no tienen fecha cuentan como pendientes. */
+export function debidosDeRepaso(e: Estado, cursoId: string): string[] {
+  const fechas = e.repaso[cursoId] ?? {};
+  return (e.errores[cursoId] ?? []).filter((ref) => !fechas[ref] || fechas[ref].p <= hoy());
+}
+
+/**
+ * Anota el resultado de un repaso. Lo que aciertas sube un paso (1 → 3 → 7 días) y al tercer acierto
+ * se da por aprendido. Lo que fallas vuelve al día siguiente.
+ */
+export function registrarRepaso(cursoId: string, acertados: string[], fallados: string[]) {
+  actualizar((s) => {
+    const h = hoy();
+    const repaso = { ...(s.repaso[cursoId] ?? {}) };
+    let errores = s.errores[cursoId] ?? [];
+    for (const ref of acertados) {
+      const n = repaso[ref]?.n ?? 0;
+      if (n >= INTERVALOS.length - 1) {
+        delete repaso[ref];
+        errores = errores.filter((x) => x !== ref);
+      } else {
+        repaso[ref] = { n: n + 1, p: sumarDias(h, INTERVALOS[n + 1]) };
+      }
+    }
+    for (const ref of fallados) repaso[ref] = { n: 0, p: sumarDias(h, 1) };
+    return { repaso: { ...s.repaso, [cursoId]: repaso }, errores: { ...s.errores, [cursoId]: errores } };
+  });
 }

@@ -6,9 +6,11 @@ import "@fontsource/nunito/latin-800.css";
 import "@fontsource/nunito/latin-900.css";
 import "./index.css";
 import { App } from "./App";
+import { metricas } from "./lib/metricas";
 import { iniciarNube } from "./lib/nube";
 
 iniciarNube();
+metricas.appAbierta();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

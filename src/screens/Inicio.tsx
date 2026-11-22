@@ -7,7 +7,7 @@ import { Icono, Pantalla } from "../components/Navegacion";
 import { Accesos, Continuar, Hoy, MisTemas, ResumenCamino, Saludo, SemanaYMeta, TarjetaExamen } from "../components/Tablero";
 import { Ventana } from "../components/Ventana";
 import { avance, cursoDe, nodos } from "../lib/curso";
-import { actualizar, useEstado } from "../lib/estado";
+import { actualizar, debidosDeRepaso, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
 import { navegar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
@@ -17,7 +17,7 @@ export default function Inicio() {
   const curso = cursoDe(e);
   const lista = nodos(curso, e);
   const actual = lista.find((n) => n.abierto && !n.hecho);
-  const errores = e.errores[curso.id]?.length ?? 0;
+  const errores = debidosDeRepaso(e, curso.id).length;
 
   const [tarjetaDia, setTarjetaDia] = useState(
     () => e.tarjetaDia !== hoy() && e.totales.lecciones > 0 && e.racha.ultimoDia !== hoy(),

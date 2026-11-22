@@ -1,4 +1,5 @@
 import { actualizar, obtener } from "./estado";
+import { metricas } from "./metricas";
 import { supabase } from "./supabase";
 
 /**
@@ -74,6 +75,7 @@ export async function crearSolicitud(datos: { instagram: string; tiktok?: string
   if (error) {
     return { error: error.code === "23505" ? "Ya tienes una solicitud en revisión." : "No pude enviar tu solicitud. Inténtalo otra vez.", solicitud: null };
   }
+  metricas.apoyoSolicitado();
   return { error: null, solicitud: data as Solicitud };
 }
 

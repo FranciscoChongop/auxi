@@ -8,6 +8,7 @@ import { Escudo, Llama, Moneda, Pantalla } from "../components/Navegacion";
 import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { abrirIntro } from "../components/Intro";
 import { esDueno } from "../lib/apoyo";
+import { metricas } from "../lib/metricas";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
@@ -63,6 +64,7 @@ export default function Perfil() {
     try {
       if (navigator.share) await navigator.share({ title: "Auxi Studio", text: texto, url: location.origin + "/studio" });
       else await navigator.clipboard.writeText(`${texto} ${location.origin}/studio`);
+      if (id === "invitar") metricas.invitacion("compartir");
       premiar(id, premio);
     } catch {
       // Cerró el menú sin compartir: la misión queda disponible.
@@ -250,7 +252,10 @@ export default function Perfil() {
         </div>
         <button
           type="button"
-          onClick={() => window.open(VENDOE_URL, "_blank", "noopener")}
+          onClick={() => {
+            metricas.clicVendoe("perfil");
+            window.open(VENDOE_URL, "_blank", "noopener");
+          }}
           className="h-11 cursor-pointer rounded-[10px] bg-card px-3 font-extrabold text-negocio"
         >
           Ver

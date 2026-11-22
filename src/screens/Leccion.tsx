@@ -11,7 +11,8 @@ import { esCorrecto, pistaDe, respuestaEnTexto, type Valor } from "../juegos/cor
 import { Juego } from "../juegos/Juegos";
 import { TarjetaVolteable } from "../juegos/TarjetaVolteable";
 import { armarCola, cursoDe, tituloDe, type Paso } from "../lib/curso";
-import { obtener, quitarErrores, registrarLeccion } from "../lib/estado";
+import { metricas, primerDiaDeUso } from "../lib/metricas";
+import { obtener, registrarLeccion, registrarRepaso } from "../lib/estado";
 import { parametro, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 import { vibrar } from "../lib/vibrar";
@@ -105,8 +106,8 @@ export default function Leccion() {
 
   function terminar() {
     const curso_ = curso;
-    if (clave === "repaso") quitarErrores(curso_.id, [...acertados.current].filter((r) => !fallados.current.has(r)));
-    registrarLeccion({
+    if (clave === "repaso") registrarRepaso(curso_.id, [...acertados.current].filter((r) => !fallados.current.has(r)), [...fallados.current]);
+    const hecha = registrarLeccion({
       cursoId: curso_.id,
       claveNodo: clave,
       titulo: tituloDe(curso_, clave),
@@ -115,6 +116,7 @@ export default function Leccion() {
       segundos: Math.round((Date.now() - inicio.current) / 1000),
       fallados: [...fallados.current],
     });
+    metricas.leccionCompletada({ precision: hecha.precision, primera: hecha.primera, primerDia: primerDiaDeUso() });
     reemplazar("/studio/celebracion");
   }
 

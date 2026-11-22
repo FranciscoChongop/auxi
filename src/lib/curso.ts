@@ -2,7 +2,7 @@ import { CELULA, CURSOS, FOTOSINTESIS } from "../data/cursos";
 import type { Curso, Ejercicio, TarjetaEstudio } from "../data/tipos";
 import { mezclar } from "../juegos/corregir";
 import { diasEntre, hoy } from "./fechas";
-import type { Estado, MiCurso, Resultado, Tema } from "./estado";
+import { debidosDeRepaso, type Estado, type MiCurso, type Resultado, type Tema } from "./estado";
 
 export type Nodo = {
   u: number;
@@ -56,7 +56,7 @@ function ejercicio(curso: Curso, ref: string): Ejercicio | undefined {
 /** Arma la fila de pasos de una lección, una prueba o un repaso. */
 export function armarCola(curso: Curso, clave: string, e: Estado): Paso[] {
   if (clave === "repaso") {
-    let refs = mezclar(e.errores[curso.id] ?? []).slice(0, 8);
+    let refs = mezclar(debidosDeRepaso(e, curso.id)).slice(0, 8);
     if (refs.length < 5) {
       const hechos = nodos(curso, e).filter((n) => n.hecho && !n.prueba);
       const extra = hechos.flatMap((n) =>
