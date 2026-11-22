@@ -12,7 +12,7 @@ const pantallas = {
   hoy: lazy(() => import("./pantallas/Hoy")),
   registrar: lazy(() => import("./pantallas/Registrar")),
   anotar: lazy(() => import("./pantallas/Anotar")),
-  captura: lazy(() => import("./pantallas/Captura")),
+  importar: lazy(() => import("./pantallas/Importar")),
   movimientos: lazy(() => import("./pantallas/Movimientos")),
   metas: lazy(() => import("./pantallas/Metas")),
   protegete: lazy(() => import("./pantallas/Protegete")),
@@ -55,7 +55,7 @@ export default function VidaApp() {
   }, []);
 
   const seccion = ruta.replace(/\/+$/, "").split("/").filter(Boolean)[1] ?? "";
-  const pedido: Nombre = seccion === "inicio" ? "hoy" : seccion in pantallas ? (seccion as Nombre) : e.iniciado ? "hoy" : "bienvenida";
+  const pedido: Nombre = seccion === "inicio" ? "hoy" : seccion === "captura" ? "importar" : seccion in pantallas ? (seccion as Nombre) : e.iniciado ? "hoy" : "bienvenida";
   const nombre: Nombre = e.iniciado ? (pedido === "bienvenida" ? "hoy" : pedido) : SIN_EMPEZAR.includes(pedido) ? pedido : "bienvenida";
   const Pantalla = pantallas[nombre];
 

@@ -14,6 +14,7 @@ import { actualizarVida, borrarVida, NOMBRE_VIDA, obtenerVida, PRECIO_PROTECTOR,
 import { Chip, Encabezado, GrupoUnico, LeonVida, Pagina } from "../ui";
 import { Interruptor } from "../../components/Interruptor";
 import { WHATSAPP_REVISION } from "../../lib/apoyo";
+import { activarSugerencias } from "../sugerencias";
 
 const VENDOE_URL = "https://www.vendoe.es/";
 
@@ -66,7 +67,7 @@ export default function Perfil() {
 
   const exportar = () => {
     const s = obtenerVida();
-    const filas = [["fecha", "tipo", "monto", "categoria", "nota"], ...s.movimientos.map((m) => [m.fecha, m.tipo, String(m.monto), m.categoria, m.nota])];
+    const filas = [["fecha", "tipo", "monto", "moneda", "categoria", "nota", "origen", "operacion"], ...s.movimientos.map((m) => [m.fecha, m.clase ?? m.tipo, String(m.monto), m.moneda ?? "PEN", m.categoria, m.nota, m.origen, m.operacion ?? ""])];
     const csv = filas.map((f) => f.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
@@ -164,8 +165,23 @@ export default function Perfil() {
               activo={e.menosMovimiento}
               alCambiar={(v) => actualizarVida(() => ({ menosMovimiento: v }))}
             />
+            <Interruptor
+              etiqueta="Sugerencias de Auxi Vida"
+              ayuda="Tarjetas que te cuentan funciones útiles, como importar movimientos. Máximo una por visita."
+              activo={e.sugerencias.activas}
+              alCambiar={activarSugerencias}
+            />
           </div>
           <ApoyaAlCreador />
+        </Bloque>
+
+        <Bloque titulo="Importar movimientos">
+          <p className="text-ayuda text-text-soft">Tus fuentes, el historial de importaciones y tus reglas de categorías.</p>
+          <div className="mt-3">
+            <Boton variante="secundario" onClick={() => navegar("/vida/importar")}>
+              Ver mis fuentes
+            </Boton>
+          </div>
         </Bloque>
 
         <Bloque titulo="Recordatorios">

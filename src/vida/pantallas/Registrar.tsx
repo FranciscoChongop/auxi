@@ -142,8 +142,8 @@ export default function Registrar() {
           <button type="button" onClick={() => navegar(`/vida/anotar${tipo === "ingreso" ? "?tipo=ingreso" : ""}`)} className="min-h-11 cursor-pointer font-extrabold text-brand">
             Escríbeselo a León
           </button>
-          <button type="button" onClick={() => navegar("/vida/captura")} className="min-h-11 cursor-pointer font-extrabold text-brand">
-            Desde una captura
+          <button type="button" onClick={() => navegar("/vida/importar")} className="min-h-11 cursor-pointer font-extrabold text-brand">
+            Importar movimientos
           </button>
         </div>
       </div>

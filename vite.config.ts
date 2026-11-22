@@ -29,6 +29,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,woff2}", "leon/*.webp", "leon/caras/*.webp"],
+        // Los lectores de PDF e imágenes son pesados: se descargan solo cuando alguien los usa.
+        globIgnores: ["**/pdf.worker*", "**/pdf-*.js", "**/tesseract*", "**/worker.min*"],
         navigateFallback: "/index.html",
       },
     }),

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Boton } from "../../components/Boton";
 import { Ventana } from "../../components/Ventana";
 import { obtener as obtenerStudio } from "../../lib/estado";
@@ -8,7 +8,6 @@ import { entradaEnCascada } from "../../lib/movimiento";
 import { navegar } from "../../lib/rutas";
 import { sonidos } from "../../lib/sonidos";
 import {
-  cerrarAviso,
   compromisos,
   consejoDelDia,
   desglose,
@@ -21,6 +20,7 @@ import {
   totalFrasco,
   useVida,
 } from "../estado";
+import { descartarSugerencia, marcarVista, sugerenciaDeHoy } from "../sugerencias";
 import { avisoDeshacer, Cabecera, CaraLeonVida, Frasco, ICONOS, Pagina, Soles, TarjetaAviso } from "../ui";
 
 function cuando(dias: number) {
@@ -44,8 +44,10 @@ export default function Hoy() {
   const consejo = consejoDelDia(e);
   const deHoy = e.movimientos.filter((m) => m.fecha === h).reverse();
   const anotoHoy = e.racha.ultimoDia === h;
-  const ahorrado = e.frascos.reduce((s, f) => s + totalFrasco(f), 0);
-  const ofrecerMeta = e.primerAnotado && ahorrado === 0 && !e.avisos.crearMeta;
+  const sugerencia = sugerenciaDeHoy(e);
+  useEffect(() => {
+    if (sugerencia) marcarVista(sugerencia.id);
+  }, [sugerencia]);
 
   return (
     <Pagina conBarra amplio>
@@ -128,13 +130,24 @@ export default function Hoy() {
             </button>
           )}
 
+          <button
+            type="button"
+            onClick={() => navegar("/vida/importar")}
+            className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-[16px] border-2 border-dashed border-surface font-extrabold text-brand"
+          >
+            <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
+              <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Importar movimientos
+          </button>
+
           <AnimatePresence>
-            {ofrecerMeta && (
-              <TarjetaAviso tono="oro" alCerrar={() => cerrarAviso("crearMeta")}>
-                <p className="font-extrabold">Ya comenzaste. ¿Quieres crear una meta?</p>
-                <p className="text-ayuda">Un frasco para tu colchón o para algo que quieras.</p>
-                <button type="button" onClick={() => navegar("/vida/metas?nuevo=1")} className="mt-2 min-h-11 cursor-pointer font-extrabold text-brand">
-                  Crear una meta
+            {sugerencia && (
+              <TarjetaAviso key={sugerencia.id} tono={sugerencia.tono} alCerrar={() => descartarSugerencia(sugerencia.id)}>
+                <p className="font-extrabold">{sugerencia.titulo}</p>
+                <p className="text-ayuda">{sugerencia.texto}</p>
+                <button type="button" onClick={() => navegar(sugerencia.ruta)} className="mt-2 min-h-11 cursor-pointer font-extrabold text-brand">
+                  {sugerencia.boton}
                 </button>
               </TarjetaAviso>
             )}

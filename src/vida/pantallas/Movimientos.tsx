@@ -57,6 +57,8 @@ export default function Movimientos() {
 
 /* ---------- Ingresos y gastos ---------- */
 
+const ORIGEN: Partial<Record<Movimiento["origen"], string>> = { gmail: "de Gmail", reporte: "de un reporte", comprobante: "de un comprobante", texto: "de texto pegado", captura: "de una captura" };
+
 function cambio(actual: number, antes: number) {
   if (!antes) return null;
   const dif = actual - antes;
@@ -132,8 +134,11 @@ function Lista() {
         <div className="flex flex-col items-center py-4 text-center">
           <LeonVida pose="anima" alto={130} />
           <p className="mt-2 font-extrabold">Aún no tienes movimientos.</p>
-          <div className="mt-3 w-full">
+          <div className="mt-3 flex w-full flex-col gap-2">
             <Boton onClick={() => navegar("/vida/registrar")}>Registrar el primero</Boton>
+            <Boton variante="secundario" onClick={() => navegar("/vida/importar")}>
+              Importar movimientos
+            </Boton>
           </div>
         </div>
       ) : lista.length === 0 ? (
@@ -151,11 +156,13 @@ function Lista() {
                       <span className="text-ayuda text-text-soft">
                         {m.categoria}
                         {m.fijo ? " · pago fijo" : ""}
+                        {m.clase === "propia" ? " · no cuenta" : ""}
+                        {ORIGEN[m.origen] ? ` · ${ORIGEN[m.origen]}` : ""}
                       </span>
                     </span>
                     <span className={`numeros font-black ${m.tipo === "ingreso" ? "text-brand" : ""}`}>
                       {m.tipo === "ingreso" ? "+ " : "− "}
-                      {soles(m.monto)}
+                      {m.moneda && m.moneda !== "PEN" ? `${m.moneda} ${m.monto}` : soles(m.monto)}
                     </span>
                   </button>
                 </li>

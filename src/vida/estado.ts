@@ -32,8 +32,21 @@ export type Movimiento = {
   extra?: boolean;
   /** Pago fijo (alquiler, luz…): ya está descontado en el plan, no resta del día. */
   fijo?: boolean;
-  origen: "chat" | "manual" | "captura" | "pago";
+  origen: "chat" | "manual" | "captura" | "pago" | "gmail" | "reporte" | "comprobante" | "texto";
+  /** Datos de importación (solo si existen en el documento). */
+  moneda?: string;
+  contraparte?: string;
+  operacion?: string;
+  /** Devolución (resta a lo gastado) o transferencia entre cuentas propias (no cuenta). */
+  clase?: "devolucion" | "propia";
+  importacion?: string;
 };
+
+export type FuenteImportacion = "gmail" | "reporte" | "comprobante" | "texto";
+
+export type Importacion = { id: string; fecha: string; fuente: FuenteImportacion; detalle: string; ids: string[]; deshecha?: boolean };
+
+export type ReglaCategoria = { id: string; contiene: string; categoria: string };
 
 export type Aporte = { id: string; fecha: string; monto: number; motivo: "antojo" | "sobrante" | "manual"; nota: string };
 
@@ -86,6 +99,13 @@ export type EstadoVida = {
   saludoVisto: boolean;
   menosMovimiento: boolean;
   casos: Caso[];
+  importaciones: Importacion[];
+  reglas: ReglaCategoria[];
+  /** Gmail: solo se guarda el correo y las fechas; el permiso vive en Google. */
+  gmail: { email?: string; ultimaSync?: string; desde?: string; hasta?: string; revocado?: boolean } | null;
+  importarVisto: boolean;
+  formatosVistos: number;
+  sugerencias: { activas: boolean; descartes: Record<string, string> };
 };
 
 const CLAVE = "auxi.vida.v1";
@@ -116,6 +136,12 @@ function inicial(): EstadoVida {
     saludoVisto: false,
     menosMovimiento: false,
     casos: [],
+    importaciones: [],
+    reglas: [],
+    gmail: null,
+    importarVisto: false,
+    formatosVistos: 0,
+    sugerencias: { activas: true, descartes: {} },
   };
 }
 
@@ -302,12 +328,16 @@ export type DesgloseDia = {
   quedan: number;
 };
 
+/** Pagos fijos, transferencias entre tus cuentas y montos en otra moneda no cuentan para el día. */
+export const cuentaParaElDia = (m: Movimiento) => !m.fijo && m.clase !== "propia" && (!m.moneda || m.moneda === "PEN");
+
 /** Cuenta de un día: base + lo que pasó de ayer + ajuste por ingresos − gastos (sin contar los pagos fijos). */
 export function desglose(e: EstadoVida, fecha = hoy()): DesgloseDia {
   const p = e.plan;
-  const delDia = e.movimientos.filter((m) => m.fecha === fecha && !m.fijo);
-  const gastado = redondear(delDia.filter((m) => m.tipo === "gasto").reduce((s, m) => s + m.monto, 0));
-  const ingresos = delDia.filter((m) => m.tipo === "ingreso");
+  const delDia = e.movimientos.filter((m) => m.fecha === fecha && cuentaParaElDia(m));
+  const devuelto = delDia.filter((m) => m.clase === "devolucion").reduce((s, m) => s + m.monto, 0);
+  const gastado = redondear(Math.max(0, delDia.filter((m) => m.tipo === "gasto").reduce((s, m) => s + m.monto, 0) - devuelto));
+  const ingresos = delDia.filter((m) => m.tipo === "ingreso" && m.clase !== "devolucion");
   const ingresado = redondear(ingresos.reduce((s, m) => s + m.monto, 0));
   if (!p) return { base: 0, arrastre: 0, ajusteIngresos: 0, gastado, ingresado, disponible: 0, quedan: -gastado };
   const base = baseDiaria(p, fecha);
@@ -340,7 +370,7 @@ export function cerrarDiasPasados() {
   const e = obtenerVida();
   if (!e.plan) return;
   const h = hoy();
-  const conMovimientos = [...new Set(e.movimientos.filter((m) => !m.fijo).map((m) => m.fecha))].filter((f) => f < h && f >= e.plan!.desde).sort();
+  const conMovimientos = [...new Set(e.movimientos.filter(cuentaParaElDia).map((m) => m.fecha))].filter((f) => f < h && f >= e.plan!.desde).sort();
   const pendientes = conMovimientos.filter((f) => !e.cierres[f]);
   if (!pendientes.length) return;
   let cierres = { ...e.cierres };
@@ -503,9 +533,10 @@ export function lunes(fecha = hoy()) {
 
 export function resumenSemana(e: EstadoVida, desde: string) {
   const hasta = sumarDias(desde, 6);
-  const ms = e.movimientos.filter((m) => m.fecha >= desde && m.fecha <= hasta && !m.fijo);
-  const entro = redondear(ms.filter((m) => m.tipo === "ingreso").reduce((s, m) => s + m.monto, 0));
-  const salio = redondear(ms.filter((m) => m.tipo === "gasto").reduce((s, m) => s + m.monto, 0));
+  const ms = e.movimientos.filter((m) => m.fecha >= desde && m.fecha <= hasta && cuentaParaElDia(m));
+  const devuelto = ms.filter((m) => m.clase === "devolucion").reduce((s, m) => s + m.monto, 0);
+  const entro = redondear(ms.filter((m) => m.tipo === "ingreso" && m.clase !== "devolucion").reduce((s, m) => s + m.monto, 0));
+  const salio = redondear(Math.max(0, ms.filter((m) => m.tipo === "gasto").reduce((s, m) => s + m.monto, 0) - devuelto));
   const porCategoria: Record<string, number> = {};
   for (const m of ms) if (m.tipo === "gasto") porCategoria[m.categoria] = (porCategoria[m.categoria] ?? 0) + m.monto;
   const top = Object.entries(porCategoria).sort((a, b) => b[1] - a[1])[0];

@@ -35,7 +35,7 @@ function categoriaIngreso(t: string) {
   return "Otros ingresos";
 }
 
-function categoriaGasto(t: string) {
+export function categoriaGasto(t: string) {
   for (const [nombre, re] of PALABRAS) if (re.test(t)) return nombre;
   return "Otros";
 }
