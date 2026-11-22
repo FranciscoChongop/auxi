@@ -1,0 +1,349 @@
+import { motion } from "motion/react";
+import type { ReactNode } from "react";
+import type { Curso } from "../data/tipos";
+import type { Nodo } from "../lib/curso";
+import { rachaEnPausa, rachaVigente, type Estado } from "../lib/estado";
+import { clave, diasEntre, hoy, sumarDias } from "../lib/fechas";
+import { DIAS_CORTOS, diaDeHoy } from "../lib/horario";
+import { entradaEnCascada } from "../lib/movimiento";
+import { navegar } from "../lib/rutas";
+import { sonidos } from "../lib/sonidos";
+import { vibrar } from "../lib/vibrar";
+import { Boton } from "./Boton";
+import { COLORES_CURSO } from "./Formulario";
+import { CaraDeLeon, Leon } from "./Leon";
+import { Escudo, Llama, Marcadores } from "./Navegacion";
+
+/* ---------- Saludo ---------- */
+
+export function Saludo() {
+  const h = new Date().getHours();
+  const saludo = h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+  return (
+    <header className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-ayuda font-bold text-text-soft">{saludo}</p>
+        <h1 className="text-[24px] leading-7 font-black">¿Qué estudiamos hoy?</h1>
+      </div>
+      <Marcadores />
+    </header>
+  );
+}
+
+/* ---------- Semana de racha + meta del día ---------- */
+
+function Anillo({ valor }: { valor: number }) {
+  const r = 22;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg viewBox="0 0 56 56" className="size-14 -rotate-90" aria-hidden="true">
+      <circle cx="28" cy="28" r={r} fill="none" stroke="var(--surface)" strokeWidth="7" />
+      <motion.circle
+        cx="28"
+        cy="28"
+        r={r}
+        fill="none"
+        stroke="var(--success)"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeDasharray={c}
+        initial={{ strokeDashoffset: c }}
+        animate={{ strokeDashoffset: c * (1 - Math.min(1, valor)) }}
+        transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.2 }}
+      />
+    </svg>
+  );
+}
+
+export function SemanaYMeta({ e }: { e: Estado }) {
+  const h = hoy();
+  const lunes = sumarDias(h, -diaDeHoy());
+  const dias = DIAS_CORTOS.map((d, i) => ({ d, fecha: sumarDias(lunes, i) }));
+  const hechasHoy = e.diasEstudio[h] ?? 0;
+  const meta = e.metaDiaria;
+  const racha = rachaVigente(e);
+  const pausa = rachaEnPausa(e);
+
+  return (
+    <motion.section {...entradaEnCascada(0)} className="rounded-tarjeta border-2 border-surface bg-card p-4">
+      <div className="flex items-center gap-4">
+        <div className="relative grid place-items-center">
+          <Anillo valor={hechasHoy / meta} />
+          <span className="numeros absolute text-[15px] font-black">
+            {Math.min(hechasHoy, meta)}/{meta}
+          </span>
+        </div>
+        <div className="flex-1">
+          <p className="font-extrabold">{hechasHoy >= meta ? "¡Meta de hoy cumplida!" : "Meta de hoy"}</p>
+          <p className="text-ayuda text-text-soft">
+            {hechasHoy >= meta
+              ? "Todo lo que hagas ahora es extra."
+              : `${meta - hechasHoy} ${meta - hechasHoy === 1 ? "lección" : "lecciones"} más y listo.`}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-7 gap-1">
+        {dias.map(({ d, fecha }) => {
+          const estudio = (e.diasEstudio[fecha] ?? 0) > 0;
+          const esHoy = fecha === h;
+          const futuro = diasEntre(h, fecha) > 0;
+          return (
+            <div key={fecha} className="flex flex-col items-center gap-1">
+              <span
+                className={`grid size-10 place-items-center rounded-full ${esHoy ? "ring-2 ring-brand ring-offset-2 ring-offset-card" : ""} ${estudio ? "bg-reward/25" : "bg-surface"} ${futuro ? "opacity-50" : ""}`}
+              >
+                {estudio ? <Llama activa className="size-5" /> : <span className="size-2 rounded-full bg-text-soft/30" />}
+              </span>
+              <span className={`text-[12px] font-extrabold ${esHoy ? "text-brand" : "text-text-soft"}`}>{d}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 flex items-center gap-2 text-ayuda font-bold text-text-soft">
+        {pausa ? (
+          <>
+            <CaraDeLeon cara="tierno" tamano={28} /> Tu racha está en pausa. Una lección la vuelve a encender.
+          </>
+        ) : (
+          <>
+            <Escudo className="size-5" />
+            {racha > 0 ? `Racha de ${racha} ${racha === 1 ? "día" : "días"}` : "Empieza tu racha hoy"} · {e.racha.protectores}{" "}
+            {e.racha.protectores === 1 ? "protector" : "protectores"}
+          </>
+        )}
+      </p>
+    </motion.section>
+  );
+}
+
+/* ---------- Sigue donde te quedaste ---------- */
+
+export function Continuar({ e, curso, actual, avance }: { e: Estado; curso: Curso; actual?: Nodo; avance: number }) {
+  const mio = e.estudiando && e.misCursos.find((c) => c.id === e.estudiando!.cursoId);
+  const tema = mio && mio.temas.find((t) => t.id === e.estudiando!.temaId);
+  const titulo = tema ? tema.nombre : curso.titulo;
+  const sub = mio ? mio.nombre : curso.materia;
+
+  return (
+    <motion.section
+      {...entradaEnCascada(1)}
+      className="rounded-tarjeta bg-brand p-4 text-white"
+      style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}
+    >
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-ayuda font-bold opacity-85">Sigue donde te quedaste · {sub}</p>
+          <p className="mt-1 text-[22px] leading-7 font-black">{titulo}</p>
+          <p className="mt-1 text-[15px] font-semibold opacity-90">{actual ? `Siguiente: ${actual.titulo}` : "¡Tema terminado!"}</p>
+        </div>
+        <Leon pose="saluda" alto={104} className="-mt-1 -mr-1 shrink-0" />
+      </div>
+      <div className="mt-4 flex items-center gap-3">
+        <div className="h-3 flex-1 overflow-hidden rounded-full bg-white/25">
+          <motion.div
+            className="h-full rounded-full bg-success"
+            initial={{ width: 0 }}
+            animate={{ width: `${avance * 100}%` }}
+            transition={{ type: "spring", stiffness: 160, damping: 22, delay: 0.3 }}
+          />
+        </div>
+        <span className="numeros text-ayuda font-black">{Math.round(avance * 100)} %</span>
+      </div>
+      <div className="mt-4">
+        <Boton variante="secundario" onClick={() => navegar(actual ? `/studio/leccion?n=${actual.clave}` : "/studio/material")}>
+          {actual ? (avance > 0 ? "Continuar" : "Empezar") : "Estudiar otro tema"}
+        </Boton>
+      </div>
+    </motion.section>
+  );
+}
+
+/* ---------- Hoy: clases y próxima entrega ---------- */
+
+function Fila({ izquierda, children, derecha, onClick, color }: { izquierda: ReactNode; children: ReactNode; derecha?: ReactNode; onClick: () => void; color?: string }) {
+  return (
+    <button type="button" onClick={onClick} className="flex min-h-14 w-full cursor-pointer items-center gap-3 overflow-hidden rounded-boton bg-bg py-2 pr-3 text-left">
+      <span className="w-1.5 self-stretch rounded-r-full" style={{ background: color ?? "transparent" }} />
+      <span className="numeros w-14 shrink-0 text-[15px] font-black">{izquierda}</span>
+      <span className="min-w-0 flex-1">{children}</span>
+      {derecha}
+    </button>
+  );
+}
+
+export function Hoy({ e }: { e: Estado }) {
+  const d = diaDeHoy();
+  const ahora = new Date();
+  const hhmm = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
+  const clases = e.horario.filter((c) => c.dia === d && c.fin >= hhmm).sort((a, b) => a.inicio.localeCompare(b.inicio)).slice(0, 3);
+  const pendientes = [...e.entregas].filter((x) => diasEntre(hoy(), x.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const proxima = pendientes[0];
+  const color = (nombre: string) => COLORES_CURSO[e.misCursos.find((c) => c.nombre.toLowerCase() === nombre.toLowerCase())?.color ?? 0];
+  const faltan = proxima ? diasEntre(hoy(), proxima.fecha) : 0;
+
+  return (
+    <motion.section {...entradaEnCascada(3)} className="rounded-tarjeta border-2 border-surface bg-card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-tarjeta font-extrabold">Hoy</h2>
+        <span className="text-ayuda font-bold text-text-soft">{clave() === hoy() ? new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }) : ""}</span>
+      </div>
+      <div className="flex flex-col gap-2">
+        {e.horario.length === 0 ? (
+          <Fila izquierda={<CaraDeLeon cara="lentes" tamano={36} />} onClick={() => navegar("/studio/cursos")} derecha={<span className="font-black text-brand">Subir</span>}>
+            <span className="block font-extrabold">Sube tu horario</span>
+            <span className="block text-ayuda text-text-soft">Excel o foto. Así sé cuándo tienes clase.</span>
+          </Fila>
+        ) : clases.length === 0 ? (
+          <p className="rounded-boton bg-bg px-4 py-3 font-bold text-text-soft">Ya no tienes clases hoy.</p>
+        ) : (
+          clases.map((c) => {
+            const enCurso = c.inicio <= hhmm && hhmm <= c.fin;
+            return (
+              <Fila key={c.id} izquierda={c.inicio} color={color(c.curso)} onClick={() => navegar("/studio/cursos")} derecha={enCurso ? <span className="rounded-full bg-success px-2 py-1 text-[12px] font-black text-text">Ahora</span> : undefined}>
+                <span className="block truncate font-extrabold">{c.curso}</span>
+                <span className="block text-ayuda text-text-soft">
+                  hasta {c.fin}
+                  {c.aula ? ` · Aula ${c.aula}` : ""}
+                </span>
+              </Fila>
+            );
+          })
+        )}
+        {proxima && (
+          <Fila
+            izquierda={<span className={`text-ayuda ${faltan <= 1 ? "text-error" : "text-text-soft"}`}>{faltan === 0 ? "Hoy" : faltan === 1 ? "Mañana" : `${faltan} días`}</span>}
+            color={color(proxima.curso)}
+            onClick={() => navegar("/studio/entregas")}
+          >
+            <span className="block truncate font-extrabold">Entrega: {proxima.titulo}</span>
+            <span className="block text-ayuda text-text-soft">
+              {proxima.curso}
+              {pendientes.length > 1 ? ` · y ${pendientes.length - 1} más` : ""}
+            </span>
+          </Fila>
+        )}
+      </div>
+    </motion.section>
+  );
+}
+
+/* ---------- Accesos rápidos ---------- */
+
+function Acceso({ titulo, ayuda, icono, onClick, insignia }: { titulo: string; ayuda: string; icono: ReactNode; onClick: () => void; insignia?: number }) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      onPointerDown={() => {
+        sonidos.toque();
+        vibrar("toque");
+      }}
+      whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
+      style={{ boxShadow: "0 4px 0 var(--surface)" }}
+      className="relative flex min-h-28 cursor-pointer flex-col items-start justify-between gap-2 rounded-tarjeta border-2 border-surface bg-card p-3 text-left"
+    >
+      <span className="grid size-10 place-items-center rounded-[12px] bg-surface text-brand">{icono}</span>
+      <span>
+        <span className="block font-extrabold">{titulo}</span>
+        <span className="block text-ayuda text-text-soft">{ayuda}</span>
+      </span>
+      {!!insignia && (
+        <span className="numeros absolute top-3 right-3 grid h-6 min-w-6 place-items-center rounded-full bg-error px-1.5 text-[13px] font-black text-white">{insignia}</span>
+      )}
+    </motion.button>
+  );
+}
+
+const t = { fill: "none", stroke: "currentColor", strokeWidth: 2.3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+
+export function Accesos({ errores }: { errores: number }) {
+  return (
+    <motion.section {...entradaEnCascada(4)} className="grid grid-cols-2 gap-3">
+      <Acceso
+        titulo="Repaso"
+        ayuda={errores ? "2 minutos" : "Nada pendiente"}
+        insignia={errores}
+        onClick={() => navegar("/studio/leccion?n=repaso")}
+        icono={
+          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
+            <path {...t} d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v4h4" />
+          </svg>
+        }
+      />
+      <Acceso
+        titulo="El tomate"
+        ayuda="25 min de foco"
+        onClick={() => navegar("/studio/metodos/tomate")}
+        icono={
+          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
+            <circle {...t} cx="12" cy="13.5" r="7" />
+            <path {...t} d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4" />
+          </svg>
+        }
+      />
+      <Acceso
+        titulo="Las 5 cajas"
+        ayuda="Tarjetas rápidas"
+        onClick={() => navegar("/studio/metodos/cajas")}
+        icono={
+          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
+            <path {...t} d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />
+          </svg>
+        }
+      />
+      <Acceso
+        titulo="Mis cursos"
+        ayuda="Horario y PDF"
+        onClick={() => navegar("/studio/cursos")}
+        icono={
+          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
+            <path {...t} d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />
+          </svg>
+        }
+      />
+    </motion.section>
+  );
+}
+
+/* ---------- Resumen del camino (el camino completo vive en /studio/camino) ---------- */
+
+export function ResumenCamino({ curso, lista }: { curso: Curso; lista: Nodo[] }) {
+  const actual = lista.find((n) => n.abierto && !n.hecho);
+  const hechos = lista.filter((n) => n.hecho).length;
+  return (
+    <motion.button
+      {...entradaEnCascada(2)}
+      type="button"
+      onClick={() => navegar("/studio/camino")}
+      onPointerDown={() => sonidos.toque()}
+      whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
+      style={{ boxShadow: "0 4px 0 var(--surface)" }}
+      className="flex cursor-pointer flex-col gap-3 rounded-tarjeta border-2 border-surface bg-card p-4 text-left"
+    >
+      <span className="flex items-center justify-between gap-2">
+        <span>
+          <span className="block text-tarjeta font-extrabold">Tu camino</span>
+          <span className="block text-ayuda text-text-soft">
+            {curso.titulo} · {hechos} de {lista.length} niveles
+          </span>
+        </span>
+        <span className="font-extrabold text-brand">Ver</span>
+      </span>
+      <span className="relative flex items-center justify-between px-1" aria-hidden="true">
+        <span className="absolute inset-x-3 top-1/2 h-1 -translate-y-1/2 rounded-full bg-surface" />
+        {lista.slice(0, 9).map((n) => (
+          <span
+            key={n.clave}
+            className={`relative grid place-items-center rounded-full ${n === actual ? "size-8 bg-brand ring-4 ring-brand/25" : "size-6"} ${n.hecho ? "bg-success" : n === actual ? "" : "bg-surface"}`}
+          >
+            {n.hecho ? (
+              <svg viewBox="0 0 24 24" className="size-4"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="var(--text)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            ) : n === actual ? (
+              <svg viewBox="0 0 24 24" className="size-4"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="white" /></svg>
+            ) : null}
+          </span>
+        ))}
+      </span>
+    </motion.button>
+  );
+}

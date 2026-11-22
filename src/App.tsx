@@ -1,5 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { ApoyaAlCreador } from "./components/ApoyaAlCreador";
 import { ProveedorAvisos, useAviso } from "./components/Aviso";
 import { obtener } from "./lib/estado";
 import { reemplazar, useRuta } from "./lib/rutas";
@@ -11,11 +12,14 @@ const pantallas = {
   leccion: lazy(() => import("./screens/Leccion")),
   celebracion: lazy(() => import("./screens/Celebracion")),
   inicio: lazy(() => import("./screens/Inicio")),
+  camino: lazy(() => import("./screens/Camino")),
   cofre: lazy(() => import("./screens/Cofre")),
   metodos: lazy(() => import("./screens/Metodos")),
   tomate: lazy(() => import("./screens/Tomate")),
   cajas: lazy(() => import("./screens/Cajas")),
   leon: lazy(() => import("./screens/ExplicaLeon")),
+  cursos: lazy(() => import("./screens/Cursos")),
+  curso: lazy(() => import("./screens/Curso")),
   entregas: lazy(() => import("./screens/Entregas")),
   perfil: lazy(() => import("./screens/Perfil")),
   catalogo: lazy(() => import("./screens/Catalogo")),
@@ -31,6 +35,7 @@ function elegir(ruta: string): keyof typeof pantallas {
     return e.bienvenidaVista && e.cursoId ? "inicio" : "bienvenida";
   }
   if (seccion === "metodos" && sub && sub in pantallas) return sub as keyof typeof pantallas;
+  if (seccion === "cursos" && sub) return "curso";
   if (seccion in pantallas) return seccion as keyof typeof pantallas;
   return "inicio";
 }
@@ -68,6 +73,7 @@ export function App() {
     <MotionConfig reducedMotion="user">
       <ProveedorAvisos>
         <SinConexion />
+        <ApoyaAlCreador lateral />
         <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
