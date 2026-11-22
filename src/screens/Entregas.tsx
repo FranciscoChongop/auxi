@@ -28,7 +28,7 @@ function ListaEntregas() {
   const [nueva, setNueva] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [fecha, setFecha] = useState(sumarDias(hoy(), 7));
-  const lista = [...e.entregas].sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const lista = [...e.entregas].filter((x) => x.tipo !== "feriado").sort((a, b) => a.fecha.localeCompare(b.fecha));
 
   return (
     <>
@@ -224,9 +224,12 @@ function Calendario() {
   const diasMes = new Date(mes.a, mes.m + 1, 0).getDate();
   const celdas = [...Array(huecos).fill(null), ...Array.from({ length: diasMes }, (_, i) => i + 1)];
   const clavesDia = (d: number) => clave(new Date(mes.a, mes.m, d));
-  const colorDe = (curso: string) => COLORES_CURSO[e.misCursos.find((c) => c.nombre.toLowerCase() === curso.toLowerCase())?.color ?? 0];
-  const delMes = e.entregas.filter((x) => x.fecha.startsWith(`${mes.a}-${String(mes.m + 1).padStart(2, "0")}`)).sort((a, b) => a.fecha.localeCompare(b.fecha));
-  const mostradas = dia ? e.entregas.filter((x) => x.fecha === dia) : delMes;
+  const colorDe = (x: { curso: string; tipo?: string }) =>
+    x.tipo === "feriado" ? "var(--reward-dark)" : COLORES_CURSO[e.misCursos.find((c) => c.nombre.toLowerCase() === x.curso.toLowerCase())?.color ?? 0];
+  const cae = (x: { fecha: string; hasta?: string }, k: string) => x.fecha <= k && k <= (x.hasta ?? x.fecha);
+  const mesTxt = `${mes.a}-${String(mes.m + 1).padStart(2, "0")}`;
+  const delMes = e.entregas.filter((x) => x.fecha.startsWith(mesTxt) || (x.hasta && x.hasta.startsWith(mesTxt))).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const mostradas = dia ? e.entregas.filter((x) => cae(x, dia)) : delMes;
   const cambiar = (n: number) => {
     const f = new Date(mes.a, mes.m + n, 1);
     setMes({ a: f.getFullYear(), m: f.getMonth() });
@@ -262,7 +265,7 @@ function Calendario() {
           {celdas.map((d, i) => {
             if (d === null) return <span key={`v${i}`} />;
             const k = clavesDia(d);
-            const entregas = e.entregas.filter((x) => x.fecha === k);
+            const entregas = e.entregas.filter((x) => cae(x, k));
             const esHoy = k === clave(ahora);
             const activo = dia === k;
             return (
@@ -280,7 +283,7 @@ function Calendario() {
                 <span className="numeros">{d}</span>
                 <span className="flex h-2 items-center gap-0.5">
                   {entregas.slice(0, 3).map((x) => (
-                    <span key={x.id} className="size-1.5 rounded-full" style={{ background: activo ? "#fff" : colorDe(x.curso) }} />
+                    <span key={x.id} className="size-1.5 rounded-full" style={{ background: activo ? "#fff" : colorDe(x) }} />
                   ))}
                 </span>
               </button>
@@ -293,16 +296,16 @@ function Calendario() {
       {mostradas.length === 0 && <p className="rounded-tarjeta bg-surface p-4 text-center text-text-soft">{dia ? "Nada para este día." : "No hay entregas este mes."}</p>}
       {mostradas.map((x) => (
         <div key={x.id} className="flex items-center gap-3 overflow-hidden rounded-tarjeta border-2 border-surface bg-card py-3 pr-3">
-          <span className="w-1.5 self-stretch rounded-r-full" style={{ background: colorDe(x.curso) }} />
+          <span className="w-1.5 self-stretch rounded-r-full" style={{ background: colorDe(x) }} />
           <span className="flex-1">
             <span className="block font-extrabold">{x.titulo}</span>
             <span className="block text-ayuda text-text-soft">
               {x.curso}
               {x.tipo ? ` · ${x.tipo}` : ""}
-              {!dia ? ` · ${bonita(x.fecha)}` : ""}
+              {!dia ? ` · ${bonita(x.fecha)}${x.hasta ? ` al ${bonita(x.hasta)}` : ""}` : ""}
             </span>
           </span>
-          <Faltan fecha={x.fecha} />
+          {x.tipo !== "feriado" && <Faltan fecha={x.fecha} />}
         </div>
       ))}
       <Boton variante="secundario" onClick={() => navegar("/studio/silabo")}>

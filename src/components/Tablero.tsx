@@ -1,11 +1,13 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import type { Curso } from "../data/tipos";
-import type { Nodo } from "../lib/curso";
+import { proximoExamen, type Nodo } from "../lib/curso";
 import { rachaEnPausa, rachaVigente, type Estado } from "../lib/estado";
 import { DIAS_CORTOS, diaDeHoy, diasEntre, hoy, sumarDias } from "../lib/fechas";
 import { entradaEnCascada } from "../lib/movimiento";
 import { navegar } from "../lib/rutas";
+import { estudiarTema } from "../lib/tienda";
+import { textoExamen } from "./FilaTema";
 import { sonidos } from "../lib/sonidos";
 import { vibrar } from "../lib/vibrar";
 import { Boton } from "./Boton";
@@ -171,7 +173,7 @@ function Fila({ izquierda, children, derecha, onClick, color }: { izquierda: Rea
 }
 
 export function Hoy({ e }: { e: Estado }) {
-  const pendientes = [...e.entregas].filter((x) => diasEntre(hoy(), x.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const pendientes = [...e.entregas].filter((x) => x.tipo !== "feriado" && diasEntre(hoy(), x.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha));
   const proxima = pendientes[0];
   const color = (nombre: string) => COLORES_CURSO[e.misCursos.find((c) => c.nombre.toLowerCase() === nombre.toLowerCase())?.color ?? 0];
   const faltan = proxima ? diasEntre(hoy(), proxima.fecha) : 0;
@@ -322,5 +324,61 @@ export function ResumenCamino({ curso, lista }: { curso: Curso; lista: Nodo[] })
         ))}
       </span>
     </motion.button>
+  );
+}
+
+
+/* ---------- ¿Tienes un examen? ---------- */
+
+export function TarjetaExamen({ e }: { e: Estado }) {
+  const prox = proximoExamen(e);
+  if (!prox) {
+    return (
+      <motion.button
+        {...entradaEnCascada(0)}
+        type="button"
+        onClick={() => navegar("/studio/examen")}
+        onPointerDown={() => sonidos.toque()}
+        whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
+        style={{ boxShadow: "0 4px 0 var(--surface)" }}
+        className="flex cursor-pointer items-center gap-3 rounded-tarjeta border-2 border-surface bg-card p-3 text-left"
+      >
+        <CaraDeLeon cara="sorpresa" tamano={52} />
+        <span className="flex-1">
+          <span className="block text-tarjeta font-extrabold">¿Tienes un examen?</span>
+          <span className="block text-ayuda text-text-soft">Cuéntame y armo tu plan.</span>
+        </span>
+        <span className="font-black text-brand">Contar</span>
+      </motion.button>
+    );
+  }
+  const urgente = prox.diasExamen! <= 3;
+  return (
+    <motion.section {...entradaEnCascada(0)} className={`rounded-tarjeta border-2 p-4 ${urgente ? "border-error bg-card" : "border-surface bg-card"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={`text-ayuda font-extrabold ${urgente ? "text-error" : "text-text-soft"}`}>{textoExamen(prox.diasExamen!)}</p>
+          <p className="truncate text-[20px] leading-6 font-black">{prox.tema.nombre}</p>
+          <p className="truncate text-ayuda text-text-soft">{prox.curso.nombre}</p>
+        </div>
+        <CaraDeLeon cara={urgente ? "sorpresa" : "lentes"} tamano={48} />
+      </div>
+      {prox.contenido && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface">
+            <span className="block h-full rounded-full bg-success" style={{ width: `${Math.round(prox.avance * 100)}%` }} />
+          </span>
+          <span className="numeros text-[12px] font-extrabold text-text-soft">{Math.round(prox.avance * 100)} %</span>
+        </div>
+      )}
+      <div className="mt-3">
+        <Boton variante={urgente ? "premio" : "principal"} onClick={() => estudiarTema(prox, navegar)}>
+          {prox.contenido ? "Estudiar para el examen" : "Subir mi material"}
+        </Boton>
+      </div>
+      <button type="button" onClick={() => navegar("/studio/examen")} className="mt-1 h-11 w-full cursor-pointer font-extrabold text-brand">
+        Anotar otro examen
+      </button>
+    </motion.section>
   );
 }

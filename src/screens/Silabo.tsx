@@ -148,7 +148,7 @@ export default function Silabo() {
                             {x.titulo}
                             {x.tipo && <span className="block text-ayuda font-semibold text-text-soft">{x.tipo}</span>}
                           </span>
-                          <span className="shrink-0 text-ayuda font-extrabold text-brand">{bonita(x.fecha)}</span>
+                          <span className="shrink-0 text-right text-ayuda font-extrabold text-brand">{bonita(x.fecha)}{x.hasta ? ` al ${bonita(x.hasta)}` : ""}</span>
                         </li>
                       ))}
                   </ul>

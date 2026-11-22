@@ -1,4 +1,5 @@
 import type { Curso, Unidad } from "../data/tipos";
+import type { InfoTema } from "./curso";
 import { actualizar, nuevoId, obtener, type Estado, type MiCurso, type Tema } from "./estado";
 
 /**
@@ -46,7 +47,7 @@ export function comprar(tipo: "cupo" | "pase" | "protector"): ResultadoCompra {
 }
 
 /** Guarda un curso importado dentro de un curso de "Mis cursos" (nuevo o existente). */
-export function guardarImportacion(datos: { cursoId: string | null; cursoNombre: string; temaNombre: string; unidades: Unidad[] }) {
+export function guardarImportacion(datos: { cursoId: string | null; cursoNombre: string; temaNombre: string; unidades: Unidad[]; temaId?: string | null }) {
   const e = obtener();
   const cursoId = datos.cursoId ?? nuevoId("c");
   const actual = e.misCursos.find((c) => c.id === cursoId);
@@ -63,6 +64,21 @@ export function guardarImportacion(datos: { cursoId: string | null; cursoNombre:
       estudiando: { cursoId, temaId: existente.id },
     }));
     return { cursoId, temaId: existente.id, contenidoId: previo.id, agregadas: nuevas.length, nuevo: false };
+  }
+
+  // Tema que ya existía pero sin lecciones (por ejemplo, creado con "Agregar tema").
+  const vacio = datos.temaId ? actual?.temas.find((t) => t.id === datos.temaId && !t.contenidoId) : undefined;
+  if (vacio) {
+    const contenidoId = nuevoId("i");
+    const curso: Curso = { id: contenidoId, titulo: vacio.nombre, materia: actual!.nombre, unidades: datos.unidades };
+    actualizar((s) => ({
+      importados: { ...s.importados, [contenidoId]: curso },
+      misCursos: s.misCursos.map((c) => (c.id === cursoId ? { ...c, temas: c.temas.map((t) => (t.id === vacio.id ? { ...t, contenidoId } : t)) } : c)),
+      cursoId: contenidoId,
+      estudiando: { cursoId, temaId: vacio.id },
+      bienvenidaVista: true,
+    }));
+    return { cursoId, temaId: vacio.id, contenidoId, agregadas: datos.unidades.length, nuevo: true };
   }
 
   const contenidoId = nuevoId("i");
@@ -135,4 +151,46 @@ export function quitarContenido(contenidoId: string) {
       misCursos: s.misCursos.map((m) => ({ ...m, temas: m.temas.map((t) => (t.contenidoId === contenidoId ? { ...t, contenidoId: undefined } : t)) })),
     };
   });
+}
+
+/** Crea un curso vacío y devuelve su id. */
+export function crearCurso(nombre: string) {
+  const id = nuevoId("c");
+  actualizar((s) => ({ misCursos: [...s.misCursos, { id, nombre: nombre.trim(), color: s.misCursos.length % 6, temas: [] }] }));
+  return id;
+}
+
+/** Crea un tema vacío dentro de un curso y devuelve su id. */
+export function crearTema(cursoId: string, nombre: string) {
+  const id = nuevoId("t");
+  const tema: Tema = { id, nombre: nombre.trim(), archivos: [] };
+  actualizar((s) => ({ misCursos: s.misCursos.map((c) => (c.id === cursoId ? { ...c, temas: [...c.temas, tema] } : c)) }));
+  return id;
+}
+
+/** Pone (o quita) la fecha del examen de un tema. También la agrega al calendario de entregas. */
+export function ponerExamen(cursoId: string, temaId: string, fecha: string | null) {
+  actualizar((s) => {
+    const curso = s.misCursos.find((c) => c.id === cursoId);
+    const tema = curso?.temas.find((t) => t.id === temaId);
+    if (!curso || !tema) return {};
+    const idEntrega = `ex-${temaId}`;
+    const sin = s.entregas.filter((x) => x.id !== idEntrega);
+    return {
+      misCursos: s.misCursos.map((c) =>
+        c.id === cursoId ? { ...c, temas: c.temas.map((t) => (t.id === temaId ? { ...t, examen: fecha ?? undefined } : t)) } : c,
+      ),
+      entregas: fecha ? [...sin, { id: idEntrega, titulo: `Examen: ${tema.nombre}`, curso: curso.nombre, fecha, tipo: "examen" }] : sin,
+    };
+  });
+}
+
+/** Empieza a estudiar un tema: si ya tiene lecciones abre Tu camino; si no, lleva al prompt para crearlas. */
+export function estudiarTema(info: InfoTema, navegar: (ruta: string) => void) {
+  if (info.contenido) {
+    actualizar(() => ({ cursoId: info.contenido!.id, estudiando: { cursoId: info.curso.id, temaId: info.tema.id } }));
+    navegar("/studio/camino");
+  } else {
+    navegar(`/studio/importar?curso=${info.curso.id}&tema=${info.tema.id}`);
+  }
 }

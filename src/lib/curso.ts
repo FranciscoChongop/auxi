@@ -1,7 +1,8 @@
 import { CURSOS, FOTOSINTESIS } from "../data/cursos";
 import type { Curso, Ejercicio, TarjetaEstudio } from "../data/tipos";
 import { mezclar } from "../juegos/corregir";
-import type { Estado, Resultado } from "./estado";
+import { diasEntre, hoy } from "./fechas";
+import type { Estado, MiCurso, Resultado, Tema } from "./estado";
 
 export type Nodo = {
   u: number;
@@ -97,4 +98,38 @@ export function todasLasTarjetas(curso: Curso) {
   return curso.unidades.flatMap((u, ui) =>
     u.lecciones.flatMap((l, li) => l.tarjetas.map((t, ti) => ({ ...t, id: `${curso.id}:${ui}.${li}.${ti}` }))),
   );
+}
+
+/* ---------- Temas, avance y prioridad ---------- */
+
+export type InfoTema = {
+  curso: MiCurso;
+  tema: Tema;
+  contenido?: Curso;
+  /** De 0 a 1. 0 si todavía no tiene lecciones. */
+  avance: number;
+  /** Días que faltan para el examen (0 = hoy). undefined si no hay examen o ya pasó. */
+  diasExamen?: number;
+};
+
+export function todosLosTemas(e: Estado): InfoTema[] {
+  return e.misCursos.flatMap((curso) =>
+    curso.temas.map((tema) => {
+      const contenido = tema.contenidoId ? e.importados[tema.contenidoId] : undefined;
+      const d = tema.examen ? diasEntre(hoy(), tema.examen) : undefined;
+      return { curso, tema, contenido, avance: contenido ? avance(contenido, e) : 0, diasExamen: d !== undefined && d >= 0 ? d : undefined };
+    }),
+  );
+}
+
+/** Orden por prioridad: primero los exámenes más cercanos, luego lo que ya empezaste, luego lo demás. */
+export function temasPorPrioridad(e: Estado): InfoTema[] {
+  const peso = (t: InfoTema) => (t.diasExamen !== undefined ? t.diasExamen : t.contenido && t.avance > 0 && t.avance < 1 ? 1000 : t.contenido && t.avance < 1 ? 2000 : t.contenido ? 3000 : 4000);
+  return todosLosTemas(e).sort((a, b) => peso(a) - peso(b) || a.tema.nombre.localeCompare(b.tema.nombre));
+}
+
+export function proximoExamen(e: Estado): InfoTema | undefined {
+  return todosLosTemas(e)
+    .filter((t) => t.diasExamen !== undefined)
+    .sort((a, b) => a.diasExamen! - b.diasExamen!)[0];
 }

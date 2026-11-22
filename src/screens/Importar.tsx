@@ -35,6 +35,7 @@ export default function Importar() {
   const [cursoNombre, setCursoNombre] = useState("");
   const [temaNombre, setTemaNombre] = useState("");
   const [destino, setDestino] = useState<string>(() => parametro("curso") ?? "nuevo");
+  const [temaFijo] = useState(() => parametro("tema"));
 
   async function copiar() {
     try {
@@ -61,7 +62,8 @@ export default function Importar() {
       const r = importarDeTexto(texto);
       setDatos(r);
       setCursoNombre(r.curso);
-      setTemaNombre(r.tema);
+      const fijo = e.misCursos.find((c) => c.id === parametro("curso"))?.temas.find((t) => t.id === temaFijo);
+      setTemaNombre(fijo ? fijo.nombre : r.tema);
       const igual = e.misCursos.find((c) => normalizar(c.nombre) === normalizar(r.curso));
       if (igual && !parametro("curso")) setDestino(igual.id);
       sonidos.acierto();
@@ -88,6 +90,7 @@ export default function Importar() {
       cursoNombre: cursoElegido?.nombre ?? cursoNombre.trim(),
       temaNombre: temaNombre.trim(),
       unidades: datos.unidades,
+      temaId: temaFijo,
     });
     sonidos.leccionCompleta();
     void lanzarConfeti();
