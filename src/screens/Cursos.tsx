@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
 import { Campo, Chips, COLORES_CURSO } from "../components/Formulario";
-import { CaraDeLeon } from "../components/Leon";
+import { CaraDeLeon, Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
 import { Ventana } from "../components/Ventana";
 import { borrarArchivo, guardarArchivo, leerArchivo, PESO_MAXIMO } from "../lib/archivos";
 import { actualizar, cursosDesdeHorario, nuevoId, useEstado, type MiCurso } from "../lib/estado";
+import { compartirOGuardar, dibujarHorario } from "../lib/exportarHorario";
+import { leerFotoDeHorario } from "../lib/fotoHorario";
 import { DIAS_CORTOS, DIAS_LARGOS, diaDeHoy, leerArchivoDeHorario, type Clase } from "../lib/horario";
 import { entradaEnCascada } from "../lib/movimiento";
 import { navegar } from "../lib/rutas";
@@ -79,6 +81,9 @@ function Horario() {
   const [nueva, setNueva] = useState(false);
   const [verFoto, setVerFoto] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
+  const [leyendo, setLeyendo] = useState(false);
+  const [propuesta, setPropuesta] = useState<{ clases: Clase[]; mensaje: string } | null>(null);
+  const [exportada, setExportada] = useState<{ blob: Blob; url: string } | null>(null);
   const clasesDia = e.horario.filter((c) => c.dia === dia).sort((a, b) => a.inicio.localeCompare(b.inicio));
   const vacio = e.horario.length === 0 && !e.horarioImagen;
 
@@ -107,7 +112,27 @@ function Horario() {
     if (e.horarioImagen) await borrarArchivo(e.horarioImagen.id);
     const info = await guardarArchivo(archivo);
     actualizar(() => ({ horarioImagen: info }));
-    aviso("Foto del horario guardada.", "exito");
+    // León lee la foto y propone el horario; la persona confirma antes de reemplazar nada.
+    setLeyendo(true);
+    const r = await leerFotoDeHorario(archivo);
+    setLeyendo(false);
+    if (r.ok) {
+      sonidos.acierto();
+      setPropuesta({ clases: r.clases, mensaje: r.mensaje });
+    } else if (r.sinClave) {
+      aviso("Guardé la foto. La lectura automática se activa pronto.", "info");
+    } else {
+      aviso(r.mensaje, "error");
+    }
+  }
+
+  async function exportar() {
+    try {
+      const blob = await dibujarHorario(e.horario, e.misCursos, COLORES_CURSO);
+      setExportada({ blob, url: URL.createObjectURL(blob) });
+    } catch {
+      aviso("No pude crear la imagen. Inténtalo otra vez.", "error");
+    }
   }
 
   async function abrirFoto() {
@@ -117,6 +142,7 @@ function Horario() {
   }
 
   useEffect(() => () => void (verFoto && URL.revokeObjectURL(verFoto)), [verFoto]);
+  useEffect(() => () => void (exportada && URL.revokeObjectURL(exportada.url)), [exportada]);
 
   return (
     <section className="flex flex-col gap-3">
@@ -133,12 +159,12 @@ function Horario() {
         <div className="flex flex-col gap-3 rounded-tarjeta border-2 border-dashed border-surface bg-card p-4">
           <div className="flex items-center gap-3">
             <CaraDeLeon cara="lentes" tamano={48} />
-            <p className="font-bold">Sube tu horario y armo tus cursos solo.</p>
+            <p className="font-bold">Tómale foto a tu horario y lo armo por ti.</p>
           </div>
-          <Boton onClick={() => excel.current?.click()}>Subir Excel</Boton>
+          <Boton onClick={() => foto.current?.click()}>Subir foto del horario</Boton>
           <div className="grid grid-cols-2 gap-3">
-            <Boton variante="secundario" onClick={() => foto.current?.click()}>
-              Foto
+            <Boton variante="secundario" onClick={() => excel.current?.click()}>
+              Excel
             </Boton>
             <Boton variante="secundario" onClick={() => setNueva(true)}>
               A mano
@@ -213,9 +239,12 @@ function Horario() {
           {e.horarioImagen && e.horario.length === 0 && (
             <p className="text-ayuda text-text-soft">Pronto León leerá la foto y armará tus clases. Mientras, puedes agregarlas a mano.</p>
           )}
-          <Boton variante="secundario" onClick={() => setNueva(true)}>
-            Agregar clase
-          </Boton>
+          <div className={`grid gap-3 ${e.horario.length ? "grid-cols-2" : ""}`}>
+            {e.horario.length > 0 && <Boton onClick={exportar}>Exportar</Boton>}
+            <Boton variante="secundario" onClick={() => setNueva(true)}>
+              Agregar clase
+            </Boton>
+          </div>
         </>
       )}
 
@@ -224,9 +253,9 @@ function Horario() {
 
       <Ventana abierta={menu} alCerrar={() => setMenu(false)} titulo="Cambiar horario">
         <div className="flex flex-col gap-3">
-          <Boton onClick={() => excel.current?.click()}>Subir otro Excel</Boton>
-          <Boton variante="secundario" onClick={() => foto.current?.click()}>
-            {e.horarioImagen ? "Cambiar la foto" : "Subir foto"}
+          <Boton onClick={() => foto.current?.click()}>Subir otra foto</Boton>
+          <Boton variante="secundario" onClick={() => excel.current?.click()}>
+            Subir Excel
           </Boton>
           <p className="text-ayuda text-text-soft">Excel: días en una fila y horas en la primera columna, o columnas Día, Inicio, Fin y Curso.</p>
           <button
@@ -276,10 +305,108 @@ function Horario() {
         )}
       </Ventana>
 
+      {/* León leyendo la foto */}
+      <AnimatePresence>
+        {leyendo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-bg px-8 text-center"
+            role="status"
+            aria-live="polite"
+          >
+            <Leon pose="pensativo" alto={220} rebote />
+            <p className="text-tarjeta font-extrabold">Leyendo tu horario…</p>
+            <div className="w-full max-w-xs">
+              <BarraIndeterminada />
+            </div>
+            <p className="text-ayuda text-text-soft">Busco cursos, días y horas. Toma unos segundos.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Ventana abierta={!!propuesta} alCerrar={() => setPropuesta(null)} titulo={`Encontré ${propuesta?.clases.length ?? 0} clases`}>
+        {propuesta && (
+          <>
+            {propuesta.mensaje && <p className="mb-3 text-text-soft">{propuesta.mensaje}</p>}
+            <div className="flex max-h-[42dvh] flex-col gap-2 overflow-y-auto">
+              {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+                const del = propuesta.clases.filter((c) => c.dia === d).sort((a, b) => a.inicio.localeCompare(b.inicio));
+                if (!del.length) return null;
+                return (
+                  <div key={d}>
+                    <p className="text-ayuda font-extrabold text-text-soft">{DIAS_LARGOS[d]}</p>
+                    {del.map((c) => (
+                      <p key={c.id} className="numeros flex gap-3 py-1 font-bold">
+                        <span className="w-28 shrink-0 text-text-soft">
+                          {c.inicio}–{c.fin}
+                        </span>
+                        <span>
+                          {c.curso}
+                          {c.aula ? ` · ${c.aula}` : ""}
+                        </span>
+                      </p>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-ayuda text-text-soft">Revisa que esté bien. Luego puedes corregir cualquier clase tocándola.</p>
+            <div className="mt-4 flex flex-col gap-3">
+              <Boton
+                onClick={() => {
+                  actualizar(() => ({ horario: propuesta.clases }));
+                  cursosDesdeHorario(propuesta.clases);
+                  setDia(propuesta.clases.some((c) => c.dia === diaDeHoy()) ? diaDeHoy() : propuesta.clases[0].dia);
+                  setPropuesta(null);
+                  aviso("Horario listo. Tus cursos ya están creados.", "exito");
+                }}
+              >
+                Usar este horario
+              </Boton>
+              <Boton variante="secundario" onClick={() => setPropuesta(null)}>
+                No, lo hago a mano
+              </Boton>
+            </div>
+          </>
+        )}
+      </Ventana>
+
+      <Ventana abierta={!!exportada} alCerrar={() => setExportada(null)} titulo="Tu horario en imagen">
+        {exportada && (
+          <>
+            <img src={exportada.url} alt="Tu horario ordenado" className="max-h-[52dvh] w-full rounded-tarjeta border-2 border-surface object-contain" />
+            <div className="mt-4">
+              <Boton
+                onClick={async () => {
+                  const r = await compartirOGuardar(exportada.blob);
+                  if (r === "descargado") aviso("Imagen guardada en tus descargas.", "exito");
+                }}
+              >
+                Compartir o guardar
+              </Boton>
+            </div>
+          </>
+        )}
+      </Ventana>
+
       <Ventana abierta={!!verFoto} alCerrar={() => setVerFoto(null)} titulo="Tu horario">
         {verFoto && <img src={verFoto} alt="Foto de tu horario" className="max-h-[60dvh] w-full rounded-tarjeta object-contain" />}
       </Ventana>
     </section>
+  );
+}
+
+function BarraIndeterminada() {
+  return (
+    <div className="h-4 w-full overflow-hidden rounded-full bg-surface" aria-hidden="true">
+      <motion.div
+        className="h-full w-1/3 rounded-full bg-success"
+        animate={{ x: ["-100%", "300%"] }}
+        transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+      />
+    </div>
   );
 }
 
