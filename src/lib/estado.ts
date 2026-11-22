@@ -1,10 +1,16 @@
 import { useSyncExternalStore } from "react";
+import type { InfoArchivo } from "./archivos";
 import { diasEntre, hoy, sumarDias } from "./fechas";
+import type { Clase } from "./horario";
 
 /** Todo lo que la app recuerda en este celular. En la Fase 3 se sincroniza con la cuenta. */
 export type Resultado = { estrellas: 1 | 2 | 3; precision: number };
 
 export type Entrega = { id: string; titulo: string; curso: string; fecha: string };
+
+/** Un curso de la persona (Mis cursos), con sus temas y PDF. */
+export type Tema = { id: string; nombre: string; archivos: InfoArchivo[] };
+export type MiCurso = { id: string; nombre: string; color: number; profesor?: string; temas: Tema[] };
 
 export type Celebracion = {
   titulo: string;
@@ -37,6 +43,13 @@ export type Estado = {
   avisoCuentaVisto: boolean;
   metodoRecomendado: string | null;
   celebracion: Celebracion | null;
+  misCursos: MiCurso[];
+  horario: Clase[];
+  horarioImagen: InfoArchivo | null;
+  estudiando: { cursoId: string; temaId: string } | null;
+  /** Lecciones terminadas por día, para la semana de racha y la meta diaria. */
+  diasEstudio: Record<string, number>;
+  metaDiaria: number;
 };
 
 const CLAVE = "auxi.studio.v1";
@@ -70,6 +83,12 @@ function inicial(): Estado {
     avisoCuentaVisto: false,
     metodoRecomendado: null,
     celebracion: null,
+    misCursos: [],
+    horario: [],
+    horarioImagen: null,
+    estudiando: null,
+    diasEstudio: {},
+    metaDiaria: 2,
   };
 }
 
@@ -191,8 +210,28 @@ export function registrarLeccion(datos: {
       minutos: s.totales.minutos + Math.max(1, Math.round(datos.segundos / 60)),
     },
     celebracion,
+    diasEstudio: { ...s.diasEstudio, [h]: (s.diasEstudio[h] ?? 0) + 1 },
   }));
   return celebracion;
+}
+
+export function nuevoId(prefijo: string) {
+  return `${prefijo}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+}
+
+/** Crea los cursos que falten a partir de los nombres del horario. */
+export function cursosDesdeHorario(clases: Clase[]) {
+  actualizar((s) => {
+    const existentes = new Set(s.misCursos.map((c) => c.nombre.toLowerCase()));
+    const nuevos: MiCurso[] = [];
+    for (const c of clases) {
+      const k = c.curso.toLowerCase();
+      if (existentes.has(k)) continue;
+      existentes.add(k);
+      nuevos.push({ id: nuevoId("c"), nombre: c.curso, color: (s.misCursos.length + nuevos.length) % 6, temas: [] });
+    }
+    return { misCursos: [...s.misCursos, ...nuevos] };
+  });
 }
 
 /** Quita de la lista de repaso lo que ya respondiste bien. */

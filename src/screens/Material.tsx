@@ -8,7 +8,7 @@ import { Ventana } from "../components/Ventana";
 import { CELULA, FOTOSINTESIS } from "../data/cursos";
 import { entradaEnCascada } from "../lib/movimiento";
 import { actualizar, useEstado } from "../lib/estado";
-import { navegar, reemplazar } from "../lib/rutas";
+import { navegar, parametro, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
 const FRASES = ["Leyendo tu material…", "Buscando lo importante…", "Armando preguntas…", "Casi listo…"];
@@ -67,7 +67,13 @@ export default function Material() {
   const [texto, setTexto] = useState("");
   const [pegando, setPegando] = useState(false);
   const [ejemplos, setEjemplos] = useState(false);
-  const [cargando, setCargando] = useState<string | null>(null);
+  // Si viene desde Mis cursos (curso → tema → PDF), empieza a preparar la lección de una vez.
+  const [desdeCurso] = useState(() => {
+    const curso = e.misCursos.find((c) => c.id === parametro("curso"));
+    const tema = curso?.temas.find((t) => t.id === parametro("tema"));
+    return curso && tema ? { curso: curso.nombre, tema: tema.nombre, pdfs: Number(parametro("pdfs") ?? 1) } : null;
+  });
+  const [cargando, setCargando] = useState<string | null>(desdeCurso ? desdeCurso.tema : null);
   const [avance, setAvance] = useState(0);
 
   // Estado de carga: León piensa mientras la barra avanza.
@@ -103,6 +109,11 @@ export default function Material() {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-6 px-8 text-center">
         <Leon pose="pensativo" alto={240} rebote />
+        {desdeCurso && (
+          <p className="-mb-2 font-bold text-text-soft">
+            {desdeCurso.curso} · {desdeCurso.tema} · {desdeCurso.pdfs} PDF
+          </p>
+        )}
         <AnimatePresence mode="wait">
           <motion.p
             key={frase}
@@ -127,6 +138,15 @@ export default function Material() {
   return (
     <Pantalla titulo="Sube lo que tengas" conBarra={!!e.cursoId} atras={e.cursoId ? "/studio/inicio" : undefined}>
       <p className="-mt-2 text-text-soft">León lo convierte en preguntas para que estudies jugando.</p>
+      {e.misCursos.length > 0 && (
+        <Opcion
+          indice={0}
+          titulo="Elegir de Mis cursos"
+          ayuda="Curso, tema y los PDF que ya guardaste"
+          icono={<IconoMaterial tipo="pdf" />}
+          onClick={() => navegar("/studio/cursos")}
+        />
+      )}
       <Opcion indice={0} titulo="Subir PDF" ayuda="Separatas, libros o diapositivas" icono={<IconoMaterial tipo="pdf" />} onClick={() => pdf.current?.click()} />
       <Opcion indice={1} titulo="Tomar foto de apuntes" ayuda="Tu cuaderno o la pizarra" icono={<IconoMaterial tipo="foto" />} onClick={() => foto.current?.click()} />
       <Opcion indice={2} titulo="Pegar texto" ayuda="Lo que copiaste de cualquier lado" icono={<IconoMaterial tipo="texto" />} onClick={() => setPegando(true)} />
@@ -174,6 +194,3 @@ export default function Material() {
   );
 }
 
-export function irAMaterial() {
-  navegar("/studio/material");
-}

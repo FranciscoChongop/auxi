@@ -12,6 +12,7 @@ const trazo = { fill: "none", stroke: "currentColor", strokeWidth: 2.4, strokeLi
 
 export const Iconos = {
   inicio: <path {...trazo} d="M4 11l8-6.5 8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z" />,
+  cursos: <path {...trazo} d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />,
   metodos: (
     <g {...trazo}>
       <circle cx="12" cy="13.5" r="7.5" />
@@ -98,6 +99,7 @@ export function Marcadores() {
 
 const PESTANAS = [
   { ruta: "/studio/inicio", nombre: "Inicio", icono: "inicio" },
+  { ruta: "/studio/cursos", nombre: "Cursos", icono: "cursos" },
   { ruta: "/studio/metodos", nombre: "Métodos", icono: "metodos" },
   { ruta: "/studio/entregas", nombre: "Entregas", icono: "entregas" },
   { ruta: "/studio/perfil", nombre: "Perfil", icono: "perfil" },
@@ -127,7 +129,7 @@ export function BarraInferior() {
               className={`flex h-16 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 text-[12px] font-extrabold ${activa ? "text-brand" : "text-text-soft"}`}
             >
               <motion.span
-                className={`grid h-8 w-14 place-items-center rounded-full ${activa ? "bg-surface" : ""}`}
+                className={`grid h-8 w-12 place-items-center rounded-full ${activa ? "bg-surface" : ""}`}
                 whileTap={{ scale: 0.88 }}
               >
                 <Icono nombre={p.icono} />
