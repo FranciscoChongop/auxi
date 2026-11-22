@@ -184,6 +184,19 @@ export default function Perfil() {
         </ul>
       </Bloque>
 
+      <button
+        type="button"
+        onClick={() => navegar("/studio/ayuda")}
+        className="flex min-h-16 cursor-pointer items-center gap-3 rounded-tarjeta border-2 border-surface bg-card px-4 py-3 text-left"
+      >
+        <CaraDeLeon cara="feliz" tamano={44} />
+        <span className="flex-1">
+          <span className="block font-extrabold">Atención al cliente</span>
+          <span className="block text-ayuda text-text-soft">Reporta una falla o escríbenos por WhatsApp</span>
+        </span>
+        <span className="font-extrabold text-brand">Abrir</span>
+      </button>
+
       <Bloque titulo="Ajustes">
         <button
           type="button"

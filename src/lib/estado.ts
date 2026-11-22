@@ -12,6 +12,9 @@ export type Entrega = { id: string; titulo: string; curso: string; fecha: string
 export type Tema = { id: string; nombre: string; archivos: InfoArchivo[]; /** id del curso importado (lecciones armadas con tu IA) */ contenidoId?: string; /** fecha del examen (AAAA-MM-DD): da prioridad al tema */ examen?: string };
 export type MiCurso = { id: string; nombre: string; color: number; profesor?: string; temas: Tema[] };
 
+/** Un reporte de falla enviado a atención al cliente. */
+export type Reporte = { id: string; fecha: string; tipo: string; texto: string };
+
 export type Celebracion = {
   titulo: string;
   monedas: number;
@@ -56,6 +59,8 @@ export type Estado = {
   pasePorVida: boolean;
   /** Tomates (Pomodoro) terminados por día. */
   tomates: Record<string, number>;
+  /** Fallas que la persona reportó a atención al cliente. */
+  reportes: Reporte[];
 };
 
 const CLAVE = "auxi.studio.v1";
@@ -97,6 +102,7 @@ function inicial(): Estado {
     cupoExtra: 0,
     pasePorVida: false,
     tomates: {},
+    reportes: [],
   };
 }
 
