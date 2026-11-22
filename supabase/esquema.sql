@@ -10,6 +10,10 @@ create table if not exists public.perfiles (
 
 alter table public.perfiles enable row level security;
 
+-- Acceso por la API solo para personas con sesión (nunca para visitantes anónimos).
+revoke all on public.perfiles from anon;
+grant select, insert, update on public.perfiles to authenticated;
+
 -- Cada persona solo ve y cambia lo suyo.
 drop policy if exists "ver mi perfil" on public.perfiles;
 create policy "ver mi perfil" on public.perfiles
