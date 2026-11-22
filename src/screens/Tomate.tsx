@@ -1,11 +1,13 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
+import { SelectorTema } from "../components/SelectorTema";
 import { cursoDe, todasLasTarjetas } from "../lib/curso";
-import { actualizar, obtener } from "../lib/estado";
+import { actualizar, obtener, useEstado } from "../lib/estado";
+import { hoy } from "../lib/fechas";
 import { sonidos } from "../lib/sonidos";
 import { vibrar } from "../lib/vibrar";
 
@@ -113,7 +115,8 @@ export default function Tomate() {
   const [corriendo, setCorriendo] = useState(false);
   const [restante, setRestante] = useState(MODOS[0].foco);
   const fin = useRef(0);
-  const [palabras] = useState(() => todasLasTarjetas(cursoDe(obtener())).map((t) => t.frente.split(" (")[0]));
+  const estado = useEstado();
+  const palabras = useMemo(() => todasLasTarjetas(cursoDe(estado)).map((t) => t.frente.split(" (")[0]), [estado.cursoId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const total = fase === "foco" ? modo.foco : modo.descanso;
 
@@ -129,8 +132,14 @@ export default function Tomate() {
         sonidos.leccionCompleta();
         vibrar("acierto");
         if (fase === "foco") {
-          actualizar((e) => ({ totales: { ...e.totales, minutos: e.totales.minutos + Math.round(modo.foco / 60) } }));
-          aviso(`Tu tomate está listo, toma ${Math.round(modo.descanso / 60)} minutos.`, "exito");
+          const dia = hoy();
+          const hechos = obtener().tomates[dia] ?? 0;
+          const premio = hechos < 3 && modo.foco >= 15 * 60;
+          actualizar((e) => ({
+            totales: { ...e.totales, minutos: e.totales.minutos + Math.round(modo.foco / 60) },
+            ...(premio ? { monedas: e.monedas + 5, tomates: { ...e.tomates, [dia]: hechos + 1 } } : {}),
+          }));
+          aviso(`Tu tomate está listo, toma ${Math.round(modo.descanso / 60)} minutos.${premio ? " +5 monedas." : ""}`, "exito");
           setFase("juego");
         } else {
           aviso("Descanso terminado. ¿Otro tomate?", "info");
@@ -177,6 +186,7 @@ export default function Tomate() {
   const madurez = fase === "foco" ? 1 - restante / total : 1;
   return (
     <Pantalla titulo="El tomate" atras="/studio/metodos" conBarra={false}>
+      <SelectorTema etiqueta="Estudias" />
       <div className="flex gap-2" role="radiogroup" aria-label="Duración">
         {MODOS.map((m) => (
           <button

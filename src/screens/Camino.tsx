@@ -4,6 +4,7 @@ import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
+import { SelectorTema } from "../components/SelectorTema";
 import { Ventana } from "../components/Ventana";
 import { avance, cursoDe, nodos, type Nodo } from "../lib/curso";
 import { useEstado } from "../lib/estado";
@@ -128,19 +129,15 @@ export default function Camino() {
       titulo="Tu camino"
       atras="/studio/inicio"
       derecha={
-        <button type="button" onClick={() => navegar("/studio/material")} className="h-11 cursor-pointer px-1 font-extrabold text-brand">
-          Cambiar tema
+        <button type="button" onClick={() => navegar("/studio/cursos")} className="h-11 cursor-pointer px-1 font-extrabold text-brand">
+          Mis cursos
         </button>
       }
     >
-      <div className="-mt-2 flex items-center gap-3">
-        <div className="flex-1">
-          <p className="text-[18px] font-extrabold">{curso.titulo}</p>
-          <p className="text-ayuda text-text-soft">
-            {hechos} de {lista.length} niveles · {Math.round(avance(curso, e) * 100)} %
-          </p>
-        </div>
-      </div>
+      <SelectorTema />
+      <p className="-mt-2 px-1 text-ayuda font-bold text-text-soft">
+        {hechos} de {lista.length} niveles · {Math.round(avance(curso, e) * 100)} %
+      </p>
 
       {curso.unidades.map((u, ui) => (
         <section key={ui} className="flex flex-col">

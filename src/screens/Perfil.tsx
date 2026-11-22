@@ -6,6 +6,7 @@ import { AjustesDeSonido } from "../components/Interruptor";
 import { CaraDeLeon, type CaraLeon } from "../components/Leon";
 import { Escudo, Llama, Moneda, Pantalla } from "../components/Navegacion";
 import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
+import { abrirIntro } from "../components/Intro";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
@@ -202,6 +203,10 @@ export default function Perfil() {
           <span className="font-bold">Avisos de entregas</span>
           <span className="text-ayuda font-bold text-text-soft">Muy pronto</span>
         </div>
+        <button type="button" onClick={abrirIntro} className="flex min-h-11 w-full cursor-pointer items-center justify-between font-bold text-left">
+          Ver la bienvenida otra vez
+          <span className="text-ayuda font-extrabold text-brand">Ver</span>
+        </button>
         <ApoyaAlCreador />
         <button type="button" onClick={() => setBorrar(true)} className="mt-2 h-11 cursor-pointer font-extrabold text-error">
           Borrar mi avance de este celular

@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon, Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
+import { SelectorTema } from "../components/SelectorTema";
 import { normalizar } from "../juegos/corregir";
 import { lanzarConfeti } from "../lib/confeti";
 import { cursoDe, todasLasTarjetas } from "../lib/curso";
@@ -87,6 +88,7 @@ export default function ExplicaLeon() {
 
   return (
     <Pantalla titulo="Explícaselo a León" atras="/studio/metodos" conBarra={false}>
+      <SelectorTema etiqueta="Explicas" />
       <div className="flex items-center gap-3">
         <Leon pose="pensativo" alto={110} />
         <div className="relative flex-1 rounded-tarjeta border-2 border-surface bg-card p-3 font-bold">

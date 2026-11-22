@@ -14,6 +14,7 @@ export const PRECIO_PROTECTOR = 50;
 export const FORMAS_DE_GANAR = [
   { texto: "Terminar una lección", detalle: "10 monedas, y 5 más si la haces con 90 % o más", monedas: "10 a 15" },
   { texto: "Abrir el cofre del día", detalle: "Una vez al día, con las probabilidades a la vista", monedas: "10 a 50" },
+  { texto: "Terminar un tomate", detalle: "5 monedas, hasta 3 tomates al día", monedas: "5" },
   { texto: "Explicárselo a León", detalle: "2 monedas por estrella", monedas: "2 a 6" },
   { texto: "Misiones de apoyo (opcionales)", detalle: "Seguir, comentar, compartir o invitar", monedas: "20 a 60" },
 ] as const;
@@ -193,4 +194,13 @@ export function estudiarTema(info: InfoTema, navegar: (ruta: string) => void) {
   } else {
     navegar(`/studio/importar?curso=${info.curso.id}&tema=${info.tema.id}`);
   }
+}
+
+/** Cambia el tema que se estudia en Tu camino, Métodos y el inicio. */
+export function elegirTema(contenidoId: string) {
+  actualizar((s) => {
+    const dueno = s.misCursos.find((c) => c.temas.some((t) => t.contenidoId === contenidoId));
+    const tema = dueno?.temas.find((t) => t.contenidoId === contenidoId);
+    return { cursoId: contenidoId, estudiando: dueno && tema ? { cursoId: dueno.id, temaId: tema.id } : null };
+  });
 }

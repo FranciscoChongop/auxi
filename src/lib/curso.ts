@@ -1,4 +1,4 @@
-import { CURSOS, FOTOSINTESIS } from "../data/cursos";
+import { CELULA, CURSOS, FOTOSINTESIS } from "../data/cursos";
 import type { Curso, Ejercicio, TarjetaEstudio } from "../data/tipos";
 import { mezclar } from "../juegos/corregir";
 import { diasEntre, hoy } from "./fechas";
@@ -132,4 +132,35 @@ export function proximoExamen(e: Estado): InfoTema | undefined {
   return todosLosTemas(e)
     .filter((t) => t.diasExamen !== undefined)
     .sort((a, b) => a.diasExamen! - b.diasExamen!)[0];
+}
+
+/* ---------- Elegir tema ---------- */
+
+export type OpcionTema = {
+  /** id del contenido (lo que usa Tu camino) */
+  id: string;
+  titulo: string;
+  subtitulo: string;
+  avance: number;
+  diasExamen?: number;
+  ejemplo: boolean;
+  actual: boolean;
+};
+
+/** Todos los temas que se pueden estudiar. Lo terminado va al final. */
+export function opcionesDeTema(e: Estado): OpcionTema[] {
+  const actual = cursoDe(e).id;
+  const propios: OpcionTema[] = temasPorPrioridad(e)
+    .filter((t) => t.contenido)
+    .map((t) => ({ id: t.contenido!.id, titulo: t.tema.nombre, subtitulo: t.curso.nombre, avance: t.avance, diasExamen: t.diasExamen, ejemplo: false, actual: t.contenido!.id === actual }));
+  const ejemplos: OpcionTema[] = [FOTOSINTESIS, CELULA].map((c) => ({
+    id: c.id,
+    titulo: c.titulo,
+    subtitulo: "Tema de ejemplo",
+    avance: avance(c, e),
+    ejemplo: true,
+    actual: c.id === actual,
+  }));
+  const todos = [...propios, ...ejemplos];
+  return [...todos.filter((o) => o.avance < 1), ...todos.filter((o) => o.avance >= 1)];
 }

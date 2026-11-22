@@ -54,6 +54,8 @@ export type Estado = {
   cupoExtra: number;
   /** Pase libre: temas importados sin límite, de por vida. */
   pasePorVida: boolean;
+  /** Tomates (Pomodoro) terminados por día. */
+  tomates: Record<string, number>;
 };
 
 const CLAVE = "auxi.studio.v1";
@@ -94,6 +96,7 @@ function inicial(): Estado {
     importados: {},
     cupoExtra: 0,
     pasePorVida: false,
+    tomates: {},
   };
 }
 

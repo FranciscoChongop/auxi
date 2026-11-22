@@ -1,20 +1,67 @@
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Boton } from "../components/Boton";
+import { textoExamen } from "../components/FilaTema";
 import { Leon, type PoseLeon } from "../components/Leon";
-import { Pantalla } from "../components/Navegacion";
+import { Moneda, Pantalla } from "../components/Navegacion";
+import { SelectorTema } from "../components/SelectorTema";
 import { Ventana } from "../components/Ventana";
-import { entradaEnCascada } from "../lib/movimiento";
+import { cursoDe, opcionesDeTema, proximoExamen, todasLasTarjetas } from "../lib/curso";
 import { actualizar, useEstado } from "../lib/estado";
-import { navegar } from "../lib/rutas";
+import { hoy } from "../lib/fechas";
+import { entradaEnCascada } from "../lib/movimiento";
+import { navegar, parametro } from "../lib/rutas";
+import { elegirTema } from "../lib/tienda";
 import { sonidos } from "../lib/sonidos";
 
 type IdMetodo = "tomate" | "cajas" | "leon";
 
-const METODOS: { id: IdMetodo; nombre: string; que: string; juego: string; pose: PoseLeon }[] = [
-  { id: "tomate", nombre: "El tomate", que: "25 minutos de foco y 5 de descanso.", juego: "En el descanso, revienta burbujas.", pose: "concentrado" },
-  { id: "cajas", nombre: "Las 5 cajas", que: "Tarjetas que suben de caja cuando las recuerdas.", juego: "Llena las 5 cajas.", pose: "anima" },
-  { id: "leon", nombre: "Explícaselo a León", que: "Si lo puedes explicar fácil, lo entendiste.", juego: "Gana hasta 3 estrellas.", pose: "pensativo" },
+type Metodo = {
+  id: IdMetodo;
+  nombre: string;
+  que: string;
+  duracion: string;
+  mejorPara: string;
+  pasos: string[];
+  juego: string;
+  pose: PoseLeon;
+  color: string;
+};
+
+const METODOS: Metodo[] = [
+  {
+    id: "tomate",
+    nombre: "El tomate",
+    que: "Estudias con foco total y descansas a tiempo. Tu cerebro rinde más.",
+    duracion: "25 min + 5 de descanso",
+    mejorPara: "Cuando te cuesta concentrarte",
+    pasos: ["Elige tu tema y toca empezar.", "Estudia 25 minutos sin celular: León te acompaña.", "Descansa 5 minutos y revienta burbujas con palabras clave."],
+    juego: "Gana 5 monedas por tomate (hasta 3 al día).",
+    pose: "concentrado",
+    color: "var(--error)",
+  },
+  {
+    id: "cajas",
+    nombre: "Las 5 cajas",
+    que: "Repasas tarjetas y las que recuerdas suben de caja. Así no se te olvidan.",
+    duracion: "5 a 10 min",
+    mejorPara: "Memorizar y repasar antes de un examen",
+    pasos: ["Ves la pregunta y piensas la respuesta.", "Voltea la tarjeta y di si te acordaste.", "Si te acordaste, sube de caja; si no, vuelve a la caja 1."],
+    juego: "Llena las 5 cajas para dominar el tema.",
+    pose: "anima",
+    color: "var(--success-dark)",
+  },
+  {
+    id: "leon",
+    nombre: "Explícaselo a León",
+    que: "Si lo puedes explicar fácil, lo entendiste de verdad.",
+    duracion: "5 min",
+    mejorPara: "Entender y no solo memorizar",
+    pasos: ["León te dice un concepto.", "Lo explicas con tus palabras, escribiendo o con tu voz.", "León te da de 1 a 3 estrellas y una pregunta para pensar."],
+    juego: "Gana 2 monedas por estrella.",
+    pose: "pensativo",
+    color: "var(--brand)",
+  },
 ];
 
 const PREGUNTAS: { texto: string; opciones: [string, IdMetodo][] }[] = [
@@ -76,44 +123,159 @@ function Test({ alTerminar }: { alTerminar: (m: IdMetodo) => void }) {
   );
 }
 
+
+/** Antes de empezar un método se elige con qué curso y tema. Nada se da por hecho. */
+function ElegirTemaDeMetodo({ metodo, alCerrar }: { metodo: Metodo | null; alCerrar: () => void }) {
+  const e = useEstado();
+  const opciones = opcionesDeTema(e);
+  const cursos = [...new Set(opciones.map((o) => o.subtitulo))];
+  const sinPropios = !opciones.some((o) => !o.ejemplo);
+  return (
+    <Ventana abierta={!!metodo} alCerrar={alCerrar} titulo={metodo ? `¿Con qué tema usas ${metodo.nombre}?` : ""}>
+      <div className="flex max-h-[56dvh] flex-col gap-4 overflow-y-auto pb-1">
+        {cursos.map((c) => (
+          <div key={c}>
+            <p className="mb-2 text-ayuda font-extrabold text-text-soft">{c}</p>
+            <div className="flex flex-col gap-2">
+              {opciones
+                .filter((o) => o.subtitulo === c)
+                .map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => {
+                      if (!metodo) return;
+                      sonidos.acierto();
+                      elegirTema(o.id);
+                      alCerrar();
+                      navegar(`/studio/metodos/${metodo.id}`);
+                    }}
+                    className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-boton border-2 border-surface bg-card p-3 text-left"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-extrabold">{o.titulo}</span>
+                      <span className="mt-1 flex items-center gap-2">
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface">
+                          <span className="block h-full rounded-full bg-success" style={{ width: `${Math.round(o.avance * 100)}%` }} />
+                        </span>
+                        <span className="numeros text-[12px] font-extrabold text-text-soft">{Math.round(o.avance * 100)} %</span>
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1">
+                      {o.diasExamen !== undefined && (
+                        <span className={`rounded-full px-2 py-0.5 text-[12px] font-extrabold ${o.diasExamen <= 3 ? "bg-error text-white" : "bg-surface text-text"}`}>{textoExamen(o.diasExamen)}</span>
+                      )}
+                      {o.actual && <span className="text-[12px] font-extrabold text-brand">Último</span>}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {sinPropios && <p className="mt-3 text-ayuda text-text-soft">Aún no tienes temas tuyos con lecciones. Crea uno en Mis cursos para usarlo aquí.</p>}
+      <div className="mt-4">
+        <Boton
+          variante="secundario"
+          onClick={() => {
+            alCerrar();
+            navegar("/studio/cursos");
+          }}
+        >
+          Ir a Mis cursos
+        </Boton>
+      </div>
+    </Ventana>
+  );
+}
+
 export default function Metodos() {
   const e = useEstado();
   const [test, setTest] = useState(false);
+  const [elegido, setElegido] = useState<Metodo | null>(() => METODOS.find((m) => m.id === parametro("elegir")) ?? null);
+  const curso = cursoDe(e);
+  const tarjetas = useMemo(() => todasLasTarjetas(curso), [curso]);
+  const enCaja5 = tarjetas.filter((t) => (e.cajas[t.id] ?? 1) === 5).length;
+  const tomatesHoy = e.tomates[hoy()] ?? 0;
   const recomendado = e.metodoRecomendado as IdMetodo | null;
+  const prox = proximoExamen(e);
+
+  // Qué te sugiero hoy: primero lo urgente (examen cercano), luego tu estilo.
+  const sugerencia = useMemo<{ id: IdMetodo; texto: string } | null>(() => {
+    if (prox && prox.diasExamen! <= 3) return { id: "cajas", texto: `${textoExamen(prox.diasExamen!)}: repasa «${prox.tema.nombre}» con Las 5 cajas.` };
+    if (prox && prox.diasExamen! <= 10) return { id: "leon", texto: `${textoExamen(prox.diasExamen!)}: explícale «${prox.tema.nombre}» a León para entenderlo de verdad.` };
+    if (recomendado) return { id: recomendado, texto: `Según tu test, hoy te va bien ${METODOS.find((m) => m.id === recomendado)!.nombre}.` };
+    return null;
+  }, [prox, recomendado]);
+
   const orden = recomendado ? [...METODOS].sort((a) => (a.id === recomendado ? -1 : 1)) : METODOS;
+  const estadistica = (id: IdMetodo) =>
+    id === "tomate" ? `Hoy: ${tomatesHoy} de 3 tomates` : id === "cajas" ? `${enCaja5} de ${tarjetas.length} tarjetas en la caja 5` : `Con «${curso.titulo}»`;
 
   return (
     <Pantalla titulo="Métodos">
       <p className="-mt-2 text-text-soft">Formas de estudiar que funcionan, convertidas en juego.</p>
+      <SelectorTema etiqueta="Último tema" />
+
+      {sugerencia && (
+        <motion.button
+          {...entradaEnCascada(0)}
+          type="button"
+          onClick={() => setElegido(METODOS.find((m) => m.id === sugerencia.id)!)}
+          className="flex cursor-pointer items-center gap-3 rounded-tarjeta bg-brand p-4 text-left text-white"
+          style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}
+        >
+          <span className="flex-1">
+            <span className="block text-ayuda font-bold opacity-90">Hoy te sugiero</span>
+            <span className="block font-extrabold">{sugerencia.texto}</span>
+          </span>
+          <span className="font-black">Ir</span>
+        </motion.button>
+      )}
 
       {orden.map((m, i) => (
-        <motion.button
-          key={m.id}
-          {...entradaEnCascada(i)}
-          type="button"
-          onClick={() => navegar(`/studio/metodos/${m.id}`)}
-          onPointerDown={() => sonidos.toque()}
-          whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
-          style={{ boxShadow: "0 4px 0 var(--surface)" }}
-          className={`flex cursor-pointer items-center gap-3 rounded-tarjeta border-2 bg-card p-4 text-left ${m.id === recomendado ? "border-brand" : "border-surface"}`}
-        >
-          <div className="flex-1">
-            {m.id === recomendado && (
-              <span className="mb-2 inline-block rounded-full bg-surface px-3 py-1 text-ayuda font-extrabold text-brand">
-                Recomendado para ti
-              </span>
-            )}
-            <p className="text-tarjeta font-extrabold">{m.nombre}</p>
-            <p className="mt-1 text-text-soft">{m.que}</p>
-            <p className="mt-1 text-ayuda font-bold text-brand">{m.juego}</p>
+        <motion.section key={m.id} {...entradaEnCascada(i + 1)} className={`overflow-hidden rounded-tarjeta border-2 bg-card ${m.id === recomendado ? "border-brand" : "border-surface"}`}>
+          <div className="h-2" style={{ background: m.color }} />
+          <div className="flex items-start gap-3 p-4">
+            <div className="flex-1">
+              {m.id === recomendado && <span className="mb-2 inline-block rounded-full bg-surface px-3 py-1 text-ayuda font-extrabold text-brand">Recomendado para ti</span>}
+              <h2 className="text-tarjeta font-extrabold">{m.nombre}</h2>
+              <p className="mt-1 text-text-soft">{m.que}</p>
+              <p className="mt-2 flex flex-wrap gap-2 text-[13px] font-extrabold">
+                <span className="rounded-full bg-surface px-3 py-1">{m.duracion}</span>
+                <span className="rounded-full bg-surface px-3 py-1">{m.mejorPara}</span>
+              </p>
+            </div>
+            <Leon pose={m.pose} alto={88} />
           </div>
-          <Leon pose={m.pose} alto={96} />
-        </motion.button>
+          <div className="px-4">
+            <details className="group">
+              <summary className="flex min-h-11 cursor-pointer items-center font-extrabold text-brand">Cómo funciona</summary>
+              <ol className="mb-2 ml-1 flex flex-col gap-2">
+                {m.pasos.map((p, k) => (
+                  <li key={k} className="flex gap-3 font-semibold">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-surface text-[13px] font-black">{k + 1}</span>
+                    {p}
+                  </li>
+                ))}
+              </ol>
+            </details>
+            <p className="flex items-center gap-2 pb-3 text-ayuda font-bold text-text-soft">
+              {m.id === "tomate" && <Moneda className="size-4" />}
+              {estadistica(m.id)} · {m.juego}
+            </p>
+          </div>
+          <div className="px-4 pb-4">
+            <Boton onClick={() => setElegido(m)}>Empezar</Boton>
+          </div>
+        </motion.section>
       ))}
 
       <Boton variante="secundario" onClick={() => setTest(true)}>
-        {recomendado ? "Repetir el test" : "¿Cuál es para mí? Test de 3 preguntas"}
+        {recomendado ? "Repetir el test: ¿cuál es para mí?" : "¿Cuál es para mí? Test de 3 preguntas"}
       </Boton>
+
+      <ElegirTemaDeMetodo metodo={elegido} alCerrar={() => setElegido(null)} />
 
       <Ventana abierta={test} alCerrar={() => setTest(false)} titulo="¿Cuál es para ti?">
         <Test

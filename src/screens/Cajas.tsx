@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
 import { Pantalla } from "../components/Navegacion";
+import { SelectorTema } from "../components/SelectorTema";
 import { TarjetaVolteable } from "../juegos/TarjetaVolteable";
 import { lanzarConfeti } from "../lib/confeti";
 import { cursoDe, todasLasTarjetas } from "../lib/curso";
@@ -43,6 +44,7 @@ export default function Cajas() {
 
   return (
     <Pantalla titulo="Las 5 cajas" atras="/studio/metodos" conBarra={false}>
+      <SelectorTema etiqueta="Repasas" />
       {/* Las cajas se llenan */}
       <div className="grid grid-cols-5 gap-2" aria-label="Tarjetas por caja">
         {conteo.map((n, i) => (

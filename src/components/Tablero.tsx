@@ -1,12 +1,14 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import type { Curso } from "../data/tipos";
-import { proximoExamen, type Nodo } from "../lib/curso";
+import { proximoExamen, temasPorPrioridad, type Nodo } from "../lib/curso";
 import { rachaEnPausa, rachaVigente, type Estado } from "../lib/estado";
 import { DIAS_CORTOS, diaDeHoy, diasEntre, hoy, sumarDias } from "../lib/fechas";
 import { entradaEnCascada } from "../lib/movimiento";
 import { navegar } from "../lib/rutas";
 import { estudiarTema } from "../lib/tienda";
+import { FilaTema } from "./FilaTema";
+import { SelectorTema } from "./SelectorTema";
 import { textoExamen } from "./FilaTema";
 import { sonidos } from "../lib/sonidos";
 import { vibrar } from "../lib/vibrar";
@@ -155,6 +157,9 @@ export function Continuar({ e, curso, actual, avance }: { e: Estado; curso: Curs
           {actual ? (avance > 0 ? "Continuar" : "Empezar") : "Estudiar otro tema"}
         </Boton>
       </div>
+      <div className="mt-1 flex justify-center">
+        <SelectorTema variante="enlace-claro" />
+      </div>
     </motion.section>
   );
 }
@@ -219,67 +224,61 @@ function Acceso({ titulo, ayuda, icono, onClick, insignia }: { titulo: string; a
       }}
       whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
       style={{ boxShadow: "0 4px 0 var(--surface)" }}
-      className="relative flex min-h-28 cursor-pointer flex-col items-start justify-between gap-2 rounded-tarjeta border-2 border-surface bg-card p-3 text-left"
+      className="relative flex min-h-16 cursor-pointer items-center gap-3 rounded-tarjeta border-2 border-surface bg-card p-3 text-left"
     >
-      <span className="grid size-10 place-items-center rounded-[12px] bg-surface text-brand">{icono}</span>
-      <span>
-        <span className="block font-extrabold">{titulo}</span>
-        <span className="block text-ayuda text-text-soft">{ayuda}</span>
+      <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-surface text-brand">{icono}</span>
+      <span className="min-w-0">
+        <span className="block truncate font-extrabold">{titulo}</span>
+        <span className="block truncate text-[13px] leading-4 text-text-soft">{ayuda}</span>
       </span>
       {!!insignia && (
-        <span className="numeros absolute top-3 right-3 grid h-6 min-w-6 place-items-center rounded-full bg-error px-1.5 text-[13px] font-black text-white">{insignia}</span>
+        <span className="numeros absolute top-2 right-2 grid h-6 min-w-6 place-items-center rounded-full bg-error px-1.5 text-[13px] font-black text-white">{insignia}</span>
       )}
     </motion.button>
   );
 }
 
 const t = { fill: "none", stroke: "currentColor", strokeWidth: 2.3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+const Ic = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
+    <path {...t} d={d} />
+  </svg>
+);
 
 export function Accesos({ errores }: { errores: number }) {
   return (
-    <motion.section {...entradaEnCascada(4)} className="grid grid-cols-2 gap-3">
-      <Acceso
-        titulo="Repaso"
-        ayuda={errores ? "2 minutos" : "Nada pendiente"}
-        insignia={errores}
-        onClick={() => navegar("/studio/leccion?n=repaso")}
-        icono={
-          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
-            <path {...t} d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v4h4" />
-          </svg>
-        }
-      />
-      <Acceso
-        titulo="El tomate"
-        ayuda="25 min de foco"
-        onClick={() => navegar("/studio/metodos/tomate")}
-        icono={
-          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
-            <circle {...t} cx="12" cy="13.5" r="7" />
-            <path {...t} d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4" />
-          </svg>
-        }
-      />
-      <Acceso
-        titulo="Las 5 cajas"
-        ayuda="Tarjetas rápidas"
-        onClick={() => navegar("/studio/metodos/cajas")}
-        icono={
-          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
-            <path {...t} d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />
-          </svg>
-        }
-      />
-      <Acceso
-        titulo="Mis cursos"
-        ayuda="Temas y PDF"
-        onClick={() => navegar("/studio/cursos")}
-        icono={
-          <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
-            <path {...t} d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />
-          </svg>
-        }
-      />
+    <motion.section {...entradaEnCascada(5)} className="flex flex-col gap-3">
+      <h2 className="text-tarjeta font-extrabold">Todo en un toque</h2>
+      <div className="grid grid-cols-2 gap-3">
+        <Acceso titulo="Repaso" ayuda={errores ? "2 minutos" : "Nada pendiente"} insignia={errores} onClick={() => navegar("/studio/leccion?n=repaso")} icono={<Ic d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v4h4" />} />
+        <Acceso titulo="Mis cursos" ayuda="Temas y exámenes" onClick={() => navegar("/studio/cursos")} icono={<Ic d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />} />
+        <Acceso titulo="El tomate" ayuda="25 min de foco" onClick={() => navegar("/studio/metodos?elegir=tomate")} icono={<Ic d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4M5 13.5a7 7 0 1 0 14 0 7 7 0 0 0-14 0z" />} />
+        <Acceso titulo="Las 5 cajas" ayuda="Tarjetas rápidas" onClick={() => navegar("/studio/metodos?elegir=cajas")} icono={<Ic d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />} />
+        <Acceso titulo="Explícaselo a León" ayuda="Gana estrellas" onClick={() => navegar("/studio/metodos?elegir=leon")} icono={<Ic d="M5 5.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-4 3.5v-3.5H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" />} />
+        <Acceso titulo="Calendario" ayuda="Entregas y feriados" onClick={() => navegar("/studio/entregas?ver=calendario")} icono={<Ic d="M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1zM4 10h16M8 3.5v4M16 3.5v4" />} />
+        <Acceso titulo="Importar sílabo" ayuda="Arma tus fechas" onClick={() => navegar("/studio/silabo")} icono={<Ic d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4" />} />
+        <Acceso titulo="Mis monedas" ayuda="Qué puedes obtener" onClick={() => navegar("/studio/monedas")} icono={<Ic d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" />} />
+      </div>
+    </motion.section>
+  );
+}
+
+/* ---------- Mis temas (los primeros por prioridad) ---------- */
+
+export function MisTemas({ e }: { e: Estado }) {
+  const temas = temasPorPrioridad(e).slice(0, 3);
+  if (!temas.length) return null;
+  return (
+    <motion.section {...entradaEnCascada(2)} className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-tarjeta font-extrabold">Mis temas</h2>
+        <button type="button" onClick={() => navegar("/studio/cursos")} className="h-11 cursor-pointer px-1 font-extrabold text-brand">
+          Ver todos
+        </button>
+      </div>
+      {temas.map((t, i) => (
+        <FilaTema key={t.tema.id} info={t} indice={i} onClick={() => estudiarTema(t, navegar)} />
+      ))}
     </motion.section>
   );
 }

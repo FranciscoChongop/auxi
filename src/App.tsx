@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ApoyaAlCreador } from "./components/ApoyaAlCreador";
+import { Intro } from "./components/Intro";
 import { ProveedorAvisos, useAviso } from "./components/Aviso";
 import { obtener } from "./lib/estado";
 import { reemplazar, useRuta } from "./lib/rutas";
@@ -79,6 +80,7 @@ export function App() {
       <ProveedorAvisos>
         <SinConexion />
         <ApoyaAlCreador lateral />
+        <Intro />
         <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
