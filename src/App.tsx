@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { ApoyaAlCreador } from "./components/ApoyaAlCreador";
 import { Intro } from "./components/Intro";
 import { ProveedorAvisos, useAviso } from "./components/Aviso";
-import { obtener } from "./lib/estado";
+import { obtener, useEstado } from "./lib/estado";
 import { enModoPrueba, useCuenta } from "./lib/nube";
 import { reemplazar, useRuta } from "./lib/rutas";
 
@@ -83,8 +83,12 @@ export function App() {
   const destino = elegir(ruta);
   const enPrueba = enModoPrueba() && ["bienvenida", "leccion", "celebracion"].includes(destino);
   const bloqueada = cuenta.modo === "invitado" && ruta !== "/catalogo" && !enPrueba;
-  const pideDatos = cuenta.modo === "conectado" && cuenta.sincronizado && !obtener().datos && !obtener().datosOmitidos && ruta !== "/catalogo";
-  const nombre = cuenta.modo === "cargando" || (cuenta.modo === "conectado" && !cuenta.sincronizado) ? null : bloqueada ? "entrada" : pideDatos ? "datos" : destino;
+  const estado = useEstado();
+  const listo = cuenta.modo === "conectado" && cuenta.sincronizado;
+  const pideDatos = listo && !estado.datos && ruta !== "/catalogo";
+  // Tutorial obligatorio: hay que terminar la primera lección antes de ver el resto de la app.
+  const pideTutorial = listo && !pideDatos && estado.totales.lecciones === 0 && ruta !== "/catalogo" && !["bienvenida", "leccion", "celebracion"].includes(destino);
+  const nombre = cuenta.modo === "cargando" || (cuenta.modo === "conectado" && !cuenta.sincronizado) ? null : bloqueada ? "entrada" : pideDatos ? "datos" : pideTutorial ? "bienvenida" : destino;
   const Pantalla = nombre ? pantallas[nombre] : null;
 
   return (

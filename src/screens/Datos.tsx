@@ -3,6 +3,7 @@ import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
 import { actualizar, useEstado, type DatosPersona } from "../lib/estado";
 import { metricas } from "../lib/metricas";
+import { salir } from "../lib/nube";
 import { reemplazar } from "../lib/rutas";
 
 const PAISES = ["Perú", "México", "Colombia", "Chile", "Argentina", "Ecuador", "Bolivia", "España", "Estados Unidos", "Otro"];
@@ -45,15 +46,12 @@ export default function Datos() {
       universidad: universidad.trim().slice(0, 60),
       pais,
     };
-    actualizar(() => ({ datos, datosOmitidos: false }));
+    actualizar(() => ({ datos }));
     metricas.perfilCompletado({ pais, carrera: datos.carrera, universidad: datos.universidad, edad: datos.anio ? rango(datos.anio) : "sin dato" });
     reemplazar("/studio/inicio");
   }
 
-  function omitir() {
-    actualizar(() => ({ datosOmitidos: true }));
-    reemplazar("/studio/inicio");
-  }
+  const completo = nombre.trim().length >= 2 && !!anio && carrera.trim().length >= 2 && universidad.trim().length >= 2 && !!pais;
 
   return (
     <main
@@ -64,7 +62,7 @@ export default function Datos() {
         <CaraDeLeon cara="guino" tamano={56} />
         <div>
           <h1 className="text-[24px] leading-tight font-black">Cuéntanos de ti</h1>
-          <p className="font-bold text-text-soft">Así León te conoce mejor. Todo es opcional.</p>
+          <p className="font-bold text-text-soft">Responde las 5 preguntas para empezar.</p>
         </div>
       </div>
 
@@ -75,7 +73,7 @@ export default function Datos() {
       <label className="block font-bold">
         Año en que naciste
         <select value={anio} onChange={(ev) => setAnio(ev.target.value)} className={campo}>
-          <option value="">Prefiero no decirlo</option>
+          <option value="">Elige tu año</option>
           {ANIOS.map((a) => (
             <option key={a} value={a}>
               {a}
@@ -111,13 +109,22 @@ export default function Datos() {
       </label>
 
       <p className="text-ayuda text-text-soft">
-        Usamos estos datos solo para entender quién usa Auxi y mejorarlo. No se publican ni se venden. Tu nombre no se usa en estadísticas.
+        Usamos estos datos solo para entender quién usa Auxi y mejorarlo. No se publican ni se venden. Tu nombre no se usa en estadísticas. Puedes cambiar estos datos cuando quieras.
       </p>
 
       <div className="mt-auto flex flex-col gap-2 pt-2">
-        <Boton onClick={guardar}>Guardar y empezar</Boton>
-        <button type="button" onClick={omitir} className="h-11 cursor-pointer font-extrabold text-brand">
-          Ahora no
+        <Boton deshabilitado={!completo} onClick={guardar}>
+          Guardar y empezar
+        </Boton>
+        <button
+          type="button"
+          onClick={async () => {
+            await salir();
+            reemplazar("/studio");
+          }}
+          className="h-11 cursor-pointer font-extrabold text-text-soft"
+        >
+          Cerrar sesión
         </button>
       </div>
     </main>

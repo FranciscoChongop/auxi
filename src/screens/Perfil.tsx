@@ -12,7 +12,7 @@ import { metricas } from "../lib/metricas";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
-import { useCuenta } from "../lib/nube";
+import { salir, useCuenta } from "../lib/nube";
 import { navegar, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
@@ -239,6 +239,18 @@ export default function Perfil() {
           <span className="text-ayuda font-extrabold text-brand">Ver</span>
         </button>
         <ApoyaAlCreador />
+        {cuenta.modo === "conectado" && (
+          <button
+            type="button"
+            onClick={async () => {
+              await salir();
+              reemplazar("/studio");
+            }}
+            className="mt-3 h-12 w-full cursor-pointer rounded-boton border-2 border-error font-extrabold text-error"
+          >
+            Cerrar sesión
+          </button>
+        )}
         <button type="button" onClick={() => setBorrar(true)} className="mt-2 h-11 cursor-pointer font-extrabold text-error">
           Borrar mi avance de este celular
         </button>

@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
-import { actualizar } from "../lib/estado";
+import { actualizar, useEstado } from "../lib/estado";
 import { useCuenta } from "../lib/nube";
 import { navegar } from "../lib/rutas";
 
@@ -29,6 +29,8 @@ const PUNTOS: { titulo: string; texto: string; icono: ReactNode }[] = [
 /** Primera pantalla. No pide cuenta: primero se juega. */
 export default function Bienvenida() {
   const cuenta = useCuenta();
+  const e = useEstado();
+  const tutorialPendiente = cuenta.modo === "conectado" && e.totales.lecciones === 0;
   function jugar() {
     // Una lección de ejemplo, ya: la cuenta llega después del primer logro.
     actualizar(() => ({ bienvenidaVista: true, cursoId: "fotosintesis" }));
@@ -72,7 +74,7 @@ export default function Bienvenida() {
 
       <div className="mt-auto flex flex-col gap-3 pt-6">
         <Boton onClick={jugar}>Probar una lección ya</Boton>
-        <Boton
+        {!tutorialPendiente && <Boton
           variante="secundario"
           onClick={() => {
             actualizar(() => ({ bienvenidaVista: true }));
@@ -80,7 +82,7 @@ export default function Bienvenida() {
           }}
         >
           {cuenta.modo === "invitado" ? "Crear mi cuenta gratis" : "Tengo mi material"}
-        </Boton>
+        </Boton>}
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
       </div>
     </main>
