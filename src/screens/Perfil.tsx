@@ -7,6 +7,7 @@ import { CaraDeLeon, type CaraLeon } from "../components/Leon";
 import { Escudo, Llama, Moneda, Pantalla } from "../components/Navegacion";
 import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { abrirIntro } from "../components/Intro";
+import { esDueno } from "../lib/apoyo";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
@@ -28,8 +29,6 @@ const MISIONES = [
   { id: "compartir", texto: "Comparte un logro", premio: 20 },
   { id: "invitar", texto: "Invita a alguien a estudiar", premio: 40 },
   { id: "opinar", texto: "Danos tu opinión", premio: 30 },
-  { id: "video", texto: "Comenta nuestro video", premio: 40, pronto: true },
-  { id: "instagram", texto: "Sigue a @soydanielchong en Instagram", premio: 60 },
 ];
 
 function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
@@ -159,6 +158,23 @@ export default function Perfil() {
         </button>
       </Bloque>
 
+      <section className="rounded-tarjeta bg-brand p-4 text-white" style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}>
+        <h2 className="text-tarjeta font-extrabold">Camino al pase libre</h2>
+        <p className="mt-1 text-ayuda font-semibold opacity-90">
+          {e.pasePorVida ? "Ya tienes el pase libre de por vida." : "Apoya a @soydanielchong y estudia sin límite de temas, para siempre. Lo revisamos a mano."}
+        </p>
+        <div className="mt-3">
+          <Boton variante="secundario" onClick={() => navegar("/studio/apoyo")}>
+            {e.pasePorVida ? "Ver mi pase" : "Empezar"}
+          </Boton>
+        </div>
+        {esDueno(cuenta.email) && (
+          <button type="button" onClick={() => navegar("/studio/revision")} className="mt-1 h-11 w-full cursor-pointer font-extrabold underline underline-offset-4">
+            Panel de revisión
+          </button>
+        )}
+      </section>
+
       <Bloque titulo="Misiones de apoyo">
         <p className="mb-3 text-ayuda text-text-soft">Son opcionales y nunca bloquean nada. Si quieres ayudarnos, te damos monedas.</p>
         <ul className="flex flex-col gap-2">
@@ -172,11 +188,11 @@ export default function Perfil() {
                 </span>
                 <button
                   type="button"
-                  disabled={hecha || m.pronto}
+                  disabled={hecha}
                   onClick={() => hacerMision(m.id, m.premio)}
                   className="h-11 min-w-20 cursor-pointer rounded-[10px] bg-card px-3 text-[15px] font-extrabold text-brand disabled:cursor-default disabled:text-text-soft"
                 >
-                  {hecha ? "Hecha" : m.pronto ? "Pronto" : "Hacer"}
+                  {hecha ? "Hecha" : "Hacer"}
                 </button>
               </li>
             );

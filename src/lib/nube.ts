@@ -3,6 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { borrarTodoLocal, leerArchivoLocal, subirArchivoANube } from "./archivos";
 import { actualizar, alCambiarEstado, completar, obtener, reiniciarTodo, type Estado } from "./estado";
 import { supabase } from "./supabase";
+import { reclamarSiAprobada } from "./apoyo";
 import { unir } from "./unir";
 
 /**
@@ -80,6 +81,7 @@ async function conectar(u: User) {
   dejarDeEscuchar?.();
   dejarDeEscuchar = alCambiarEstado(programarSubida);
   void subirArchivosPendientes(unido);
+  void reclamarSiAprobada();
 }
 
 let iniciada = false;
@@ -105,6 +107,7 @@ export function iniciarNube() {
       clearTimeout(espera);
       void subir();
     }
+    if (document.visibilityState === "visible" && usuario) void reclamarSiAprobada();
   });
 }
 

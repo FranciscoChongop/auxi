@@ -61,6 +61,8 @@ export type Estado = {
   tomates: Record<string, number>;
   /** Fallas que la persona reportó a atención al cliente. */
   reportes: Reporte[];
+  /** id de la solicitud de apoyo cuyo premio ya se entregó. */
+  apoyoReclamado: string | null;
 };
 
 const CLAVE = "auxi.studio.v1";
@@ -103,6 +105,7 @@ function inicial(): Estado {
     pasePorVida: false,
     tomates: {},
     reportes: [],
+    apoyoReclamado: null,
   };
 }
 

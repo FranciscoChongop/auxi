@@ -52,3 +52,42 @@ drop policy if exists "borrar mis archivos" on storage.objects;
 create policy "borrar mis archivos" on storage.objects
   for delete to authenticated
   using (bucket_id = 'archivos' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- 3) Solicitudes del pase libre (apoyo al creador): la persona manda capturas por WhatsApp
+--    y el dueño aprueba o rechaza desde el panel de revisión.
+create table if not exists public.solicitudes_apoyo (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  codigo text not null,
+  instagram text,
+  tiktok text,
+  comentario text,
+  correo text,
+  estado text not null default 'pendiente' check (estado in ('pendiente', 'aprobada', 'rechazada')),
+  nota text,
+  creado timestamptz not null default now(),
+  revisado timestamptz
+);
+
+create unique index if not exists una_solicitud_pendiente on public.solicitudes_apoyo (user_id) where estado = 'pendiente';
+
+alter table public.solicitudes_apoyo enable row level security;
+revoke all on public.solicitudes_apoyo from anon;
+grant select, insert, update on public.solicitudes_apoyo to authenticated;
+
+drop policy if exists "ver mis solicitudes" on public.solicitudes_apoyo;
+create policy "ver mis solicitudes" on public.solicitudes_apoyo
+  for select to authenticated
+  using ((select auth.uid()) = user_id or (select auth.jwt() ->> 'email') = 'chongdaniel91@gmail.com');
+
+drop policy if exists "crear mi solicitud" on public.solicitudes_apoyo;
+create policy "crear mi solicitud" on public.solicitudes_apoyo
+  for insert to authenticated
+  with check ((select auth.uid()) = user_id and estado = 'pendiente');
+
+-- Solo el dueño puede aprobar o rechazar.
+drop policy if exists "el dueno revisa" on public.solicitudes_apoyo;
+create policy "el dueno revisa" on public.solicitudes_apoyo
+  for update to authenticated
+  using ((select auth.jwt() ->> 'email') = 'chongdaniel91@gmail.com')
+  with check ((select auth.jwt() ->> 'email') = 'chongdaniel91@gmail.com');
