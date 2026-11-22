@@ -62,6 +62,14 @@ export default function Bienvenida() {
           </Boton>
         </div>
         <p className="mt-3 text-center text-ayuda text-text-soft">Gratis. Auxi Vida no mueve tu plata ni presta.</p>
+        <p className="mt-1 flex justify-center gap-4 text-ayuda font-extrabold">
+          <a href="/studio/privacidad" className="min-h-11 content-center text-brand underline">
+            Privacidad
+          </a>
+          <a href="/studio/terminos" className="min-h-11 content-center text-brand underline">
+            Condiciones
+          </a>
+        </p>
       </PieFijo>
     </Pagina>
   );

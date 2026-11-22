@@ -211,6 +211,9 @@ export default function Perfil() {
             <button type="button" onClick={() => setBorrar(true)} className="h-11 cursor-pointer font-extrabold text-error">
               Borrar todo lo de Vida
             </button>
+            <a href="/studio/privacidad" className="flex min-h-11 items-center justify-center text-ayuda font-extrabold text-brand underline">
+              Política de privacidad
+            </a>
           </div>
         </Bloque>
 
