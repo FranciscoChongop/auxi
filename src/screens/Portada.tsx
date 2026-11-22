@@ -1,0 +1,28 @@
+import { Boton } from "../components/Boton";
+import { Leon } from "../components/Leon";
+import { navegar } from "../lib/rutas";
+
+/** Portada provisional de /studio. La bienvenida real llega en la Fase 2. */
+export default function Portada() {
+  return (
+    <main
+      className="mx-auto flex min-h-dvh max-w-md flex-col px-5"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top) + 24px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)",
+      }}
+    >
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <Leon pose="saluda" alto={260} rebote />
+        <h1 className="mt-6 text-titulo font-black">Estudia jugando con León</h1>
+        <p className="mt-3 max-w-[30ch] text-text-soft">
+          Sube lo que te dejaron y estudia jugando, con una IA que te pregunta en vez de copiarte.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 pt-6">
+        <p className="text-center text-ayuda text-text-soft">Estamos construyendo Auxi Studio.</p>
+        <Boton onClick={() => navegar("/catalogo")}>Ver los componentes</Boton>
+      </div>
+    </main>
+  );
+}
