@@ -35,8 +35,8 @@ export default function Inicio() {
       <TarjetaExamen e={e} />
       <SemanaYMeta e={e} />
       <Continuar e={e} curso={curso} actual={actual} avance={avance(curso, e)} />
-      <MisTemas e={e} />
       <ResumenCamino curso={curso} lista={lista} />
+      <MisTemas e={e} />
       <Hoy e={e} />
       <Accesos errores={errores} />
 

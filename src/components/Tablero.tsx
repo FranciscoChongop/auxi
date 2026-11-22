@@ -252,9 +252,9 @@ export function Accesos({ errores }: { errores: number }) {
       <div className="grid grid-cols-2 gap-3">
         <Acceso titulo="Repaso" ayuda={errores ? "2 minutos" : "Nada pendiente"} insignia={errores} onClick={() => navegar("/studio/leccion?n=repaso")} icono={<Ic d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v4h4" />} />
         <Acceso titulo="Mis cursos" ayuda="Temas y exámenes" onClick={() => navegar("/studio/cursos")} icono={<Ic d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />} />
-        <Acceso titulo="El tomate" ayuda="25 min de foco" onClick={() => navegar("/studio/metodos?elegir=tomate")} icono={<Ic d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4M5 13.5a7 7 0 1 0 14 0 7 7 0 0 0-14 0z" />} />
-        <Acceso titulo="Las 5 cajas" ayuda="Tarjetas rápidas" onClick={() => navegar("/studio/metodos?elegir=cajas")} icono={<Ic d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />} />
-        <Acceso titulo="Explícaselo a León" ayuda="Gana estrellas" onClick={() => navegar("/studio/metodos?elegir=leon")} icono={<Ic d="M5 5.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-4 3.5v-3.5H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" />} />
+        <Acceso titulo="El tomate" ayuda="25 min de foco" onClick={() => navegar("/studio/metodos/tomate")} icono={<Ic d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4M5 13.5a7 7 0 1 0 14 0 7 7 0 0 0-14 0z" />} />
+        <Acceso titulo="Las 5 cajas" ayuda="Tarjetas rápidas" onClick={() => navegar("/studio/metodos/cajas")} icono={<Ic d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />} />
+        <Acceso titulo="Explícaselo a León" ayuda="Gana estrellas" onClick={() => navegar("/studio/metodos/leon")} icono={<Ic d="M5 5.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-4 3.5v-3.5H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" />} />
         <Acceso titulo="Calendario" ayuda="Entregas y feriados" onClick={() => navegar("/studio/entregas?ver=calendario")} icono={<Ic d="M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1zM4 10h16M8 3.5v4M16 3.5v4" />} />
         <Acceso titulo="Importar sílabo" ayuda="Arma tus fechas" onClick={() => navegar("/studio/silabo")} icono={<Ic d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4" />} />
         <Acceso titulo="Mis monedas" ayuda="Qué puedes obtener" onClick={() => navegar("/studio/monedas")} icono={<Ic d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" />} />
@@ -290,34 +290,38 @@ export function ResumenCamino({ curso, lista }: { curso: Curso; lista: Nodo[] })
   const hechos = lista.filter((n) => n.hecho).length;
   return (
     <motion.button
-      {...entradaEnCascada(2)}
+      {...entradaEnCascada(1)}
       type="button"
       onClick={() => navegar("/studio/camino")}
-      onPointerDown={() => sonidos.toque()}
-      whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
-      style={{ boxShadow: "0 4px 0 var(--surface)" }}
-      className="flex cursor-pointer flex-col gap-3 rounded-tarjeta border-2 border-surface bg-card p-4 text-left"
+      onPointerDown={() => {
+        sonidos.toque();
+        vibrar("toque");
+      }}
+      whileTap={{ y: 5, boxShadow: "0 1px 0 var(--success-dark)", transition: { duration: 0.06 } }}
+      style={{ boxShadow: "0 6px 0 var(--success-dark)" }}
+      className="flex cursor-pointer flex-col gap-4 rounded-[20px] bg-success p-5 text-left text-text"
     >
-      <span className="flex items-center justify-between gap-2">
-        <span>
-          <span className="block text-tarjeta font-extrabold">Tu camino</span>
-          <span className="block text-ayuda text-text-soft">
+      <span className="flex items-start justify-between gap-3">
+        <span className="min-w-0">
+          <span className="block text-[28px] leading-8 font-black">Tu camino</span>
+          <span className="block font-bold">Aquí juegas: niveles y minijuegos</span>
+          <span className="mt-1 block truncate text-ayuda font-bold opacity-80">
             {curso.titulo} · {hechos} de {lista.length} niveles
           </span>
         </span>
-        <span className="font-extrabold text-brand">Ver</span>
+        <span className="shrink-0 rounded-full bg-text px-5 py-3 text-[17px] font-black text-white">Jugar</span>
       </span>
       <span className="relative flex items-center justify-between px-1" aria-hidden="true">
-        <span className="absolute inset-x-3 top-1/2 h-1 -translate-y-1/2 rounded-full bg-surface" />
-        {lista.slice(0, 9).map((n) => (
+        <span className="absolute inset-x-4 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/50" />
+        {lista.slice(0, 7).map((n) => (
           <span
             key={n.clave}
-            className={`relative grid place-items-center rounded-full ${n === actual ? "size-8 bg-brand ring-4 ring-brand/25" : "size-6"} ${n.hecho ? "bg-success" : n === actual ? "" : "bg-surface"}`}
+            className={`relative grid place-items-center rounded-full ${n === actual ? "size-12 bg-brand ring-4 ring-white" : "size-9"} ${n.hecho ? "bg-text" : n === actual ? "" : "bg-white/70"}`}
           >
             {n.hecho ? (
-              <svg viewBox="0 0 24 24" className="size-4"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="var(--text)" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <svg viewBox="0 0 24 24" className="size-5"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="white" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
             ) : n === actual ? (
-              <svg viewBox="0 0 24 24" className="size-4"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="white" /></svg>
+              <svg viewBox="0 0 24 24" className="size-6"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="white" /></svg>
             ) : null}
           </span>
         ))}
@@ -325,7 +329,6 @@ export function ResumenCamino({ curso, lista }: { curso: Curso; lista: Nodo[] })
     </motion.button>
   );
 }
-
 
 /* ---------- ¿Tienes un examen? ---------- */
 

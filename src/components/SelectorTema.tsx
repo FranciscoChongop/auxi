@@ -20,6 +20,13 @@ export function SelectorTema({ variante = "tarjeta", etiqueta = "Estudiando" }: 
   const actual = cursoDe(e);
   const opciones = opcionesDeTema(e);
   const detalle = opciones.find((o) => o.actual);
+  // Cursos con sus temas, en el orden de prioridad de los temas (examen más cercano primero).
+  const grupos = [...new Set(opciones.map((o) => o.subtitulo))].map((nombre) => {
+    const temas = opciones.filter((o) => o.subtitulo === nombre);
+    const examenes = temas.map((o) => o.diasExamen).filter((d): d is number => d !== undefined);
+    return { nombre, temas, diasExamen: examenes.length ? Math.min(...examenes) : undefined };
+  });
+  const [cursoAbierto, setCursoAbierto] = useState<string | null>(() => opciones.find((o) => o.actual)?.subtitulo ?? null);
 
   return (
     <>
@@ -53,46 +60,76 @@ export function SelectorTema({ variante = "tarjeta", etiqueta = "Estudiando" }: 
         </button>
       )}
 
-      <Ventana abierta={abierto} alCerrar={() => setAbierto(false)} titulo="¿Qué tema estudias?">
-        <p className="mb-3 text-ayuda text-text-soft">Primero los exámenes más cercanos, luego lo que ya empezaste. Lo terminado va al final.</p>
-        <div className="flex max-h-[52dvh] flex-col gap-2 overflow-y-auto pb-1">
-          {opciones.map((o) => (
-            <button
-              key={o.id}
-              type="button"
-              onClick={() => {
-                if (!o.actual) {
-                  elegirTema(o.id);
-                  sonidos.acierto();
-                  aviso(`Ahora estudias «${o.titulo}».`, "exito");
-                }
-                setAbierto(false);
-              }}
-              aria-current={o.actual ? "true" : undefined}
-              className={`flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-boton border-2 p-3 text-left ${o.actual ? "border-brand bg-surface" : "border-surface bg-card"}`}
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-extrabold">{o.titulo}</span>
-                <span className="block truncate text-ayuda text-text-soft">{o.subtitulo}</span>
-                <span className="mt-1 flex items-center gap-2">
-                  <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface">
-                    <span className="block h-full rounded-full bg-success" style={{ width: `${Math.round(o.avance * 100)}%` }} />
+      <Ventana abierta={abierto} alCerrar={() => setAbierto(false)} titulo="¿Qué estudias?">
+        <p className="mb-3 text-ayuda text-text-soft">Elige un curso y, dentro, su tema. Los exámenes más cercanos van primero.</p>
+        <div className="flex max-h-[54dvh] flex-col gap-2 overflow-y-auto pb-1">
+          {grupos.map((g) => {
+            const abiertoG = cursoAbierto === g.nombre;
+            return (
+              <div key={g.nombre} className={`overflow-hidden rounded-tarjeta border-2 ${abiertoG ? "border-brand" : "border-surface"} bg-card`}>
+                <button
+                  type="button"
+                  onClick={() => setCursoAbierto(abiertoG ? null : g.nombre)}
+                  aria-expanded={abiertoG}
+                  className="flex min-h-14 w-full cursor-pointer items-center gap-3 px-4 py-2 text-left"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-extrabold">{g.nombre}</span>
+                    <span className="block text-ayuda text-text-soft">
+                      {g.temas.length} {g.temas.length === 1 ? "tema" : "temas"}
+                      {g.temas.some((o) => o.actual) ? " · tu tema actual" : ""}
+                    </span>
                   </span>
-                  <span className="numeros text-[12px] font-extrabold text-text-soft">{Math.round(o.avance * 100)} %</span>
-                </span>
-              </span>
-              <span className="flex shrink-0 flex-col items-end gap-1">
-                {o.diasExamen !== undefined && (
-                  <span className={`rounded-full px-2 py-0.5 text-[12px] font-extrabold ${o.diasExamen <= 3 ? "bg-error text-white" : "bg-surface text-text"}`}>{textoExamen(o.diasExamen)}</span>
+                  {g.diasExamen !== undefined && (
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[12px] font-extrabold ${g.diasExamen <= 3 ? "bg-error text-white" : "bg-surface text-text"}`}>{textoExamen(g.diasExamen)}</span>
+                  )}
+                  <svg viewBox="0 0 24 24" className={`size-4 shrink-0 text-text-soft transition-transform ${abiertoG ? "rotate-180" : ""}`} aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                </button>
+                {abiertoG && (
+                  <div className="flex flex-col gap-2 border-t-2 border-surface p-2">
+                    {g.temas.map((o) => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        onClick={() => {
+                          if (!o.actual) {
+                            elegirTema(o.id);
+                            sonidos.acierto();
+                            aviso(`Ahora estudias «${o.titulo}».`, "exito");
+                          }
+                          setAbierto(false);
+                        }}
+                        aria-current={o.actual ? "true" : undefined}
+                        className={`flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-boton p-3 text-left ${o.actual ? "bg-surface" : "bg-bg"}`}
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-extrabold">{o.titulo}</span>
+                          <span className="mt-1 flex items-center gap-2">
+                            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface">
+                              <span className="block h-full rounded-full bg-success" style={{ width: `${Math.round(o.avance * 100)}%` }} />
+                            </span>
+                            <span className="numeros text-[12px] font-extrabold text-text-soft">{Math.round(o.avance * 100)} %</span>
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 flex-col items-end gap-1">
+                          {o.diasExamen !== undefined && (
+                            <span className={`rounded-full px-2 py-0.5 text-[12px] font-extrabold ${o.diasExamen <= 3 ? "bg-error text-white" : "bg-surface text-text"}`}>{textoExamen(o.diasExamen)}</span>
+                          )}
+                          {o.actual ? (
+                            <span className="text-ayuda font-extrabold text-brand">Actual</span>
+                          ) : o.avance >= 1 ? (
+                            <span className="rounded-full bg-success px-2 py-0.5 text-[12px] font-extrabold text-text">Terminado</span>
+                          ) : null}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 )}
-                {o.actual ? (
-                  <span className="text-ayuda font-extrabold text-brand">Actual</span>
-                ) : o.avance >= 1 ? (
-                  <span className="rounded-full bg-success px-2 py-0.5 text-[12px] font-extrabold text-text">Terminado</span>
-                ) : null}
-              </span>
-            </button>
-          ))}
+              </div>
+            );
+          })}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Boton

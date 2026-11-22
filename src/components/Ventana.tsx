@@ -47,7 +47,7 @@ export function Ventana({ abierta, alCerrar, titulo, children }: Props) {
             role="dialog"
             aria-modal="true"
             aria-labelledby={idTitulo}
-            className="relative w-full max-w-md rounded-t-[24px] bg-bg px-5 pt-5"
+            className="relative w-full max-w-md rounded-t-[24px] bg-bg px-5 pt-5 text-text"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}

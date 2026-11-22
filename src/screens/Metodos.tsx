@@ -6,12 +6,11 @@ import { Leon, type PoseLeon } from "../components/Leon";
 import { Moneda, Pantalla } from "../components/Navegacion";
 import { SelectorTema } from "../components/SelectorTema";
 import { Ventana } from "../components/Ventana";
-import { cursoDe, opcionesDeTema, proximoExamen, todasLasTarjetas } from "../lib/curso";
+import { cursoDe, proximoExamen, todasLasTarjetas } from "../lib/curso";
 import { actualizar, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
 import { entradaEnCascada } from "../lib/movimiento";
-import { navegar, parametro } from "../lib/rutas";
-import { elegirTema } from "../lib/tienda";
+import { navegar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
 type IdMetodo = "tomate" | "cajas" | "leon";
@@ -124,75 +123,9 @@ function Test({ alTerminar }: { alTerminar: (m: IdMetodo) => void }) {
 }
 
 
-/** Antes de empezar un método se elige con qué curso y tema. Nada se da por hecho. */
-function ElegirTemaDeMetodo({ metodo, alCerrar }: { metodo: Metodo | null; alCerrar: () => void }) {
-  const e = useEstado();
-  const opciones = opcionesDeTema(e);
-  const cursos = [...new Set(opciones.map((o) => o.subtitulo))];
-  const sinPropios = !opciones.some((o) => !o.ejemplo);
-  return (
-    <Ventana abierta={!!metodo} alCerrar={alCerrar} titulo={metodo ? `¿Con qué tema usas ${metodo.nombre}?` : ""}>
-      <div className="flex max-h-[56dvh] flex-col gap-4 overflow-y-auto pb-1">
-        {cursos.map((c) => (
-          <div key={c}>
-            <p className="mb-2 text-ayuda font-extrabold text-text-soft">{c}</p>
-            <div className="flex flex-col gap-2">
-              {opciones
-                .filter((o) => o.subtitulo === c)
-                .map((o) => (
-                  <button
-                    key={o.id}
-                    type="button"
-                    onClick={() => {
-                      if (!metodo) return;
-                      sonidos.acierto();
-                      elegirTema(o.id);
-                      alCerrar();
-                      navegar(`/studio/metodos/${metodo.id}`);
-                    }}
-                    className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-boton border-2 border-surface bg-card p-3 text-left"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-extrabold">{o.titulo}</span>
-                      <span className="mt-1 flex items-center gap-2">
-                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface">
-                          <span className="block h-full rounded-full bg-success" style={{ width: `${Math.round(o.avance * 100)}%` }} />
-                        </span>
-                        <span className="numeros text-[12px] font-extrabold text-text-soft">{Math.round(o.avance * 100)} %</span>
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-end gap-1">
-                      {o.diasExamen !== undefined && (
-                        <span className={`rounded-full px-2 py-0.5 text-[12px] font-extrabold ${o.diasExamen <= 3 ? "bg-error text-white" : "bg-surface text-text"}`}>{textoExamen(o.diasExamen)}</span>
-                      )}
-                      {o.actual && <span className="text-[12px] font-extrabold text-brand">Último</span>}
-                    </span>
-                  </button>
-                ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      {sinPropios && <p className="mt-3 text-ayuda text-text-soft">Aún no tienes temas tuyos con lecciones. Crea uno en Mis cursos para usarlo aquí.</p>}
-      <div className="mt-4">
-        <Boton
-          variante="secundario"
-          onClick={() => {
-            alCerrar();
-            navegar("/studio/cursos");
-          }}
-        >
-          Ir a Mis cursos
-        </Boton>
-      </div>
-    </Ventana>
-  );
-}
-
 export default function Metodos() {
   const e = useEstado();
   const [test, setTest] = useState(false);
-  const [elegido, setElegido] = useState<Metodo | null>(() => METODOS.find((m) => m.id === parametro("elegir")) ?? null);
   const curso = cursoDe(e);
   const tarjetas = useMemo(() => todasLasTarjetas(curso), [curso]);
   const enCaja5 = tarjetas.filter((t) => (e.cajas[t.id] ?? 1) === 5).length;
@@ -215,13 +148,13 @@ export default function Metodos() {
   return (
     <Pantalla titulo="Métodos">
       <p className="-mt-2 text-text-soft">Formas de estudiar que funcionan, convertidas en juego.</p>
-      <SelectorTema etiqueta="Último tema" />
+      <SelectorTema etiqueta="Con este tema" />
 
       {sugerencia && (
         <motion.button
           {...entradaEnCascada(0)}
           type="button"
-          onClick={() => setElegido(METODOS.find((m) => m.id === sugerencia.id)!)}
+          onClick={() => navegar(`/studio/metodos/${sugerencia.id}`)}
           className="flex cursor-pointer items-center gap-3 rounded-tarjeta bg-brand p-4 text-left text-white"
           style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}
         >
@@ -266,7 +199,7 @@ export default function Metodos() {
             </p>
           </div>
           <div className="px-4 pb-4">
-            <Boton onClick={() => setElegido(m)}>Empezar</Boton>
+            <Boton onClick={() => navegar(`/studio/metodos/${m.id}`)}>Empezar</Boton>
           </div>
         </motion.section>
       ))}
@@ -274,8 +207,6 @@ export default function Metodos() {
       <Boton variante="secundario" onClick={() => setTest(true)}>
         {recomendado ? "Repetir el test: ¿cuál es para mí?" : "¿Cuál es para mí? Test de 3 preguntas"}
       </Boton>
-
-      <ElegirTemaDeMetodo metodo={elegido} alCerrar={() => setElegido(null)} />
 
       <Ventana abierta={test} alCerrar={() => setTest(false)} titulo="¿Cuál es para ti?">
         <Test
