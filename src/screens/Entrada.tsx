@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
 import { obtener } from "../lib/estado";
-import { crearCuentaConClave, empezarPrueba, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
-import { navegar } from "../lib/rutas";
+import { crearCuentaConClave, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
 import { sonidos } from "../lib/sonidos";
 
 function LogoGoogle() {
@@ -107,7 +106,7 @@ export default function Entrada() {
         <CaraDeLeon cara="guino" tamano={64} />
         <div>
           <h1 className="text-[26px] leading-tight font-black">Auxi Studio</h1>
-          <p className="font-bold text-text-soft">{yaJugo ? "¡Buen comienzo! Crea tu cuenta para guardarlo." : "Estudia jugando. Es gratis."}</p>
+          <p className="font-bold text-text-soft">{yaJugo ? "¡Buen comienzo! Crea tu cuenta para guardarlo." : "Entra a tu cuenta. Es gratis."}</p>
         </div>
       </div>
 
@@ -251,22 +250,6 @@ export default function Entrada() {
         <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} role="alert" className="rounded-boton border-2 border-error bg-card px-4 py-3 font-bold text-error-dark">
           {error}
         </motion.p>
-      )}
-
-      {!yaJugo && (modo === "entrar" || modo === "crear") && (
-        <div className="mt-2 rounded-tarjeta bg-surface p-4 text-center">
-          <p className="font-extrabold">¿Primera vez? Mira cómo funciona</p>
-          <p className="mb-3 text-ayuda text-text-soft">Juega una lección de prueba, sin cuenta. Dura un minuto.</p>
-          <Boton
-            variante="secundario"
-            onClick={() => {
-              empezarPrueba();
-              navegar("/studio/bienvenida");
-            }}
-          >
-            Probar una lección
-          </Boton>
-        </div>
       )}
 
       <p className="mt-auto text-center text-ayuda text-text-soft">Con tu cuenta tu avance y tu racha se guardan y los llevas a cualquier celular. Nunca publicamos nada sin tu permiso.</p>

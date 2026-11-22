@@ -30,7 +30,7 @@ const PUNTOS: { titulo: string; texto: string; icono: ReactNode }[] = [
 export default function Bienvenida() {
   const cuenta = useCuenta();
   const e = useEstado();
-  const tutorialPendiente = cuenta.modo === "conectado" && e.totales.lecciones === 0;
+  const tutorialObligatorio = cuenta.modo !== "sin-nube" && e.totales.lecciones === 0;
   function jugar() {
     // Una lección de ejemplo, ya: la cuenta llega después del primer logro.
     actualizar(() => ({ bienvenidaVista: true, cursoId: "fotosintesis" }));
@@ -73,16 +73,23 @@ export default function Bienvenida() {
       </ul>
 
       <div className="mt-auto flex flex-col gap-3 pt-6">
-        <Boton onClick={jugar}>Probar una lección ya</Boton>
-        {!tutorialPendiente && <Boton
-          variante="secundario"
-          onClick={() => {
-            actualizar(() => ({ bienvenidaVista: true }));
-            navegar(cuenta.modo === "invitado" ? "/studio/inicio" : "/studio/material");
-          }}
-        >
-          {cuenta.modo === "invitado" ? "Crear mi cuenta gratis" : "Tengo mi material"}
-        </Boton>}
+        <Boton onClick={jugar}>{tutorialObligatorio ? "Empezar el tutorial" : "Probar una lección ya"}</Boton>
+        {!tutorialObligatorio && (
+          <Boton
+            variante="secundario"
+            onClick={() => {
+              actualizar(() => ({ bienvenidaVista: true }));
+              navegar("/studio/material");
+            }}
+          >
+            Tengo mi material
+          </Boton>
+        )}
+        {cuenta.modo === "invitado" && (
+          <button type="button" onClick={() => navegar("/studio/entrada")} className="h-11 cursor-pointer text-[16px] font-extrabold text-brand">
+            Ya tengo cuenta
+          </button>
+        )}
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
       </div>
     </main>

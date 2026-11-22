@@ -40,22 +40,6 @@ export function useCuenta() {
   );
 }
 
-/** Antes de tener cuenta se puede jugar una lección de prueba para conocer la app. */
-export const enModoPrueba = () => {
-  try {
-    return localStorage.getItem("auxi.prueba") === "1";
-  } catch {
-    return false;
-  }
-};
-export function empezarPrueba() {
-  try {
-    localStorage.setItem("auxi.prueba", "1");
-  } catch {
-    // sin almacenamiento
-  }
-}
-
 let usuario: User | null = null;
 let dejarDeEscuchar: (() => void) | null = null;
 let espera: ReturnType<typeof setTimeout> | undefined;
