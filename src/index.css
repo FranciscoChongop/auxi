@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* Tokens de auxi-design. Úsalos solo a través de estas variables. */
+:root {
+  --bg: #f7f8fc;
+  --surface: #e6e8fa;
+  --card: #ffffff;
+  --text: #141a4d;
+  --text-soft: #5b6084;
+  --brand: #2430d9;
+  --brand-dark: #1a23a6;
+  --success: #5fe3dc;
+  --success-dark: #2fb7b0;
+  --reward: #f2b341;
+  --reward-dark: #c98a1c;
+  --error: #c2412d;
+  --error-dark: #96301f;
+  --studio: #2430d9;
+  --vida: #5fe3dc;
+  --negocio: #4a4edb;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-text: var(--text);
+  --color-text-soft: var(--text-soft);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-success: var(--success);
+  --color-success-dark: var(--success-dark);
+  --color-reward: var(--reward);
+  --color-reward-dark: var(--reward-dark);
+  --color-error: var(--error);
+  --color-error-dark: var(--error-dark);
+  --color-studio: var(--studio);
+  --color-vida: var(--vida);
+  --color-negocio: var(--negocio);
+
+  --font-sans: "Nunito", ui-rounded, system-ui, sans-serif;
+
+  /* Escala de auxi-design: tamaño / interlineado */
+  --text-titulo: 28px;
+  --text-titulo--line-height: 32px;
+  --text-tarjeta: 20px;
+  --text-tarjeta--line-height: 26px;
+  --text-cuerpo: 17px;
+  --text-cuerpo--line-height: 24px;
+  --text-ayuda: 14px;
+  --text-ayuda--line-height: 20px;
+
+  --radius-tarjeta: 16px;
+  --radius-boton: 14px;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    background: var(--bg);
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 24px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+  button,
+  a,
+  [role="switch"] {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  :focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 3px;
+  }
+  img {
+    -webkit-user-drag: none;
+  }
+}
+
+@utility numeros {
+  font-variant-numeric: tabular-nums;
+}
