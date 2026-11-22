@@ -64,6 +64,10 @@ export default function Bienvenida() {
       <div className="mt-auto flex flex-col gap-3 pt-6">
         <Boton onClick={() => navegar("/studio/entrada")}>Iniciar sesión o crear cuenta</Boton>
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
+        <p className="flex justify-center gap-4 text-ayuda font-extrabold text-brand">
+          <a href="/studio/privacidad" className="inline-flex min-h-11 items-center underline">Privacidad</a>
+          <a href="/studio/terminos" className="inline-flex min-h-11 items-center underline">Condiciones</a>
+        </p>
       </div>
     </main>
   );

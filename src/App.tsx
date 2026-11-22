@@ -33,6 +33,8 @@ const pantallas = {
   cuenta: lazy(() => import("./screens/Cuenta")),
   entrada: lazy(() => import("./screens/Entrada")),
   tour: lazy(() => import("./screens/Tour")),
+  privacidad: lazy(() => import("./screens/Legal")),
+  terminos: lazy(() => import("./screens/Legal")),
   datos: lazy(() => import("./screens/Datos")),
   catalogo: lazy(() => import("./screens/Catalogo")),
 };
@@ -84,7 +86,7 @@ export function App() {
   const estado = useEstado();
   const invitado = cuenta.modo === "invitado" && ruta !== "/catalogo";
   // Sin cuenta: solo la portada y el inicio de sesión.
-  const bloqueada = invitado && destino !== "bienvenida";
+  const bloqueada = invitado && !["bienvenida", "privacidad", "terminos"].includes(destino);
   const listo = cuenta.modo === "conectado" && cuenta.sincronizado;
   const pideDatos = listo && !estado.datos && ruta !== "/catalogo";
   // Recorrido de bienvenida (solo tocar «Siguiente») antes de ver la app por primera vez.
@@ -95,7 +97,7 @@ export function App() {
       : bloqueada
         ? "entrada"
         : invitado
-          ? "bienvenida"
+          ? destino === "privacidad" || destino === "terminos" ? destino : "bienvenida"
           : pideDatos
             ? "datos"
             : pideTour
