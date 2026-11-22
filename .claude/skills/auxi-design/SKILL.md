@@ -81,6 +81,24 @@ Sonidos de menos de 0,5 s, volumen moderado, con un interruptor en ajustes: toqu
 - Una imagen de León por pantalla como máximo. En mensajes, su cara pequeña (hoja A8) en un círculo de 40 px.
 - Qué imagen usar: bienvenida A1, lección completa y racha A2, Pomodoro y concentración A3, "Explícaselo" A4, error o pantalla vacía A5, cofre A6, racha en pausa A7.
 
+## León en Vida
+
+En Auxi Vida, León lleva canguro turquesa y su moneda de oro sin letras. Imágenes en `public/leon/vida/` (WebP sin fondo; caras chicas en `public/leon/vida/caras/`). Mismas reglas que arriba: imagen fija, una por pantalla, sin animar por partes.
+
+| Momento | Imagen |
+|---|---|
+| Bienvenida | B1-saluda |
+| Meta cumplida o día dentro del presupuesto | B2-celebra |
+| Colchón y antojo ahorrado | B3-alcancia |
+| "¿Esto es estafa?" y leyendo una captura | B4-detective |
+| Estafa probable (nivel alto) | B5-alerta |
+| Te pasaste del presupuesto, pantalla vacía o error | B6-anima |
+| Anotar por voz | B7-celular |
+| Avatar del chat (cara chica en círculo de 40 px) | B8-caras (`caras/feliz`, `risa`, `sorpresa`, `serio`, `tierno`, `curioso`) |
+| Ícono de Vida | B9-icono |
+
+Acento de Vida: turquesa (`--vida`); el oro, para el colchón y los premios. Montos siempre con "S/ ", dos decimales solo si hacen falta, y contador animado al cambiar. Nunca rojo alarmante en pantalla completa por gastar.
+
 ## Tono de los textos
 
 Voz de León: cercano, curioso, breve. Tutea. Frases de menos de 12 palabras en botones y avisos.

@@ -2,6 +2,8 @@
 
 Lee este archivo completo antes de cualquier tarea. Responde y escribe todos los textos de la app en español peruano sencillo.
 
+Para cualquier tarea de **Auxi Vida** (`/vida`), lee también `docs/vida/vida.md` (y `docs/vida/pantallas.md` y `docs/vida/fases.md`).
+
 ## Qué es Auxi
 
 Una plataforma web gratuita con tres mini apps, cada una para un nicho:

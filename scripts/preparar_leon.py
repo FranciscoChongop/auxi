@@ -2,6 +2,8 @@
 
 - A1 a A8: quita el fondo lila liso, recorta y guarda WebP liviano con transparencia.
 - A9: genera los íconos de la app (PWA, iPhone y favicon).
+- Vida (B1 a B9): lo mismo desde originales/leon/vida hacia public/leon/vida
+  (B9 solo se guarda como WebP; los íconos de la app siguen siendo los de A9).
 
 Uso: npm run imagenes  (lee originales/leon/*.png y escribe public/leon/*.webp y public/icons/*.png)
 """
@@ -25,6 +27,17 @@ POSES = [
     "A6-sorprendido",
     "A7-duerme",
     "A8-caras",
+]
+
+POSES_VIDA = [
+    "B1-saluda",
+    "B2-celebra",
+    "B3-alcancia",
+    "B4-detective",
+    "B5-alerta",
+    "B6-anima",
+    "B7-celular",
+    "B8-caras",
 ]
 
 LADO_TRABAJO = 1100  # se procesa a este tamaño máximo
@@ -96,12 +109,10 @@ def iconos() -> None:
     cuadrado.resize((512, 512), Image.LANCZOS).save(LEON / "A9-icono.webp", "WEBP", quality=82, method=6)
 
 
-def caras() -> None:
-    """Recorta las 6 caras de la hoja A8 (3 x 2) para los círculos de 40 px."""
-    hoja = Image.open(LEON / "A8-caras.webp").convert("RGBA")
+def caras(hoja_ruta: Path, carpeta: Path, nombres: list[str]) -> None:
+    """Recorta las 6 caras de la hoja A8 o B8 (3 x 2) para los círculos de 40 px."""
+    hoja = Image.open(hoja_ruta).convert("RGBA")
     w, h = hoja.size
-    nombres = ["feliz", "guino", "sorpresa", "lengua", "tierno", "lentes"]
-    carpeta = LEON / "caras"
     carpeta.mkdir(exist_ok=True)
     for i, nombre in enumerate(nombres):
         f, c = divmod(i, 3)
@@ -112,19 +123,42 @@ def caras() -> None:
         cara.resize((120, 120), Image.LANCZOS).save(carpeta / f"{nombre}.webp", "WEBP", quality=85)
 
 
-def main() -> None:
-    for nombre in POSES:
-        origen = ORIGEN / f"{nombre}.png"
+def poses(nombres: list[str], origen_dir: Path, destino_dir: Path) -> None:
+    destino_dir.mkdir(parents=True, exist_ok=True)
+    for nombre in nombres:
+        origen = origen_dir / f"{nombre}.png"
         if not origen.exists():
             print(f"falta {origen.name}, se usará el reemplazo")
             continue
         out = quitar_fondo(origen)
-        destino = LEON / f"{nombre}.webp"
+        destino = destino_dir / f"{nombre}.webp"
         out.save(destino, "WEBP", quality=82, method=6)
         print(f"{destino.name}: {out.size[0]}x{out.size[1]}, {destino.stat().st_size // 1024} KB")
+
+
+def icono_vida() -> None:
+    """B9: mismo recorte que A9, solo como WebP (para la app Vida, no para la PWA)."""
+    origen = ORIGEN / "vida" / "B9-icono.png"
+    if not origen.exists():
+        return
+    im = Image.open(origen).convert("RGB")
+    w, h = im.size
+    rec = int(min(w, h) * 0.05)
+    cuadrado = im.crop((rec, rec, w - rec, h - rec))
+    cuadrado.resize((512, 512), Image.LANCZOS).save(LEON / "vida" / "B9-icono.webp", "WEBP", quality=82, method=6)
+
+
+def main() -> None:
+    poses(POSES, ORIGEN, LEON)
     if (LEON / "A8-caras.webp").exists():
-        caras()
+        caras(LEON / "A8-caras.webp", LEON / "caras", ["feliz", "guino", "sorpresa", "lengua", "tierno", "lentes"])
     iconos()
+
+    vida = LEON / "vida"
+    poses(POSES_VIDA, ORIGEN / "vida", vida)
+    if (vida / "B8-caras.webp").exists():
+        caras(vida / "B8-caras.webp", vida / "caras", ["feliz", "risa", "sorpresa", "serio", "tierno", "curioso"])
+    icono_vida()
     print("caras e íconos listos")
 
 
