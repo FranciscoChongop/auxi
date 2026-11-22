@@ -16,8 +16,8 @@ function LogoGoogle() {
   );
 }
 
-/** Se muestra el botón de Google cuando ya está activado en Supabase (VITE_GOOGLE_ACTIVO=si). */
-const GOOGLE_ACTIVO = import.meta.env.VITE_GOOGLE_ACTIVO === "si";
+/** Se muestra el botón de Google cuando ya está activado en Supabase (se apaga con VITE_GOOGLE_ACTIVO=no). */
+const GOOGLE_ACTIVO = import.meta.env.VITE_GOOGLE_ACTIVO !== "no";
 
 const correoValido = (c: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.trim());
 const campo =
