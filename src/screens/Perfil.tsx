@@ -9,7 +9,8 @@ import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
-import { reemplazar } from "../lib/rutas";
+import { useCuenta } from "../lib/nube";
+import { navegar, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
 const VENDOE_URL = "https://www.vendoe.es/";
@@ -42,6 +43,7 @@ function Bloque({ titulo, children }: { titulo: string; children: ReactNode }) {
 export default function Perfil() {
   const e = useEstado();
   const aviso = useAviso();
+  const cuenta = useCuenta();
   const [ayuda, setAyuda] = useState(false);
   const [opinion, setOpinion] = useState(false);
   const [textoOpinion, setTextoOpinion] = useState("");
@@ -83,7 +85,9 @@ export default function Perfil() {
         <CaraDeLeon cara="feliz" tamano={72} />
         <div>
           <p className="text-tarjeta font-extrabold">Estudiante de Auxi</p>
-          <p className="text-ayuda text-text-soft">Tu avance se guarda en este celular.</p>
+          <p className="text-ayuda break-all text-text-soft">
+            {cuenta.modo === "conectado" ? cuenta.email : "Tu avance se guarda en este celular."}
+          </p>
         </div>
       </div>
 
@@ -168,6 +172,19 @@ export default function Perfil() {
       </Bloque>
 
       <Bloque titulo="Ajustes">
+        <button
+          type="button"
+          onClick={() => navegar("/studio/cuenta?volver=/studio/perfil")}
+          className="mb-2 flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 text-left"
+        >
+          <span>
+            <span className="block font-bold">Cuenta</span>
+            <span className="block text-ayuda text-text-soft">
+              {cuenta.modo === "conectado" ? (cuenta.guardando ? "Guardando…" : "Todo guardado") : "Crea tu cuenta para no perder tu avance"}
+            </span>
+          </span>
+          <span className="font-extrabold text-brand">{cuenta.modo === "conectado" ? "Ver" : "Crear"}</span>
+        </button>
         <AjustesDeSonido />
         <div className="mt-3 flex min-h-11 items-center justify-between">
           <span className="font-bold">Avisos de entregas</span>

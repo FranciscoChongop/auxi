@@ -129,6 +129,14 @@ function suscribir(o: () => void) {
   return () => oyentes.delete(o);
 }
 
+/** Para la nube: avisa cada vez que cambia el avance. */
+export const alCambiarEstado = suscribir;
+
+/** Completa con valores por defecto un avance que viene de la nube (puede ser de una versión anterior). */
+export function completar(parcial: Partial<Estado>): Estado {
+  return { ...inicial(), ...parcial };
+}
+
 export function useEstado() {
   return useSyncExternalStore(suscribir, obtener, obtener);
 }

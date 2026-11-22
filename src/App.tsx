@@ -22,6 +22,7 @@ const pantallas = {
   curso: lazy(() => import("./screens/Curso")),
   entregas: lazy(() => import("./screens/Entregas")),
   perfil: lazy(() => import("./screens/Perfil")),
+  cuenta: lazy(() => import("./screens/Cuenta")),
   catalogo: lazy(() => import("./screens/Catalogo")),
 };
 

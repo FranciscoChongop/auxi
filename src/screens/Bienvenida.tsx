@@ -1,12 +1,10 @@
 import { Boton } from "../components/Boton";
-import { useAviso } from "../components/Aviso";
 import { Leon } from "../components/Leon";
 import { actualizar } from "../lib/estado";
 import { navegar } from "../lib/rutas";
 
 /** Primera pantalla. No pide cuenta: primero se juega. */
 export default function Bienvenida() {
-  const aviso = useAviso();
   return (
     <main
       className="mx-auto flex min-h-dvh max-w-md flex-col px-5"
@@ -30,7 +28,10 @@ export default function Bienvenida() {
         </Boton>
         <button
           type="button"
-          onClick={() => aviso("Las cuentas llegan muy pronto.", "info")}
+          onClick={() => {
+            actualizar(() => ({ bienvenidaVista: true }));
+            navegar("/studio/cuenta?volver=/studio/inicio");
+          }}
           className="h-11 cursor-pointer text-[16px] font-extrabold text-brand"
         >
           Ya tengo cuenta

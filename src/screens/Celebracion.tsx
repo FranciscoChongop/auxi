@@ -8,7 +8,8 @@ import { Escudo, Llama, Moneda } from "../components/Navegacion";
 import { Ventana } from "../components/Ventana";
 import { lanzarConfeti } from "../lib/confeti";
 import { actualizar, useEstado } from "../lib/estado";
-import { reemplazar } from "../lib/rutas";
+import { useCuenta } from "../lib/nube";
+import { navegar, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 
 function Dato({ indice, titulo, children }: { indice: number; titulo: string; children: ReactNode }) {
@@ -29,6 +30,7 @@ export default function Celebracion() {
   const e = useEstado();
   const c = e.celebracion;
   const aviso = useAviso();
+  const cuenta = useCuenta();
   const [guardar, setGuardar] = useState(false);
   const [monedas, setMonedas] = useState(0);
   const [racha, setRacha] = useState(c ? Math.max(0, c.rachaDias - (c.rachaSube ? 1 : 0)) : 0);
@@ -51,7 +53,7 @@ export default function Celebracion() {
   }
 
   function seguir() {
-    if (c!.primera && !e.avisoCuentaVisto) {
+    if (c!.primera && !e.avisoCuentaVisto && cuenta.modo !== "conectado") {
       setGuardar(true);
       return;
     }
@@ -135,13 +137,15 @@ export default function Celebracion() {
       >
         <p className="text-text-soft">Crea tu cuenta gratis para no perder tu racha si cambias de celular.</p>
         <div className="mt-5 flex flex-col gap-3">
-          <Boton variante="secundario" onClick={() => aviso("Las cuentas llegan muy pronto.", "info")}>
-            Seguir con Google
+          <Boton
+            onClick={() => {
+              actualizar(() => ({ avisoCuentaVisto: true }));
+              navegar(`/studio/cuenta?volver=${c.cofre ? "/studio/cofre" : "/studio/inicio"}`);
+            }}
+          >
+            Crear mi cuenta gratis
           </Boton>
-          <Boton variante="secundario" onClick={() => aviso("Las cuentas llegan muy pronto.", "info")}>
-            Seguir con mi correo
-          </Boton>
-          <p className="text-center text-ayuda text-text-soft">Por ahora tu avance se guarda en este celular.</p>
+          <p className="text-center text-ayuda text-text-soft">Con Google o con tu correo. Si prefieres, ciérralo y sigue jugando.</p>
         </div>
       </Ventana>
     </main>
