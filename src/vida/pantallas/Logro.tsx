@@ -7,24 +7,24 @@ import { reemplazar } from "../../lib/rutas";
 import { sonidos } from "../../lib/sonidos";
 import { obtenerVida, soles } from "../estado";
 import { leerLogro } from "../logro";
-import { confetiVida, LeonVida, Pagina, PieFijo } from "../ui";
+import { LeonVida, Pagina, PieFijo } from "../ui";
 
 /** Después de anotar: lo primero del día se celebra (racha, monedas y cofre). */
 export function despuesDelLogro() {
   const e = obtenerVida();
   if (!e.cuentaOfrecida) reemplazar("/vida/cuenta");
-  else reemplazar("/vida/inicio");
+  else reemplazar("/vida/hoy");
 }
 
 export default function Logro() {
   const l = leerLogro();
   useEffect(() => {
     if (!l) {
-      reemplazar("/vida/inicio");
+      reemplazar("/vida/hoy");
       return;
     }
-    sonidos.leccionCompleta();
-    void confetiVida();
+    // Por gastar no hay confeti: se celebra el hábito de registrar, con calma.
+    sonidos.acierto();
   }, [l]);
   if (!l) return null;
 
@@ -32,12 +32,12 @@ export default function Logro() {
   return (
     <Pagina className="flex flex-col">
       <div className="flex flex-1 flex-col items-center px-5 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top) + 32px)" }}>
-        <LeonVida pose={pasado ? "anima" : "celebra"} alto={220} rebote />
+        <LeonVida pose={pasado ? "anima" : "celebra"} alto={190} rebote />
         <motion.h1 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }} className="mt-4 text-titulo font-black">
-          {l.primero ? "¡Tu primer gasto anotado!" : "¡Ya anotaste hoy!"}
+          {l.primero ? "¡Ya comenzaste!" : "¡Registraste hoy!"}
         </motion.h1>
         <p className="mt-2 max-w-xs text-text-soft">
-          {pasado ? `Hoy te pasaste ${soles(-l.quedan)}. Mañana ajustamos juntos.` : `Hoy te quedan ${soles(l.quedan)}. Así de fácil es saberlo.`}
+          {!obtenerVida().plan ? "Registrar seguido es lo que más ayuda." : pasado ? `Hoy te pasaste ${soles(-l.quedan)}. Mañana ajustamos juntos.` : `Disponible estimado: ${soles(l.quedan)}. Así de fácil es saberlo.`}
         </p>
 
         <div className="mt-6 grid w-full grid-cols-2 gap-3">

@@ -74,7 +74,7 @@ export default function Anotar() {
 
   const confirmar = (id: number) => {
     const msg = mensajes.find((m) => m.id === id);
-    if (!msg || msg.de !== "tarjeta") return;
+    if (!msg || msg.de !== "tarjeta" || msg.estado !== "abierta") return;
     let ultimo = null;
     let algunoPrimero = false;
     for (const it of msg.items) {
@@ -87,12 +87,14 @@ export default function Anotar() {
     sonidos.acierto();
     vibrar("acierto");
     const d = desglose(obtenerVida());
-    if (ultimo && (ultimo.rachaSube || algunoPrimero)) {
+    // Solo el primer registro de todos lleva a una pantalla aparte; lo demás se confirma aquí mismo.
+    if (ultimo && algunoPrimero) {
       guardarLogro({ ...ultimo, primero: algunoPrimero, quedan: d.quedan });
       setTimeout(() => reemplazar("/vida/logro"), 650);
       return;
     }
-    if (d.quedan < 0) decir({ cara: "tierno", texto: `Hoy te pasaste ${soles(-d.quedan)}. Mañana ajustamos juntos.` });
+    if (!obtenerVida().plan) decir({ cara: "feliz", texto: `${al(RESPUESTAS_GASTO)}` });
+    else if (d.quedan < 0) decir({ cara: "tierno", texto: `Hoy te pasaste ${soles(-d.quedan)}. Mañana ajustamos juntos.` });
     else decir({ cara: "feliz", texto: `${al(RESPUESTAS_GASTO)} Hoy te quedan ${soles(d.quedan)}.` });
   };
 
@@ -337,7 +339,7 @@ function FormularioManual({ abierto, tipoInicial, alCerrar, alListo }: { abierto
   };
   return (
     <Ventana abierta={abierto} alCerrar={alCerrar} titulo="Anotar a mano">
-      <div className="flex max-h-[70dvh] flex-col gap-4 overflow-y-auto pb-1">
+      <div className="flex max-h-[70dvh] flex-col gap-4 overflow-y-auto pb-1 [&>*]:shrink-0">
         <div className="flex gap-2">
           <Chip
             activo={tipo === "gasto"}

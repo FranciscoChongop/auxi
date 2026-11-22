@@ -1,16 +1,24 @@
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { Boton } from "../../components/Boton";
-import { navegar } from "../../lib/rutas";
 import { entradaEnCascada } from "../../lib/movimiento";
+import { navegar } from "../../lib/rutas";
+import { actualizarVida, entrarAlEjemplo, obtenerVida } from "../estado";
 import { LeonVida, MarcaVida, Pagina, PieFijo } from "../ui";
 
 const PUNTOS = [
-  { titulo: "Cuánto puedes gastar hoy", texto: "Un número claro cada día, no una tabla del mes." },
-  { titulo: "Tu colchón crece", texto: "Lo que no gastas puede ir a tu frasco." },
-  { titulo: "Que no te estafen", texto: "León revisa ese mensaje raro contigo." },
+  { titulo: "Cuánto puedes gastar hoy", texto: "Un número estimado cada día, en pocos pasos." },
+  { titulo: "Metas que se ven crecer", texto: "Frascos para tu colchón y para lo que quieras." },
+  { titulo: "Protégete antes de pagar", texto: "León revisa contigo ese mensaje, enlace o vendedor." },
 ];
 
 export default function Bienvenida() {
+  // León saluda con rebote solo la primera vez.
+  const [primera] = useState(() => !obtenerVida().saludoVisto);
+  useEffect(() => {
+    if (primera) actualizarVida(() => ({ saludoVisto: true }));
+  }, [primera]);
+
   return (
     <Pagina className="flex flex-col">
       <div className="flex items-center justify-between px-5" style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}>
@@ -22,7 +30,7 @@ export default function Bienvenida() {
 
       <div className="relative mx-5 mt-5 overflow-hidden rounded-[28px] bg-success/50 pt-6">
         <div className="absolute -right-10 -bottom-16 size-56 rounded-full bg-card/60" aria-hidden="true" />
-        <LeonVida pose="saluda" alto={230} rebote className="relative" />
+        <LeonVida pose="saluda" alto={220} rebote={primera} className="relative" />
       </div>
 
       <div className="px-5 pt-6">
@@ -41,7 +49,18 @@ export default function Bienvenida() {
       </div>
 
       <PieFijo>
-        <Boton onClick={() => navegar("/vida/plan")}>Empezar</Boton>
+        <div className="flex flex-col gap-3">
+          <Boton onClick={() => navegar("/vida/empezar")}>Empezar</Boton>
+          <Boton
+            variante="secundario"
+            onClick={() => {
+              entrarAlEjemplo();
+              navegar("/vida/hoy");
+            }}
+          >
+            Ver un ejemplo sin dar mis datos
+          </Boton>
+        </div>
         <p className="mt-3 text-center text-ayuda text-text-soft">Gratis. Auxi Vida no mueve tu plata ni presta.</p>
       </PieFijo>
     </Pagina>

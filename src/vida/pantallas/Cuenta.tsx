@@ -12,7 +12,7 @@ export default function Cuenta() {
   useEffect(() => {
     actualizarVida(() => ({ cuentaOfrecida: true }));
   }, []);
-  const despues = () => reemplazar("/vida/inicio");
+  const despues = () => reemplazar("/vida/hoy");
 
   if (cuenta.modo === "cargando") return <div className="min-h-dvh bg-bg" />;
 
@@ -48,7 +48,7 @@ export default function Cuenta() {
         </p>
       </div>
       <PieFijo>
-        <Boton onClick={despues}>Ir a mi inicio</Boton>
+        <Boton onClick={despues}>Ir a Hoy</Boton>
       </PieFijo>
     </Pagina>
   );

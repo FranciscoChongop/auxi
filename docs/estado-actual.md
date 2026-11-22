@@ -26,8 +26,11 @@ App publicada: https://auxi-three.vercel.app/studio (Vercel se actualiza solo al
 
 # Estado de Auxi Vida (`/vida`)
 
-- **Fase V0:** imágenes B1–B9 en `public/leon/vida/`, publicidad N1–N8 en `marketing/vida/` (N8 = vista previa del enlace), docs en `docs/vida/`.
-- **Fase V1 (prototipo navegable):** bienvenida → 3 preguntas → "Hoy puedes gastar" → primer gasto por chat → celebración y cofre → cuenta (opcional) → inicio. Además: subir captura, colchón con frasco y antojo ahorrado, camino de plata (tema 1 con 2 lecciones), alertas ("¿Esto es estafa?" y pendientes) y perfil con "Mis datos".
-- **Sin IA todavía, pero nada fingido:** el presupuesto por día calcula de verdad; el chat entiende frases como «menú 12 y pasaje 3» con reglas; la revisión de estafas busca señales comunes y lo dice; la captura se muestra y la persona escribe el monto (la lectura automática llega en V3).
-- **Datos:** viven en el celular (`auxi.vida.v1`), con su propia racha y monedas. La cuenta es la misma de Studio; guardar Vida en la nube es la Fase V2.
-- **Código:** `src/vida/` (estado y cálculo en `estado.ts`, frases en `entender.ts`, estafas en `estafa.ts`, lecciones en `lecciones.ts`, pantallas en `pantallas/`).
+- **Navegación:** Hoy · Movimientos · ＋ Registrar · Metas · Protégete; perfil arriba a la derecha. En computadora, menú lateral y Hoy en dos columnas.
+- **Entrada:** bienvenida → «¿Qué quieres resolver primero?» (gastar, ahorrar, pagos o revisar algo sospechoso, esto último sin registrarse). «Ver un ejemplo» usa datos inventados que viven solo en memoria.
+- **Presupuesto:** por día, semana, quincena, mes, variable o «ahora no tengo ingresos»; 1 a 7 días de trabajo; el avance de las preguntas se guarda. Hoy muestra el disponible *estimado* con pagos y ahorro separados.
+- **Registro rápido** (monto, categoría, guardar) con deshacer; chat con León y captura como alternativas. **Movimientos:** resumen semanal, buscador, filtros, edición. **Pagos y fechas:** pagos mensuales con aviso en Hoy (1, 3 o 7 días antes) y fechas sueltas.
+- **Metas:** varios frascos con meta y fecha opcional; antojo ahorrado; celebración solo al cumplir la meta; compartir sin montos por defecto.
+- **Protégete:** un asistente para 6 situaciones (cuéntame → preguntas → resultado con señales, lo que no se pudo comprobar y pasos → añadir más información), «Ya pagué o compartí mis datos» con pasos por caso e historial privado borrable. Sin IA todavía: reglas, y lo dice. Faltan canales de denuncia verificados.
+- **Datos:** viven en el celular (`auxi.vida.v1`). Guardarlos en la cuenta es la Fase V2.
+- **Código:** `src/vida/` (`estado.ts` datos y cálculo, `entender.ts` frases del chat, `protege.ts` revisiones, `pantallas/`).

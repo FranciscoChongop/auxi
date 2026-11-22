@@ -10,8 +10,10 @@ import { metricas } from "../../lib/metricas";
 import { useCuenta } from "../../lib/nube";
 import { navegar, reemplazar } from "../../lib/rutas";
 import { sonidos } from "../../lib/sonidos";
-import { actualizarVida, borrarVida, NOMBRE_VIDA, obtenerVida, PRECIO_PROTECTOR, rachaVigente, soles, totalColchon, useVida } from "../estado";
-import { Chip, LeonVida, MarcaVida, Pagina } from "../ui";
+import { actualizarVida, borrarVida, NOMBRE_VIDA, obtenerVida, PRECIO_PROTECTOR, rachaVigente, useVida } from "../estado";
+import { Chip, Encabezado, GrupoUnico, LeonVida, Pagina } from "../ui";
+import { Interruptor } from "../../components/Interruptor";
+import { WHATSAPP_REVISION } from "../../lib/apoyo";
 
 const VENDOE_URL = "https://www.vendoe.es/";
 
@@ -76,11 +78,9 @@ export default function Perfil() {
   };
 
   return (
-    <Pagina conBarra>
-      <div className="flex items-center justify-between px-5" style={{ paddingTop: "calc(env(safe-area-inset-top) + 14px)" }}>
-        <MarcaVida />
-      </div>
-      <div className="flex flex-col gap-4 px-5 pt-4">
+    <Pagina>
+      <Encabezado titulo="Perfil y ajustes" />
+      <div className="flex flex-col gap-4 px-5 pt-2 pb-6">
         <div className="flex items-center gap-4">
           <LeonVida pose="icono" alto={72} />
           <div>
@@ -112,17 +112,16 @@ export default function Perfil() {
         </div>
 
         <Bloque titulo="Tu plan">
-          <p className="text-ayuda text-text-soft">
-            Colchón: <b className="text-text">{soles(totalColchon(e))}</b> de {soles(e.colchon.meta)}
-          </p>
-          <p className="mt-3 font-extrabold">Lo que sobra al final del día</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Chip activo={e.sobrante === "manana"} onClick={() => actualizarVida(() => ({ sobrante: "manana" }))}>
-              Pasa a mañana
-            </Chip>
-            <Chip activo={e.sobrante === "colchon"} onClick={() => actualizarVida(() => ({ sobrante: "colchon" }))}>
-              Va al colchón
-            </Chip>
+          <p className="font-extrabold">Lo que sobra al final del día</p>
+          <div className="mt-2">
+            <GrupoUnico etiqueta="Lo que sobra al final del día">
+              <Chip radio activo={e.sobrante === "manana"} onClick={() => actualizarVida(() => ({ sobrante: "manana" }))}>
+                Pasa a mañana
+              </Chip>
+              <Chip radio activo={e.sobrante === "colchon"} onClick={() => actualizarVida(() => ({ sobrante: "colchon" }))}>
+                Va al colchón
+              </Chip>
+            </GrupoUnico>
           </div>
           <div className="mt-4">
             <Boton variante="secundario" onClick={() => navegar("/vida/plan")}>
@@ -157,12 +156,38 @@ export default function Perfil() {
         </Bloque>
 
         <Bloque titulo="Ajustes">
-          <AjustesDeSonido />
+          <div className="flex flex-col gap-3">
+            <AjustesDeSonido />
+            <Interruptor
+              etiqueta="Reducir movimiento"
+              ayuda="Menos animaciones y sin confeti."
+              activo={e.menosMovimiento}
+              alCambiar={(v) => actualizarVida(() => ({ menosMovimiento: v }))}
+            />
+          </div>
           <ApoyaAlCreador />
         </Bloque>
 
+        <Bloque titulo="Recordatorios">
+          <p className="text-ayuda text-text-soft">Tus pagos y fechas salen en Hoy los días antes que elijas en cada uno. Los avisos al celular llegan pronto.</p>
+          <div className="mt-3">
+            <Boton variante="secundario" onClick={() => navegar("/vida/movimientos?ver=pagos")}>
+              Mis pagos y fechas
+            </Boton>
+          </div>
+        </Bloque>
+
+        <Bloque titulo="Ayuda">
+          <a href={WHATSAPP_REVISION} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-between font-extrabold">
+            Escríbenos por WhatsApp <span className="text-brand">Abrir</span>
+          </a>
+          <button type="button" onClick={() => navegar("/vida/protegete?urgente=1")} className="flex min-h-12 w-full cursor-pointer items-center justify-between font-extrabold">
+            Ya pagué o compartí mis datos <span className="text-brand">Ver pasos</span>
+          </button>
+        </Bloque>
+
         <Bloque titulo="Mis datos">
-          <p className="text-ayuda text-text-soft">Tus datos son tuyos. Las capturas y los mensajes que revisas nunca se guardan.</p>
+          <p className="text-ayuda text-text-soft">Tus datos son tuyos y viven en este celular. Las capturas no se guardan; de tus revisiones solo guardo el texto con claves y números ocultos.</p>
           <div className="mt-3 flex flex-col gap-2">
             <Boton variante="secundario" onClick={exportar}>
               Descargar lo que anoté
@@ -203,7 +228,7 @@ export default function Perfil() {
       </div>
 
       <Ventana abierta={borrar} alCerrar={() => setBorrar(false)} titulo="¿Borrar todo lo de Vida?">
-        <p className="text-text-soft">Se borran tus números, gastos, ingresos, colchón y pendientes de este celular. No se puede deshacer. Studio no se toca.</p>
+        <p className="text-text-soft">Se borran tus números, movimientos, metas, pagos y revisiones de este celular. No se puede deshacer. Studio no se toca.</p>
         <div className="mt-5 flex flex-col gap-3">
           <Boton
             variante="secundario"

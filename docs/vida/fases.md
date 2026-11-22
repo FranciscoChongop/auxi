@@ -35,7 +35,9 @@ Usa la skill claude-api, siempre desde el servidor. Crea:
 Pon límites de uso diario por persona y mensajes claros si algo no se puede leer.
 ```
 
-## Fase V4: lecciones, avisos y métricas
+## Fase V4: avisos y métricas
+
+> Decisión del dueño (nov 2026): se quitó «Aprender» como sección. La navegación es Hoy · Movimientos · ＋ Registrar · Metas · Protégete. León acompaña dentro de cada función; el contenido educativo va dentro de Protégete y de los consejos de Hoy, no como clases.
 
 ```text
 Escribe el contenido del camino de plata: 5 temas (colchón, presupuesto diario, intereses y deudas, estafas comunes en Perú, Yape seguro), 4 lecciones de 1 minuto por tema con quiz. Contenido general y educativo, sin recomendar productos. Agrega avisos: resumen de la mañana con "hoy puedes gastar", vencimientos y pendientes. Instrumenta PostHog con app: "vida" y los eventos de docs/vida/vida.md.

@@ -93,11 +93,12 @@ En Auxi Vida, León lleva canguro turquesa y su moneda de oro sin letras. Imáge
 | "¿Esto es estafa?" y leyendo una captura | B4-detective |
 | Estafa probable (nivel alto) | B5-alerta |
 | Te pasaste del presupuesto, pantalla vacía o error | B6-anima |
+| Revisando en Protégete (León observa con su lupa) | B4-detective; B5-alerta si hay señales de riesgo |
 | Anotar por voz | B7-celular |
 | Avatar del chat (cara chica en círculo de 40 px) | B8-caras (`caras/feliz`, `risa`, `sorpresa`, `serio`, `tierno`, `curioso`) |
 | Ícono de Vida | B9-icono |
 
-**Identidad propia de Vida (sutil, misma familia):** con la clase `vida` en `<html>` (la pone `/vida`), los tokens cambian: `--brand` #0B6F6A turquesa profundo (blanco encima 6:1), `--brand-dark` #07504C, `--bg` #F3FAF8 menta, `--surface` #DCF1EE, `--text-soft` #4E6470 y `--vida-hondo` #0E5B57 para la tarjeta del saldo. Misma letra (Nunito) y mismo León. Marca: moneda de oro + "Auxi **Vida**". Distribución propia: tarjeta grande del saldo arriba, 3 accesos en cuadrícula, esquinas de 20 a 28 px y barra inferior flotante con botón central "+" para anotar (Studio usa 5 pestañas planas). El oro, para el colchón y los premios. Montos siempre con "S/ ", dos decimales solo si hacen falta, y contador animado al cambiar. Nunca rojo alarmante en pantalla completa por gastar.
+**Identidad propia de Vida (sutil, misma familia):** con la clase `vida` en `<html>` (la pone `/vida`), los tokens cambian: `--brand` #0B6F6A turquesa profundo (blanco encima 6:1), `--brand-dark` #07504C, `--bg` #F3FAF8 menta, `--surface` #DCF1EE, `--text-soft` #4E6470 y `--vida-hondo` #0E5B57 para la tarjeta del saldo. Misma letra (Nunito) y mismo León. Marca: moneda de oro + "Auxi **Vida**". Distribución propia: tarjeta grande del saldo arriba, 3 accesos en cuadrícula, esquinas de 20 a 28 px y navegación Hoy · Movimientos · ＋ Registrar · Metas · Protégete (barra flotante abajo en el celular, menú lateral en computadora) y perfil arriba a la derecha (Studio usa 5 pestañas planas). El oro, para el colchón y los premios. Montos siempre con "S/ ", dos decimales solo si hacen falta, y contador animado al cambiar. Nunca rojo alarmante en pantalla completa por gastar. Sin confeti por gastar: el confeti es solo para metas cumplidas. Disponible siempre como "estimado", nunca como saldo del banco. Avisos y promociones solo en su momento, descartables y sin volver a salir; nunca en medio de un registro ni en Protégete. Al compartir, montos ocultos por defecto.
 
 ## Tono de los textos
 

@@ -41,3 +41,8 @@ export function useRuta() {
 export function parametro(nombre: string) {
   return new URLSearchParams(window.location.search).get(nombre);
 }
+
+/** Ruta con parámetros (?tipo=…): sirve cuando una misma pantalla cambia según la búsqueda. */
+export function useRutaCompleta() {
+  return useSyncExternalStore(suscribir, () => window.location.pathname + window.location.search);
+}

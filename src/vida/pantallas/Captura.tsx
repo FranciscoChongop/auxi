@@ -46,12 +46,12 @@ export default function Captura() {
     if (vista) URL.revokeObjectURL(vista);
     setVista(null);
     const d = desglose(obtenerVida());
-    if (l.rachaSube || l.primero) {
+    if (l.primero) {
       guardarLogro({ ...l, quedan: d.quedan });
       reemplazar("/vida/logro");
     } else {
       aviso(d.quedan < 0 ? `Anotado. Hoy te pasaste ${soles(-d.quedan)}; mañana ajustamos.` : `Anotado. Hoy te quedan ${soles(d.quedan)}.`, "exito");
-      reemplazar("/vida/inicio");
+      reemplazar("/vida/hoy");
     }
   };
 
