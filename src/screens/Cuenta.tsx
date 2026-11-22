@@ -20,6 +20,9 @@ function LogoGoogle() {
   );
 }
 
+/** Se muestra solo cuando Google ya está activado en Supabase (VITE_GOOGLE_ACTIVO=si). */
+const GOOGLE_ACTIVO = import.meta.env.VITE_GOOGLE_ACTIVO === "si";
+
 const correoValido = (c: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.trim());
 
 export default function Cuenta() {
@@ -130,14 +133,18 @@ export default function Cuenta() {
       <AnimatePresence mode="wait" initial={false}>
         {paso === "correo" ? (
           <motion.div key="correo" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} className="flex flex-col gap-4">
-            <Boton variante="secundario" onClick={google}>
-              <span className="flex items-center justify-center gap-3 text-text">
-                <LogoGoogle /> Seguir con Google
-              </span>
-            </Boton>
-            <div className="flex items-center gap-3 text-ayuda font-bold text-text-soft" aria-hidden="true">
-              <span className="h-0.5 flex-1 bg-surface" /> o con tu correo <span className="h-0.5 flex-1 bg-surface" />
-            </div>
+            {GOOGLE_ACTIVO && (
+              <>
+                <Boton variante="secundario" onClick={google}>
+                  <span className="flex items-center justify-center gap-3 text-text">
+                    <LogoGoogle /> Seguir con Google
+                  </span>
+                </Boton>
+                <div className="flex items-center gap-3 text-ayuda font-bold text-text-soft" aria-hidden="true">
+                  <span className="h-0.5 flex-1 bg-surface" /> o con tu correo <span className="h-0.5 flex-1 bg-surface" />
+                </div>
+              </>
+            )}
             <label className="block font-bold">
               Tu correo
               <input
