@@ -343,7 +343,7 @@ export default function Catalogo() {
       </Seccion>
 
       <div className="pt-2">
-        <Boton variante="secundario" onClick={() => navegar("/studio")}>
+        <Boton variante="secundario" onClick={() => navegar("/studio/inicio")}>
           Volver a la portada
         </Boton>
       </div>

@@ -86,6 +86,10 @@
   img {
     -webkit-user-drag: none;
   }
+  /* Las transiciones entre pantallas no deben crear scroll hacia los lados. */
+  #root {
+    overflow-x: clip;
+  }
 }
 
 @utility numeros {

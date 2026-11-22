@@ -25,17 +25,20 @@ export function Interruptor({ etiqueta, ayuda, activo, alCambiar }: Props) {
         role="switch"
         aria-checked={activo}
         onClick={() => alCambiar(!activo)}
-        className={`relative h-8 w-[52px] shrink-0 cursor-pointer rounded-full transition-colors duration-150 ${activo ? "bg-brand" : "bg-surface"}`}
-        style={{ boxShadow: "inset 0 0 0 2px rgba(20,26,77,0.06)" }}
+        className="grid h-11 w-[60px] shrink-0 cursor-pointer place-items-center"
       >
-        {/* Área táctil de 44 px aunque el interruptor se vea más chico */}
-        <span className="absolute -inset-2" aria-hidden="true" />
-        <motion.span
-          className="absolute top-1 left-1 size-6 rounded-full bg-card shadow-[0_2px_0_rgba(20,26,77,0.15)]"
-          initial={false}
-          animate={{ x: activo ? 20 : 0 }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        />
+        {/* El botón mide 44 px de alto; el interruptor que se ve es más chico */}
+        <span
+          className={`relative h-8 w-[52px] rounded-full transition-colors duration-150 ${activo ? "bg-brand" : "bg-surface"}`}
+          style={{ boxShadow: "inset 0 0 0 2px rgba(20,26,77,0.06)" }}
+        >
+          <motion.span
+            className="absolute top-1 left-1 size-6 rounded-full bg-card shadow-[0_2px_0_rgba(20,26,77,0.15)]"
+            initial={false}
+            animate={{ x: activo ? 20 : 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
+        </span>
       </button>
     </div>
   );
