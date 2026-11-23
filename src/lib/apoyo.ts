@@ -1,4 +1,7 @@
 import { actualizar, obtener } from "./estado";
+import { useEffect, useState } from "react";
+import { useCuenta } from "./nube";
+import { reclamarApoyoEnServidor } from "./billetera";
 import { metricas } from "./metricas";
 import { supabase } from "./supabase";
 
@@ -71,6 +74,32 @@ export type Solicitud = {
   creado: string;
 };
 
+/**
+ * ¿La cuenta con sesión es administradora? Lo decide el servidor (lista «administradores»).
+ * Si la migración aún no está instalada, se usa la comprobación por correo de antes.
+ * Ojo: esto solo muestra u oculta el panel; los permisos reales los aplica Supabase (RLS).
+ */
+export function useEsAdministrador(): boolean {
+  const cuenta = useCuenta();
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    let vigente = true;
+    if (cuenta.modo !== "conectado" || !supabase) {
+      setAdmin(false);
+      return;
+    }
+    void supabase.rpc("es_administrador").then(({ data, error }) => {
+      if (!vigente) return;
+      if (error) setAdmin(error.code === "PGRST202" ? esDueno(cuenta.email) : false);
+      else setAdmin(data === true);
+    });
+    return () => {
+      vigente = false;
+    };
+  }, [cuenta.modo, cuenta.email]);
+  return admin;
+}
+
 export function esDueno(email?: string) {
   return !!email && email.toLowerCase() === CORREO_DUENO;
 }
@@ -116,6 +145,14 @@ export async function crearSolicitud(datos: { instagram: string; tiktok?: string
 export async function reclamarSiAprobada(): Promise<Solicitud | null> {
   const s = await miUltimaSolicitud();
   if (!s) return null;
+  const servidor = await reclamarApoyoEnServidor();
+  if (servidor) {
+    if (servidor.entregado) {
+      actualizar(() => ({ apoyoReclamado: servidor.solicitud ?? s.id }));
+      window.dispatchEvent(new CustomEvent("auxi:apoyo-aprobado"));
+    }
+    return s;
+  }
   if (s.estado === "aprobada" && obtener().apoyoReclamado !== s.id) {
     actualizar((e) => ({ pasePorVida: true, monedas: e.monedas + MONEDAS_BONO, apoyoReclamado: s.id }));
     window.dispatchEvent(new CustomEvent("auxi:apoyo-aprobado"));

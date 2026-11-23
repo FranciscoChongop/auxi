@@ -79,11 +79,14 @@ export default function Importar() {
   const alcanza = e.monedas >= PRECIO_CUPO;
   const lecciones = datos?.unidades.reduce((n, u) => n + u.lecciones.length, 0) ?? 0;
 
-  function guardar() {
+  async function guardar() {
     if (!datos) return;
     if (sinCupo) {
-      const c = comprar("cupo");
-      if (!c.ok) return;
+      const c = await comprar("cupo");
+      if (!c.ok) {
+        aviso("sinRed" in c ? "Necesitas internet para comprar el cupo." : `Te faltan ${c.faltan} monedas para el cupo.`, "info");
+        return;
+      }
     }
     const r = guardarImportacion({
       cursoId: cursoElegido?.id ?? null,

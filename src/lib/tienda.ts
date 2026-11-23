@@ -1,4 +1,5 @@
 import type { Curso, Unidad } from "../data/tipos";
+import { comprarEnServidor } from "./billetera";
 import type { InfoTema } from "./curso";
 import { actualizar, nuevoId, obtener, type Estado, type MiCurso, type Tema } from "./estado";
 
@@ -31,9 +32,13 @@ export function hayCupo(e: Estado) {
   return e.pasePorVida || importadosUsados(e) < cupoTotal(e);
 }
 
-export type ResultadoCompra = { ok: true } | { ok: false; faltan: number };
+export type ResultadoCompra = { ok: true } | { ok: false; faltan: number } | { ok: false; sinRed: true };
 
-export function comprar(tipo: "cupo" | "pase" | "protector"): ResultadoCompra {
+/** Con la migración instalada, el servidor cobra y confirma; si no, se compra en el navegador como antes. */
+export async function comprar(tipo: "cupo" | "pase" | "protector"): Promise<ResultadoCompra> {
+  if (tipo === "pase" && obtener().pasePorVida) return { ok: true };
+  const enServidor = await comprarEnServidor(tipo, nuevoId("compra"));
+  if (enServidor) return enServidor;
   const e = obtener();
   const precio = tipo === "cupo" ? PRECIO_CUPO : tipo === "pase" ? PRECIO_PASE : PRECIO_PROTECTOR;
   if (tipo === "pase" && e.pasePorVida) return { ok: true };

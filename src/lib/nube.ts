@@ -2,9 +2,10 @@ import { useSyncExternalStore } from "react";
 import type { User } from "@supabase/supabase-js";
 import { borrarTodoLocal, leerArchivoLocal, subirArchivoANube } from "./archivos";
 import { actualizar, alCambiarEstado, completar, obtener, reiniciarTodo, type Estado } from "./estado";
-import { supabase } from "./supabase";
+import { BUCKET_ARCHIVOS, supabase } from "./supabase";
 import { reclamarSiAprobada } from "./apoyo";
 import { unir } from "./unir";
+import { borrarCuentaEnServidor, cargarBilletera } from "./billetera";
 import { apartarRespaldo, avisarCambioDeCuenta, decidir, guardarPropietario, leerPropietario, tomarRespaldo } from "./propietario";
 
 /**
@@ -110,6 +111,7 @@ async function conectar(u: User) {
   const unido = data?.estado ? unir(local, completar(data.estado as Partial<Estado>)) : { ...local, avisoCuentaVisto: true };
   actualizar(() => unido);
   guardarPropietario(u.id);
+  await cargarBilletera();
   cambiar({ sincronizado: true });
   await subir();
   dejarDeEscuchar?.();
@@ -251,6 +253,46 @@ function limpiarSesionTemporal() {
   } catch {
     // nada
   }
+}
+
+/**
+ * Borra la cuenta: primero los PDF de la persona en el almacenamiento, luego la cuenta en el servidor
+ * (por cascada se van su avance, billetera, movimientos y solicitudes) y al final todo lo de este dispositivo.
+ * Devuelve un mensaje si algo falló (y entonces no se borra nada local).
+ */
+export async function borrarMiCuenta(): Promise<string | null> {
+  if (!supabase || !usuario) return "Necesitas iniciar sesión para borrar tu cuenta.";
+  const uid = usuario.id;
+  apagarGuardadoAutomatico();
+
+  // 1) Archivos privados de la persona.
+  const { data: archivos } = await supabase.storage.from(BUCKET_ARCHIVOS).list(uid, { limit: 1000 });
+  if (archivos?.length) await supabase.storage.from(BUCKET_ARCHIVOS).remove(archivos.map((a) => `${uid}/${a.name}`));
+
+  // 2) La cuenta y todo lo que depende de ella.
+  const error = await borrarCuentaEnServidor();
+  if (error) {
+    dejarDeEscuchar = alCambiarEstado(programarSubida);
+    return error;
+  }
+
+  // 3) Este dispositivo.
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.includes(uid) || k === "auxi.monedas.pendientes") localStorage.removeItem(k);
+    }
+  } catch {
+    // nada
+  }
+  await supabase.auth.signOut({ scope: "local" });
+  usuario = null;
+  reiniciarTodo();
+  guardarPropietario(null);
+  limpiarSesionTemporal();
+  avisarCambioDeCuenta(null);
+  await borrarTodoLocal();
+  cambiar({ modo: "invitado", email: undefined, sincronizado: undefined });
+  return null;
 }
 
 export function usuarioActual() {

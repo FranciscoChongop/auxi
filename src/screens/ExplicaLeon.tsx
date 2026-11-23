@@ -1,4 +1,6 @@
 import { motion } from "motion/react";
+import { ganarMonedas } from "../lib/billetera";
+import { nuevoId } from "../lib/estado";
 import { useMemo, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon, Leon } from "../components/Leon";
@@ -80,6 +82,7 @@ export default function ExplicaLeon() {
       void lanzarConfeti();
     } else sonidos.acierto();
     actualizar((s) => ({ monedas: s.monedas + ev.estrellas * 2 }));
+    void ganarMonedas("explica", ev.estrellas, nuevoId("explica"));
   }
 
   function otro() {

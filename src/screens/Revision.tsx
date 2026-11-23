@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
 import { Pantalla } from "../components/Navegacion";
-import { esDueno, resolverSolicitud, solicitudesPendientes, type Solicitud } from "../lib/apoyo";
+import { resolverSolicitud, solicitudesPendientes, useEsAdministrador, type Solicitud } from "../lib/apoyo";
 import { useCuenta } from "../lib/nube";
 import { sonidos } from "../lib/sonidos";
 
@@ -12,7 +12,8 @@ export default function Revision() {
   const cuenta = useCuenta();
   const aviso = useAviso();
   const [lista, setLista] = useState<Solicitud[] | null>(null);
-  const permitido = cuenta.modo === "conectado" && esDueno(cuenta.email);
+  const esAdmin = useEsAdministrador();
+  const permitido = cuenta.modo === "conectado" && esAdmin;
 
   async function cargar() {
     setLista(await solicitudesPendientes());

@@ -12,7 +12,9 @@ import { Juego } from "../juegos/Juegos";
 import { TarjetaVolteable } from "../juegos/TarjetaVolteable";
 import { armarCola, cursoDe, tituloDe, type Paso } from "../lib/curso";
 import { metricas, primerDiaDeUso } from "../lib/metricas";
-import { obtener, registrarLeccion, registrarRepaso } from "../lib/estado";
+import { nuevoId, obtener, registrarLeccion, registrarRepaso } from "../lib/estado";
+import { ganarMonedas, usarProtector } from "../lib/billetera";
+import { hoy } from "../lib/fechas";
 import { parametro, reemplazar } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 import { vibrar } from "../lib/vibrar";
@@ -117,6 +119,8 @@ export default function Leccion() {
       fallados: [...fallados.current],
     });
     metricas.leccionCompletada({ precision: hecha.precision, primera: hecha.primera, primerDia: primerDiaDeUso() });
+    void ganarMonedas("leccion", hecha.precision, nuevoId("leccion"));
+    if (hecha.usoProtector) void usarProtector(`protector-${hoy()}`);
     reemplazar("/student/celebracion");
   }
 

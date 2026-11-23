@@ -1,4 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
+import { useAviso } from "../components/Aviso";
+import { abrirCofreEnServidor } from "../lib/billetera";
 import { useState } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
@@ -48,16 +50,33 @@ function DibujoCofre({ abierto }: { abierto: boolean }) {
 
 export default function Cofre() {
   const e = useEstado();
+  const aviso = useAviso();
   const [fase, setFase] = useState<"cerrado" | "abriendo" | "abierto">("cerrado");
   const [premio, setPremio] = useState<(typeof PREMIOS)[number] | null>(null);
   const [probabilidades, setProbabilidades] = useState(false);
   const yaAbierto = e.cofreDia === hoy() && fase === "cerrado";
 
-  function abrir() {
+  async function abrir() {
     setFase("abriendo");
     sonidos.cofre();
     vibrar("acierto");
-    setTimeout(() => {
+    const espera = new Promise((r) => setTimeout(r, 1500));
+    const servidor = await abrirCofreEnServidor();
+    await espera;
+    if (servidor) {
+      // El servidor sorteó y ya sumó el premio (con las mismas probabilidades que se muestran).
+      if ("sinRed" in servidor || !servidor.ok) {
+        setFase("cerrado");
+        if ("sinRed" in servidor) aviso("Necesitas internet para abrir el cofre.", "info");
+        return;
+      }
+      setPremio(PREMIOS.find((x) => x.id === servidor.premio) ?? null);
+      setFase("abierto");
+      sonidos.acierto();
+      void lanzarConfeti();
+      return;
+    }
+    {
       const p = sortear();
       setPremio(p);
       setFase("abierto");
@@ -68,7 +87,7 @@ export default function Cofre() {
       }));
       sonidos.acierto();
       void lanzarConfeti();
-    }, 1500);
+    }
   }
 
   return (

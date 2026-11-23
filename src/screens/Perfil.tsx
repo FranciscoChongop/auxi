@@ -1,4 +1,6 @@
 import { motion } from "motion/react";
+import { BorrarCuenta } from "../components/BorrarCuenta";
+import { ganarMonedas } from "../lib/billetera";
 import { useState, type ReactNode } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
@@ -6,7 +8,7 @@ import { AjustesDeSonido } from "../components/Interruptor";
 import { CaraDeLeon, type CaraLeon } from "../components/Leon";
 import { Escudo, Llama, Moneda, Pantalla } from "../components/Navegacion";
 import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
-import { esDueno } from "../lib/apoyo";
+import { useEsAdministrador } from "../lib/apoyo";
 import { metricas } from "../lib/metricas";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
@@ -44,6 +46,7 @@ export default function Perfil() {
   const e = useEstado();
   const aviso = useAviso();
   const cuenta = useCuenta();
+  const esAdmin = useEsAdministrador();
   const [ayuda, setAyuda] = useState(false);
   const [opinion, setOpinion] = useState(false);
   const [textoOpinion, setTextoOpinion] = useState("");
@@ -58,6 +61,7 @@ export default function Perfil() {
   function premiar(id: string, premio: number) {
     if (e.misiones[id]) return;
     actualizar((s) => ({ misiones: { ...s.misiones, [id]: true }, monedas: s.monedas + premio }));
+    void ganarMonedas(`mision:${id}`, 0, `mision-${id}`);
     sonidos.acierto();
     aviso(`¡Gracias! +${premio} monedas.`, "premio");
   }
@@ -172,7 +176,7 @@ export default function Perfil() {
             {e.pasePorVida ? "Ver mi pase" : "Empezar"}
           </Boton>
         </div>
-        {esDueno(cuenta.email) && (
+        {esAdmin && (
           <button type="button" onClick={() => navegar("/student/revision")} className="mt-1 h-11 w-full cursor-pointer font-extrabold underline underline-offset-4">
             Panel de revisión
           </button>
@@ -262,6 +266,7 @@ export default function Perfil() {
         <button type="button" onClick={() => setBorrar(true)} className="mt-2 h-11 cursor-pointer font-extrabold text-error">
           Borrar mi avance de este celular
         </button>
+        <BorrarCuenta />
       </Bloque>
 
       <button

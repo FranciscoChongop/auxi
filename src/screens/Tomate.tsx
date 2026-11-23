@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
+import { ganarMonedas } from "../lib/billetera";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAviso } from "../components/Aviso";
 import { Boton } from "../components/Boton";
@@ -139,6 +140,7 @@ export default function Tomate() {
             totales: { ...e.totales, minutos: e.totales.minutos + Math.round(modo.foco / 60) },
             ...(premio ? { monedas: e.monedas + 5, tomates: { ...e.tomates, [dia]: hechos + 1 } } : {}),
           }));
+          if (premio) void ganarMonedas("tomate", 0, `tomate-${dia}-${hechos + 1}`);
           aviso(`Tu tomate está listo, toma ${Math.round(modo.descanso / 60)} minutos.${premio ? " +5 monedas." : ""}`, "exito");
           setFase("juego");
         } else {

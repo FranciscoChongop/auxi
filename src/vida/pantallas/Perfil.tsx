@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { BorrarCuenta } from "../../components/BorrarCuenta";
 import { ApoyaAlCreador } from "../../components/ApoyaAlCreador";
 import { useAviso } from "../../components/Aviso";
 import { Boton } from "../../components/Boton";
@@ -211,6 +212,7 @@ export default function Perfil() {
             <button type="button" onClick={() => setBorrar(true)} className="h-11 cursor-pointer font-extrabold text-error">
               Borrar todo lo de Vida
             </button>
+            <BorrarCuenta />
             <a href="/student/privacidad" className="flex min-h-11 items-center justify-center text-ayuda font-extrabold text-brand underline">
               Política de privacidad
             </a>

@@ -49,15 +49,15 @@ export default function Monedas() {
   const e = useEstado();
   const aviso = useAviso();
 
-  function comprarYa(tipo: "cupo" | "pase" | "protector", mensaje: string) {
-    const r = comprar(tipo);
+  async function comprarYa(tipo: "cupo" | "pase" | "protector", mensaje: string) {
+    const r = await comprar(tipo);
     if (r.ok) {
       sonidos.acierto();
       void lanzarConfeti();
       aviso(mensaje, "premio");
     } else {
       sonidos.error();
-      aviso(`Te faltan ${r.faltan} monedas.`, "info");
+      aviso("sinRed" in r ? "Necesitas internet para comprar. Inténtalo de nuevo." : `Te faltan ${r.faltan} monedas.`, "info");
     }
   }
 
