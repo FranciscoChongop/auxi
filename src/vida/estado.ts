@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { diasEntre, hoy, sumarDias } from "../lib/fechas";
+import { alCambiarCuenta, cuentaActual } from "../lib/propietario";
 
 /** Nombre provisional de la mini app: cámbialo solo aquí. */
 export const NOMBRE_VIDA = "Auxi Vida";
@@ -108,7 +109,12 @@ export type EstadoVida = {
   sugerencias: { activas: boolean; descartes: Record<string, string> };
 };
 
-const CLAVE = "auxi.vida.v1";
+/**
+ * Cada cuenta tiene su propio espacio en este navegador; lo usado sin cuenta va aparte.
+ * Así, en un equipo compartido nadie ve ni mezcla los datos de otra persona.
+ */
+const CLAVE_SIN_CUENTA = "auxi.vida.v1";
+const claveDe = (uid: string | null) => (uid ? `auxi.vida.v1.u.${uid}` : CLAVE_SIN_CUENTA);
 export const ID_COLCHON = "colchon";
 
 function inicial(): EstadoVida {
@@ -156,9 +162,9 @@ function migrar(crudo: Record<string, unknown>): EstadoVida {
   return e;
 }
 
-function cargar(): EstadoVida {
+function cargar(clave: string): EstadoVida {
   try {
-    const crudo = localStorage.getItem(CLAVE);
+    const crudo = localStorage.getItem(clave);
     if (crudo) return migrar(JSON.parse(crudo));
   } catch {
     // Sin almacenamiento: empezamos de cero.
@@ -166,7 +172,8 @@ function cargar(): EstadoVida {
   return inicial();
 }
 
-let real = cargar();
+let dueno: string | null = cuentaActual();
+let real = cargar(claveDe(dueno));
 /** Modo ejemplo: datos inventados que viven solo en memoria y nunca tocan los de la persona. */
 let ejemplo: EstadoVida | null = null;
 const oyentes = new Set<() => void>();
@@ -186,7 +193,7 @@ export function actualizarVida(cambio: (e: EstadoVida) => Partial<EstadoVida>) {
   }
   real = { ...real, ...cambio(real) };
   try {
-    localStorage.setItem(CLAVE, JSON.stringify(real));
+    localStorage.setItem(claveDe(dueno), JSON.stringify(real));
   } catch {
     // Si no se puede guardar, dura mientras la app esté abierta.
   }
@@ -197,11 +204,71 @@ export function borrarVida() {
   real = inicial();
   ejemplo = null;
   try {
-    localStorage.removeItem(CLAVE);
+    localStorage.removeItem(claveDe(dueno));
   } catch {
     // nada
   }
   avisar();
+}
+
+/* ---------- Cambio de cuenta y datos guardados sin cuenta ---------- */
+
+/** Al entrar o salir de una cuenta, Vida pasa al espacio de esa cuenta (o al de sin cuenta). */
+export function usarEspacioDe(uid: string | null) {
+  if (uid === dueno) return;
+  dueno = uid;
+  ejemplo = null;
+  real = cargar(claveDe(uid));
+  avisar();
+}
+alCambiarCuenta(usarEspacioDe);
+
+const tieneDatos = (e: EstadoVida) => !!e.plan || e.movimientos.length > 0 || e.pagos.length > 0 || e.pendientes.length > 0 || e.frascos.some((f) => f.aportes.length > 0);
+
+/** Con sesión: hay datos de Vida guardados en este navegador sin cuenta, que la persona aún no decidió pasar. */
+export function hayDatosSinCuenta() {
+  if (!dueno || real.avisos.datosSinCuenta) return false;
+  return tieneDatos(cargar(CLAVE_SIN_CUENTA));
+}
+
+/**
+ * Pasa a esta cuenta lo guardado sin cuenta (solo si la persona lo confirma).
+ * Si la cuenta aún no tiene nada, se copia todo; si ya tiene datos, se suman movimientos, pagos,
+ * fechas y aportes sin repetir, y se conserva el plan de la cuenta.
+ */
+export function pasarDatosSinCuenta() {
+  if (!dueno) return;
+  const sin = cargar(CLAVE_SIN_CUENTA);
+  const nuevo: EstadoVida = tieneDatos(real)
+    ? {
+        ...real,
+        movimientos: unirPorId(real.movimientos, sin.movimientos),
+        pagos: unirPorId(real.pagos, sin.pagos),
+        pendientes: unirPorId(real.pendientes, sin.pendientes),
+        frascos: real.frascos.map((f) => {
+          const otro = sin.frascos.find((x) => x.id === f.id);
+          return otro ? { ...f, aportes: unirPorId(f.aportes, otro.aportes) } : f;
+        }).concat(sin.frascos.filter((x) => !real.frascos.some((f) => f.id === x.id))),
+      }
+    : { ...sin, avisos: { ...sin.avisos } };
+  real = { ...nuevo, avisos: { ...nuevo.avisos, datosSinCuenta: hoy() } };
+  try {
+    localStorage.setItem(claveDe(dueno), JSON.stringify(real));
+    localStorage.removeItem(CLAVE_SIN_CUENTA);
+  } catch {
+    // nada
+  }
+  avisar();
+}
+
+/** La persona prefiere dejarlos aparte: no se vuelve a preguntar en esta cuenta. */
+export function dejarDatosSinCuentaAparte() {
+  actualizarVida((s) => ({ avisos: { ...s.avisos, datosSinCuenta: hoy() } }));
+}
+
+function unirPorId<T extends { id: string }>(a: T[], b: T[]) {
+  const ids = new Set(a.map((x) => x.id));
+  return [...a, ...b.filter((x) => !ids.has(x.id))];
 }
 
 export function useVida() {

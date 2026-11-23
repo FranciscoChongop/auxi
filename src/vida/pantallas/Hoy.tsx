@@ -10,6 +10,9 @@ import { sonidos } from "../../lib/sonidos";
 import {
   compromisos,
   consejoDelDia,
+  dejarDatosSinCuentaAparte,
+  hayDatosSinCuenta,
+  pasarDatosSinCuenta,
   desglose,
   enEjemplo,
   frascoActivo,
@@ -45,6 +48,7 @@ export default function Hoy() {
   const deHoy = e.movimientos.filter((m) => m.fecha === h).reverse();
   const anotoHoy = e.racha.ultimoDia === h;
   const sugerencia = sugerenciaDeHoy(e);
+  const sinCuenta = !enEjemplo() && hayDatosSinCuenta();
   useEffect(() => {
     if (sugerencia) marcarVista(sugerencia.id);
   }, [sugerencia]);
@@ -122,6 +126,21 @@ export default function Hoy() {
               </motion.button>
             ))}
           </div>
+
+          {sinCuenta && (
+            <section className="rounded-[20px] border-2 border-brand bg-card p-4" aria-label="Datos sin cuenta">
+              <p className="font-extrabold">Hay datos de Vida guardados en este navegador sin cuenta</p>
+              <p className="mt-1 text-ayuda text-text-soft">¿Quieres pasarlos a tu cuenta? Seguirán guardados solo en este dispositivo. Si no son tuyos, déjalos aparte.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" onClick={pasarDatosSinCuenta} className="min-h-11 cursor-pointer rounded-[12px] bg-brand px-4 font-extrabold text-white">
+                  Pasarlos a mi cuenta
+                </button>
+                <button type="button" onClick={dejarDatosSinCuentaAparte} className="min-h-11 cursor-pointer rounded-[12px] bg-surface px-4 font-extrabold text-brand">
+                  Dejarlos aparte
+                </button>
+              </div>
+            </section>
+          )}
 
           {anotoHoy && e.cofreDia !== h && (
             <button type="button" onClick={() => navegar("/vida/cofre")} className="flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-[20px] bg-reward/30 px-4 py-3 text-left">

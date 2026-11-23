@@ -5,6 +5,7 @@ import { actualizar, alCambiarEstado, completar, obtener, reiniciarTodo, type Es
 import { supabase } from "./supabase";
 import { reclamarSiAprobada } from "./apoyo";
 import { unir } from "./unir";
+import { apartarRespaldo, avisarCambioDeCuenta, decidir, guardarPropietario, leerPropietario, tomarRespaldo } from "./propietario";
 
 /**
  * Cuenta y sincronización. Mientras no hay sesión, todo vive en el celular.
@@ -13,7 +14,11 @@ import { unir } from "./unir";
  */
 
 export type EstadoCuenta = {
-  modo: "sin-nube" | "cargando" | "invitado" | "conectado";
+  /**
+   * sin-nube: solo en desarrollo (sin Supabase o con VITE_SIN_LOGIN). sin-configuracion: en producción
+   * faltan los datos de Supabase; la app no deja entrar sin cuenta (falla de forma segura).
+   */
+  modo: "sin-nube" | "sin-configuracion" | "cargando" | "invitado" | "conectado";
   email?: string;
   guardando: boolean;
   /** Ya se unió el avance del celular con el de la cuenta. */
@@ -22,7 +27,7 @@ export type EstadoCuenta = {
   error?: string;
 };
 
-let cuenta: EstadoCuenta = { modo: supabase ? "cargando" : "sin-nube", guardando: false };
+let cuenta: EstadoCuenta = { modo: supabase ? "cargando" : import.meta.env.PROD ? "sin-configuracion" : "sin-nube", guardando: false };
 const oyentes = new Set<() => void>();
 
 function cambiar(c: Partial<EstadoCuenta>) {
@@ -67,18 +72,44 @@ async function subirArchivosPendientes(e: Estado) {
       }
 }
 
+function apagarGuardadoAutomatico() {
+  const quitar = dejarDeEscuchar as (() => void) | null;
+  quitar?.();
+  dejarDeEscuchar = null;
+  clearTimeout(espera);
+}
+
 async function conectar(u: User) {
   if (!supabase) return;
+  // Antes de nada, se apaga el guardado automático anterior: así nunca se sube a esta cuenta
+  // un estado a medio cargar ni el de otra persona.
+  apagarGuardadoAutomatico();
   usuario = u;
-  cambiar({ modo: "conectado", email: u.email ?? undefined, sincronizado: false });
+  cambiar({ modo: "conectado", email: u.email ?? undefined, sincronizado: false, error: undefined });
+
+  // Equipo compartido: si lo guardado aquí es de otra cuenta, se aparta y no se mezcla con esta.
+  const dueno = leerPropietario();
+  if (decidir(dueno, u.id) === "apartar" && dueno) {
+    apartarRespaldo(dueno, obtener());
+    reiniciarTodo();
+  }
+  avisarCambioDeCuenta(u.id);
+
   const { data, error } = await supabase.from("perfiles").select("estado").eq("id", u.id).maybeSingle();
   if (error) {
-    cambiar({ error: "No pude traer tu avance. Revisa tu internet.", sincronizado: true });
+    // Un error de lectura NUNCA se trata como cuenta vacía: no se sube nada hasta poder leer.
+    cambiar({ error: "No pude traer tu avance. Lo intento de nuevo en unos segundos.", sincronizado: true });
+    setTimeout(() => {
+      if (usuario?.id === u.id) void conectar(u);
+    }, 15_000);
     return;
   }
-  const local = obtener();
+  // Si esta misma cuenta dejó avance apartado en este equipo, se recupera.
+  const respaldo = tomarRespaldo(u.id);
+  const local = respaldo ? unir(obtener(), completar(respaldo as Partial<Estado>)) : obtener();
   const unido = data?.estado ? unir(local, completar(data.estado as Partial<Estado>)) : { ...local, avisoCuentaVisto: true };
   actualizar(() => unido);
+  guardarPropietario(u.id);
   cambiar({ sincronizado: true });
   await subir();
   dejarDeEscuchar?.();
@@ -123,6 +154,8 @@ export function iniciarNube() {
     if (evento === "SIGNED_IN" && sesion?.user && sesion.user.id !== usuario?.id) void conectar(sesion.user);
     if (evento === "SIGNED_OUT") {
       usuario = null;
+      limpiarSesionTemporal();
+      avisarCambioDeCuenta(null);
       dejarDeEscuchar?.();
       dejarDeEscuchar = null;
       cambiar({ modo: "invitado", email: undefined, sincronizado: undefined });
@@ -204,7 +237,20 @@ export async function salir() {
   await subir();
   await supabase.auth.signOut();
   reiniciarTodo();
+  guardarPropietario(null);
+  limpiarSesionTemporal();
+  avisarCambioDeCuenta(null);
   await borrarTodoLocal();
+}
+
+/** Permisos temporales de esta pestaña (por ejemplo, el de Gmail): no deben pasar a otra cuenta. */
+function limpiarSesionTemporal() {
+  try {
+    sessionStorage.removeItem("auxi.vida.gmailToken");
+    sessionStorage.removeItem("auxi.vida.gmailPidiendo");
+  } catch {
+    // nada
+  }
 }
 
 export function usuarioActual() {

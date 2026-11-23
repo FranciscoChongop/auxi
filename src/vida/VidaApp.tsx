@@ -1,5 +1,6 @@
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { lazy, Suspense, useEffect } from "react";
+import { useCuenta } from "../lib/nube";
 import { useRuta, useRutaCompleta } from "../lib/rutas";
 import { cerrarDiasPasados, useVida } from "./estado";
 import { AvisoDeshacer } from "./ui";
@@ -32,6 +33,8 @@ export default function VidaApp() {
   const ruta = useRuta();
   const completa = useRutaCompleta();
   const e = useVida();
+  // Hasta saber qué cuenta hay, no se muestran datos (así no se ve el espacio equivocado).
+  const cargandoCuenta = useCuenta().modo === "cargando";
 
   useEffect(() => {
     const html = document.documentElement;
@@ -58,6 +61,7 @@ export default function VidaApp() {
   const pedido: Nombre = seccion === "inicio" ? "hoy" : seccion === "captura" ? "importar" : seccion in pantallas ? (seccion as Nombre) : e.iniciado ? "hoy" : "bienvenida";
   const nombre: Nombre = e.iniciado ? (pedido === "bienvenida" ? "hoy" : pedido) : SIN_EMPEZAR.includes(pedido) ? pedido : "bienvenida";
   const Pantalla = pantallas[nombre];
+  if (cargandoCuenta) return <div className="min-h-dvh bg-bg" role="status" aria-label="Cargando" />;
 
   return (
     <MotionConfig reducedMotion={e.menosMovimiento ? "always" : "user"}>
