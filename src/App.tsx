@@ -45,6 +45,7 @@ const VidaApp = lazy(() => import("./vida/VidaApp"));
 // La plataforma (Auxi Studio): portada, inicio de sesión único y elección de mini app.
 const Plataforma = lazy(() => import("./screens/Plataforma"));
 const NoEncontrado = lazy(() => import("./screens/NoEncontrado"));
+const Propuesta = lazy(() => import("./screens/Propuesta"));
 const RUTAS_PLATAFORMA = ["/", "/entrar", "/negocio", "/privacidad", "/terminos"];
 
 /** Las direcciones viejas /studio/... ahora son /student/... (así no se rompen enlaces ni instalaciones). */
@@ -93,6 +94,13 @@ function SinConexion() {
 export function App() {
   const ruta = useRuta();
   const limpia = ruta.replace(/\/+$/, "") || "/";
+  // Propuesta visual P1A: solo en desarrollo.
+  if (limpia === "/propuesta" && import.meta.env.DEV)
+    return (
+      <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
+        <Propuesta />
+      </Suspense>
+    );
   if (limpia === "/studio" || limpia.startsWith("/studio/")) return <RedirigirAlStudent />;
   if (RUTAS_PLATAFORMA.includes(limpia)) {
     return (
