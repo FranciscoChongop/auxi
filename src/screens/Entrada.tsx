@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Boton } from "../components/Boton";
 import { CaraDeLeon } from "../components/Leon";
-import { errorDeEntrada, crearCuentaConClave, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
+import { useCuenta, errorDeEntrada, crearCuentaConClave, entrarConClave, entrarConGoogle, pedirCodigo, verificarCodigo } from "../lib/nube";
 import { sonidos } from "../lib/sonidos";
 
 function LogoGoogle() {
@@ -38,6 +38,7 @@ export default function Entrada({ titulo = "Auxi Student", cabecera }: { titulo?
   const [espera, setEspera] = useState(0);
   const [nota, setNota] = useState<string | null>(null);
   const [errorGoogle] = useState(() => errorDeEntrada());
+  const sinConfiguracion = useCuenta().modo === "sin-configuracion";
   const entradaCodigo = useRef<HTMLInputElement>(null);
   const correo = email.trim().toLowerCase();
 
@@ -122,6 +123,12 @@ export default function Entrada({ titulo = "Auxi Student", cabecera }: { titulo?
           <p className="font-bold text-text-soft">Entra a tu cuenta. Es gratis.</p>
         </div>
       </div>
+
+      {sinConfiguracion && (
+        <p role="alert" className="rounded-boton border-2 border-error bg-card px-4 py-3 font-bold text-error-dark">
+          Ahora no podemos conectar con las cuentas. Inténtalo más tarde; si sigue, escríbenos.
+        </p>
+      )}
 
       {modo === "confirmar" && (
         <div className="flex flex-col gap-4">

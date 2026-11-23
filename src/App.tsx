@@ -44,6 +44,7 @@ const VidaApp = lazy(() => import("./vida/VidaApp"));
 
 // La plataforma (Auxi Studio): portada, inicio de sesión único y elección de mini app.
 const Plataforma = lazy(() => import("./screens/Plataforma"));
+const NoEncontrado = lazy(() => import("./screens/NoEncontrado"));
 const RUTAS_PLATAFORMA = ["/", "/entrar", "/negocio", "/privacidad", "/terminos"];
 
 /** Las direcciones viejas /studio/... ahora son /student/... (así no se rompen enlaces ni instalaciones). */
@@ -117,6 +118,16 @@ export function App() {
       </MotionConfig>
     );
   }
+  // Solo Auxi Student vive fuera de estas rutas; el catálogo técnico de componentes es solo para desarrollo.
+  const esStudent = limpia === "/student" || limpia.startsWith("/student/");
+  const esCatalogo = limpia === "/catalogo" && import.meta.env.DEV;
+  if (!esStudent && !esCatalogo) {
+    return (
+      <Suspense fallback={<div className="min-h-dvh bg-bg" />}>
+        <NoEncontrado />
+      </Suspense>
+    );
+  }
   return <AppStudio />;
 }
 
@@ -129,7 +140,8 @@ function AppStudio() {
   // Hay que iniciar sesión para entrar (el catálogo de diseño queda libre).
   const destino = elegir(ruta);
   const estado = useEstado();
-  const invitado = cuenta.modo === "invitado" && ruta !== "/catalogo";
+  // Sin configuración de cuentas en producción se trata como visitante: no se entra sin cuenta.
+  const invitado = (cuenta.modo === "invitado" || cuenta.modo === "sin-configuracion") && ruta !== "/catalogo";
   // Sin cuenta: solo la portada y el inicio de sesión.
   const bloqueada = invitado && !["bienvenida", "privacidad", "terminos"].includes(destino);
   const listo = cuenta.modo === "conectado" && cuenta.sincronizado;
