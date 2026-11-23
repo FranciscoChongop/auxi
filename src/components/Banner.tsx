@@ -112,6 +112,8 @@ type Props = {
   /** "caja": el contenido llena el banner (con aspect-ratio). "contenido": el banner crece con el contenido. */
   modo?: "caja" | "contenido";
   parallax?: boolean;
+  /** Velo oscuro para que el texto blanco se lea: "abajo" (normal), "fuerte" (tarjetas) o "izquierda" (texto a la izquierda). */
+  velo?: "abajo" | "fuerte" | "izquierda";
   children?: ReactNode;
 };
 
@@ -119,7 +121,7 @@ type Props = {
  * Banner de imagen para la plataforma. La imagen se mueve un poco al hacer scroll (parallax) y, mientras
  * no exista, se ve un fondo propio con figuras que flotan. Todo queda quieto si se reduce el movimiento.
  */
-export function Banner({ nombre, nombreMovil, tono, alt = "", className = "", modo = "caja", parallax = true, children }: Props) {
+export function Banner({ nombre, nombreMovil, tono, alt = "", className = "", modo = "caja", parallax = true, velo = "abajo", children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const quieto = !!useReducedMotion();
   const [lista, setLista] = useState(false);
@@ -148,8 +150,12 @@ export function Banner({ nombre, nombreMovil, tono, alt = "", className = "", mo
           />
         </picture>
       </motion.div>
-      {/* Velo oscuro abajo: el texto blanco siempre se lee, sea cual sea la imagen. */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" aria-hidden="true" />
+      {/* Velo oscuro: el texto blanco siempre se lee, sea cual sea la imagen. */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-t to-transparent ${velo === "fuerte" ? "from-[#0B1140]/90 via-[#0B1140]/45" : velo === "izquierda" ? "from-black/45 via-black/5" : "from-black/60 via-black/10"}`}
+        aria-hidden="true"
+      />
+      {velo === "izquierda" && <div className="absolute inset-0 bg-gradient-to-r from-[#141A4D]/85 via-[#141A4D]/45 to-transparent md:via-[#141A4D]/30" aria-hidden="true" />}
       <div className={modo === "caja" ? "absolute inset-0" : "relative"}>{children}</div>
     </div>
   );

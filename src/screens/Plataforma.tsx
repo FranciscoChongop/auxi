@@ -135,7 +135,7 @@ function TarjetaBanner({ m, indice, alAbrir, nota }: { m: MiniAppInfo; indice: n
       className="group block cursor-pointer rounded-[28px] shadow-[0_8px_0_rgba(20,26,77,.12)]"
       aria-label={`${m.nombre}. ${m.frase}`}
     >
-      <Banner nombre={imagen} tono={tono} className="aspect-[16/10] md:aspect-[4/5]">
+      <Banner nombre={imagen} tono={tono} velo="fuerte" className="aspect-[16/10] md:aspect-[4/5]">
         <div className="flex h-full flex-col justify-between p-5 text-white">
           <span className="flex items-start justify-between gap-3">
             <span className="text-[26px] leading-[30px] font-black drop-shadow-[0_2px_6px_rgba(0,0,0,.35)]">{m.nombre}</span>
@@ -158,7 +158,7 @@ function TarjetaBanner({ m, indice, alAbrir, nota }: { m: MiniAppInfo; indice: n
 function BannerCuenta() {
   return (
     <motion.div {...alVer()}>
-      <Banner nombre="cuenta" tono="cuenta" className="aspect-[4/3] md:aspect-[21/8]">
+      <Banner nombre="cuenta" tono="cuenta" velo="izquierda" className="aspect-[4/3] md:aspect-[21/8]">
         <div className="flex h-full flex-col justify-end p-6 text-white md:max-w-[52%] md:justify-center">
           <p className="text-[28px] leading-[32px] font-black drop-shadow-[0_2px_6px_rgba(0,0,0,.35)] md:text-[34px] md:leading-[38px]">Una sola cuenta, todas las mini apps</p>
           <p className="mt-2 text-[16px] text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,.4)]">Entras una vez y eliges a dónde ir. Vendoe es una app aparte, con su propia página.</p>
@@ -172,7 +172,7 @@ function BannerAutor() {
   const boton = "inline-flex min-h-11 items-center rounded-full bg-white px-4 font-extrabold text-brand";
   return (
     <motion.div {...alVer()}>
-      <Banner nombre="autor" tono="autor" className="aspect-[4/3] md:aspect-[21/8]">
+      <Banner nombre="autor" tono="autor" velo="izquierda" className="aspect-[4/3] md:aspect-[21/8]">
         <div className="flex h-full flex-col justify-end p-6 text-white md:max-w-[52%] md:justify-center">
           <p className="text-[28px] leading-[32px] font-black drop-shadow-[0_2px_6px_rgba(0,0,0,.35)] md:text-[34px] md:leading-[38px]">Creado por {AUTOR}</p>
           <p className="mt-2 text-[16px] text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,.4)]">Estas mini apps salen de mi estudio, una a una. Mira lo que viene.</p>
