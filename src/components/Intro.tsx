@@ -31,7 +31,7 @@ export function Intro() {
   const ruta = useRuta();
   const [abierta, setAbierta] = useState(false);
   const cerrarRef = useRef<HTMLButtonElement>(null);
-  const enLeccion = ruta.startsWith("/teach/leccion") || ruta.startsWith("/catalogo");
+  const enLeccion = ruta.startsWith("/student/leccion") || ruta.startsWith("/catalogo");
 
   // Primera visita: aparece un instante después de cargar la página.
   useEffect(() => {
@@ -94,7 +94,7 @@ export function Intro() {
             <div className="relative">
               <img src="/marketing/bienvenida.webp" alt="" className="block h-40 w-full object-cover object-left" width={800} height={400} />
               <div className="absolute inset-y-0 right-0 flex w-[52%] flex-col justify-center pr-4 text-white">
-                <p className="text-ayuda font-bold opacity-90">Auxi Teach</p>
+                <p className="text-ayuda font-bold opacity-90">Auxi Student</p>
                 <p className="text-[24px] leading-7 font-black">
                   Estudia jugando <span className="text-success">con León</span>
                 </p>

@@ -27,7 +27,7 @@ const campo =
 type Modo = "entrar" | "crear" | "codigo" | "codigo-enviado" | "confirmar";
 
 /** Puerta de Auxi: hay que iniciar sesión o crear la cuenta (gratis) para entrar. */
-export default function Entrada({ titulo = "Auxi Teach", cabecera }: { titulo?: string; cabecera?: React.ReactNode } = {}) {
+export default function Entrada({ titulo = "Auxi Student", cabecera }: { titulo?: string; cabecera?: React.ReactNode } = {}) {
   const [modo, setModo] = useState<Modo>("entrar");
   const [email, setEmail] = useState("");
   const [clave, setClave] = useState("");

@@ -9,7 +9,7 @@ export const LANDING_URL: string = "";
 export const VENDOE_URL = "https://www.vendoe.es/";
 
 export type MiniAppInfo = {
-  id: "teach" | "vida" | "negocio";
+  id: "student" | "vida" | "negocio";
   nombre: string;
   frase: string;
   etiqueta: string;
@@ -23,11 +23,11 @@ export type MiniAppInfo = {
 /** Las mini apps de la plataforma. Para sumar una nueva, agrega una fila. */
 export const MINI_APPS: MiniAppInfo[] = [
   {
-    id: "teach",
-    nombre: "Auxi Teach",
+    id: "student",
+    nombre: "Auxi Student",
     frase: "Sube lo que te dejaron y estudia jugando, con una IA que te pregunta en vez de copiarte.",
     etiqueta: "Gratis · para estudiantes",
-    ruta: "/teach",
+    ruta: "/student",
     color: "#2430D9",
     sombra: "#1A23A6",
   },

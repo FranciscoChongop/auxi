@@ -26,7 +26,7 @@ export default function Cursos() {
     <Pantalla titulo="Mis cursos">
       <button
         type="button"
-        onClick={() => navegar("/teach/examen")}
+        onClick={() => navegar("/student/examen")}
         className="flex min-h-14 cursor-pointer items-center gap-3 rounded-tarjeta bg-brand px-4 py-3 text-left text-white"
         style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}
       >
@@ -62,7 +62,7 @@ export default function Cursos() {
             key={c.id}
             {...entradaEnCascada(i)}
             type="button"
-            onClick={() => navegar(`/teach/cursos/${c.id}`)}
+            onClick={() => navegar(`/student/cursos/${c.id}`)}
             onPointerDown={() => sonidos.toque()}
             whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
             style={{ boxShadow: "0 4px 0 var(--surface)" }}
@@ -95,7 +95,7 @@ export default function Cursos() {
               const id = crearCurso(nombre);
               setNombre("");
               setNuevo(false);
-              navegar(`/teach/cursos/${id}?nuevoTema=1`);
+              navegar(`/student/cursos/${id}?nuevoTema=1`);
             }}
           >
             Crear curso

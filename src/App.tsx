@@ -46,10 +46,10 @@ const VidaApp = lazy(() => import("./vida/VidaApp"));
 const Plataforma = lazy(() => import("./screens/Plataforma"));
 const RUTAS_PLATAFORMA = ["/", "/entrar", "/negocio", "/privacidad", "/terminos"];
 
-/** Las direcciones viejas /studio/... ahora son /teach/... (así no se rompen enlaces ni instalaciones). */
-function RedirigirAlTeach() {
+/** Las direcciones viejas /studio/... ahora son /student/... (así no se rompen enlaces ni instalaciones). */
+function RedirigirAlStudent() {
   useEffect(() => {
-    reemplazar(location.pathname.replace(/^\/studio/, "/teach") + location.search);
+    reemplazar(location.pathname.replace(/^\/studio/, "/student") + location.search);
   }, []);
   return <div className="min-h-dvh bg-bg" />;
 }
@@ -92,7 +92,7 @@ function SinConexion() {
 export function App() {
   const ruta = useRuta();
   const limpia = ruta.replace(/\/+$/, "") || "/";
-  if (limpia === "/studio" || limpia.startsWith("/studio/")) return <RedirigirAlTeach />;
+  if (limpia === "/studio" || limpia.startsWith("/studio/")) return <RedirigirAlStudent />;
   if (RUTAS_PLATAFORMA.includes(limpia)) {
     return (
       <MotionConfig reducedMotion="user">
@@ -123,7 +123,7 @@ export function App() {
 function AppStudio() {
   const ruta = useRuta();
   useEffect(() => {
-    document.title = "Auxi Teach · Estudia jugando con León";
+    document.title = "Auxi Student · Estudia jugando con León";
   }, []);
   const cuenta = useCuenta();
   // Hay que iniciar sesión para entrar (el catálogo de diseño queda libre).

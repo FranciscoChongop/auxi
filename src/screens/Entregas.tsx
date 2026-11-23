@@ -80,7 +80,7 @@ function ListaEntregas() {
       {lista.length === 0 && <p className="py-6 text-center text-text-soft">No tienes entregas. Importa tu sílabo para empezar.</p>}
 
       <div className="grid grid-cols-2 gap-3">
-        <Boton onClick={() => navegar("/teach/silabo")}>Importar sílabo</Boton>
+        <Boton onClick={() => navegar("/student/silabo")}>Importar sílabo</Boton>
         <Boton variante="secundario" onClick={() => setNueva(true)}>
           Agregar una
         </Boton>
@@ -308,7 +308,7 @@ function Calendario() {
           {x.tipo !== "feriado" && <Faltan fecha={x.fecha} />}
         </div>
       ))}
-      <Boton variante="secundario" onClick={() => navegar("/teach/silabo")}>
+      <Boton variante="secundario" onClick={() => navegar("/student/silabo")}>
         Importar sílabo
       </Boton>
     </>

@@ -4,11 +4,11 @@ import { actualizar, type Estado } from "../lib/estado";
 import { navegar } from "../lib/rutas";
 
 const PASOS = [
-  { id: "cursos", titulo: "Crea tu primer curso", texto: "Aquí subes tu material y lo vuelves juego.", ruta: "/teach/cursos" },
-  { id: "camino", titulo: "Mira tu camino", texto: "Cada lección abre la siguiente.", ruta: "/teach/camino" },
-  { id: "metodos", titulo: "Prueba un método", texto: "El tomate, las 5 cajas o explicarle a León.", ruta: "/teach/metodos" },
-  { id: "entregas", titulo: "Abre tus entregas", texto: "Pega tu sílabo y ve tus fechas.", ruta: "/teach/entregas" },
-  { id: "perfil", titulo: "Conoce tu perfil", texto: "Tu racha, tus monedas y Cerrar sesión.", ruta: "/teach/perfil" },
+  { id: "cursos", titulo: "Crea tu primer curso", texto: "Aquí subes tu material y lo vuelves juego.", ruta: "/student/cursos" },
+  { id: "camino", titulo: "Mira tu camino", texto: "Cada lección abre la siguiente.", ruta: "/student/camino" },
+  { id: "metodos", titulo: "Prueba un método", texto: "El tomate, las 5 cajas o explicarle a León.", ruta: "/student/metodos" },
+  { id: "entregas", titulo: "Abre tus entregas", texto: "Pega tu sílabo y ve tus fechas.", ruta: "/student/entregas" },
+  { id: "perfil", titulo: "Conoce tu perfil", texto: "Tu racha, tus monedas y Cerrar sesión.", ruta: "/student/perfil" },
 ];
 
 /** Guía de inicio: te lleva, paso a paso, por las partes principales. Se cierra con la X. */

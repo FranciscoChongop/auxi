@@ -6,7 +6,7 @@
 const CLAVE = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
 const SERVIDOR = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? "https://us.i.posthog.com";
 
-export type MiniApp = "teach" | "vida" | "negocio" | "plataforma";
+export type MiniApp = "student" | "vida" | "negocio" | "plataforma";
 
 function idAnonimo() {
   try {
@@ -21,7 +21,7 @@ function idAnonimo() {
   }
 }
 
-export function registrar(evento: string, propiedades: Record<string, unknown> = {}, miniApp: MiniApp = "teach") {
+export function registrar(evento: string, propiedades: Record<string, unknown> = {}, miniApp: MiniApp = "student") {
   if (!CLAVE) return;
   try {
     void fetch(`${SERVIDOR}/capture/`, {
@@ -43,10 +43,10 @@ export function registrar(evento: string, propiedades: Record<string, unknown> =
 
 /** Eventos del día 1. */
 export const metricas = {
-  appAbierta: (miniApp: MiniApp = location.pathname.startsWith("/vida") ? "vida" : location.pathname.startsWith("/teach") ? "teach" : "plataforma") => {
+  appAbierta: (miniApp: MiniApp = location.pathname.startsWith("/vida") ? "vida" : location.pathname.startsWith("/student") ? "student" : "plataforma") => {
     // Una vez por día y por mini app: sirve para medir retención de día 7 y día 30.
     const hoy = new Date().toISOString().slice(0, 10);
-    const sufijo = miniApp === "teach" ? "" : `.${miniApp}`;
+    const sufijo = miniApp === "student" ? "" : `.${miniApp}`;
     try {
       if (localStorage.getItem(`auxi.ultimaApertura${sufijo}`) === hoy) return;
       localStorage.setItem(`auxi.ultimaApertura${sufijo}`, hoy);
@@ -74,9 +74,9 @@ export const metricas = {
   perfilCompletado: (d: { pais: string; carrera: string; universidad: string; edad: string }) => registrar("perfil_completado", d),
 };
 
-export const primerDiaDeUso = (miniApp: MiniApp = "teach") => {
+export const primerDiaDeUso = (miniApp: MiniApp = "student") => {
   try {
-    const sufijo = miniApp === "teach" ? "" : `.${miniApp}`;
+    const sufijo = miniApp === "student" ? "" : `.${miniApp}`;
     return localStorage.getItem(`auxi.primeraApertura${sufijo}`) === new Date().toISOString().slice(0, 10);
   } catch {
     return false;

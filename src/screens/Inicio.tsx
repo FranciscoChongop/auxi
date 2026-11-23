@@ -55,7 +55,7 @@ export default function Inicio() {
       <motion.button
         type="button"
         aria-label="Subir material nuevo"
-        onClick={() => navegar("/teach/material")}
+        onClick={() => navegar("/student/material")}
         onPointerDown={() => sonidos.toque()}
         whileTap={{ scale: 0.9 }}
         className="fixed right-5 z-20 grid size-14 cursor-pointer place-items-center rounded-full bg-brand text-white"
@@ -79,7 +79,7 @@ export default function Inicio() {
           <Boton
             onClick={() => {
               cerrarTarjeta();
-              navegar(errores > 0 ? "/teach/leccion?n=repaso" : actual ? `/teach/leccion?n=${actual.clave}` : "/teach/material");
+              navegar(errores > 0 ? "/student/leccion?n=repaso" : actual ? `/student/leccion?n=${actual.clave}` : "/student/material");
             }}
           >
             Vamos

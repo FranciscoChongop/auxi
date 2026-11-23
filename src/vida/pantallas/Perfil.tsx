@@ -211,7 +211,7 @@ export default function Perfil() {
             <button type="button" onClick={() => setBorrar(true)} className="h-11 cursor-pointer font-extrabold text-error">
               Borrar todo lo de Vida
             </button>
-            <a href="/teach/privacidad" className="flex min-h-11 items-center justify-center text-ayuda font-extrabold text-brand underline">
+            <a href="/student/privacidad" className="flex min-h-11 items-center justify-center text-ayuda font-extrabold text-brand underline">
               Política de privacidad
             </a>
           </div>
@@ -225,9 +225,9 @@ export default function Perfil() {
           <span className="text-brand">Abrir</span>
         </a>
 
-        <a href="/teach" className="flex min-h-14 items-center justify-between rounded-[20px] border-2 border-surface bg-card px-4 font-extrabold">
+        <a href="/student" className="flex min-h-14 items-center justify-between rounded-[20px] border-2 border-surface bg-card px-4 font-extrabold">
           <span>
-            Ir a Auxi Teach
+            Ir a Auxi Student
             <span className="block text-ayuda font-semibold text-text-soft">Para estudiar jugando, con la misma cuenta.</span>
           </span>
           <span className="text-brand">Abrir</span>
@@ -255,7 +255,7 @@ export default function Perfil() {
       </div>
 
       <Ventana abierta={borrar} alCerrar={() => setBorrar(false)} titulo="¿Borrar todo lo de Vida?">
-        <p className="text-text-soft">Se borran tus números, movimientos, metas, pagos y revisiones de este celular. No se puede deshacer. Auxi Teach no se toca.</p>
+        <p className="text-text-soft">Se borran tus números, movimientos, metas, pagos y revisiones de este celular. No se puede deshacer. Auxi Student no se toca.</p>
         <div className="mt-5 flex flex-col gap-3">
           <Boton
             variante="secundario"

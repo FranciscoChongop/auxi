@@ -19,7 +19,7 @@ function Privacidad() {
     <>
       <p className="text-text-soft">Última actualización: 22 de noviembre de 2026.</p>
       <Seccion titulo="Quién la ofrece">
-        <p>Auxi Studio es una plataforma gratuita creada por Daniel Chong (@soydanielchong). Reúne mini apps: Auxi Teach (para estudiar) y Auxi Vida (para ordenar tu plata), y un enlace a Vendoe (para negocios), que es una app aparte con su propia página. Esta página explica qué datos guardamos y para qué.</p>
+        <p>Auxi Studio es una plataforma gratuita creada por Daniel Chong (@soydanielchong). Reúne mini apps: Auxi Student (para estudiar) y Auxi Vida (para ordenar tu plata), y un enlace a Vendoe (para negocios), que es una app aparte con su propia página. Esta página explica qué datos guardamos y para qué.</p>
       </Seccion>
       <Seccion titulo="Qué datos guardamos">
         <ul className="list-disc space-y-1 pl-5">
@@ -79,7 +79,7 @@ function Terminos() {
     <>
       <p className="text-text-soft">Última actualización: 22 de noviembre de 2026.</p>
       <Seccion titulo="Qué es Auxi Studio">
-        <p>Auxi Studio es gratuita e incluye Auxi Teach (estudiar con juegos) y Auxi Vida (ordenar tu plata). Al usarla aceptas estas condiciones sencillas.</p>
+        <p>Auxi Studio es gratuita e incluye Auxi Student (estudiar con juegos) y Auxi Vida (ordenar tu plata). Al usarla aceptas estas condiciones sencillas.</p>
       </Seccion>
       <Seccion titulo="Tu cuenta">
         <p>Eres responsable de tu contraseña y de lo que hagas con tu cuenta. Debes dar datos verdaderos en lo que sea necesario para usar la app.</p>
@@ -113,7 +113,7 @@ function Terminos() {
 export default function Legal() {
   const ruta = useRuta();
   const esTerminos = ruta.includes("terminos");
-  const inicio = ruta.startsWith("/teach") ? "/teach" : "/";
+  const inicio = ruta.startsWith("/student") ? "/student" : "/";
   return (
     <main
       className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5"

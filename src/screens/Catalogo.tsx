@@ -251,7 +251,7 @@ export default function Catalogo() {
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-titulo font-black">Catálogo</h1>
-          <p className="mt-1 text-text-soft">Las piezas de Auxi Teach. Tócalas todas.</p>
+          <p className="mt-1 text-text-soft">Las piezas de Auxi Student. Tócalas todas.</p>
         </div>
         <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={resorteRebote}>
           <CaraDeLeon cara="guino" tamano={56} />
@@ -343,7 +343,7 @@ export default function Catalogo() {
       </Seccion>
 
       <div className="pt-2">
-        <Boton variante="secundario" onClick={() => navegar("/teach/inicio")}>
+        <Boton variante="secundario" onClick={() => navegar("/student/inicio")}>
           Volver a la portada
         </Boton>
       </div>

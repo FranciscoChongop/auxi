@@ -8,13 +8,13 @@ Para cualquier tarea de **Auxi Vida** (`/vida`), lee también `docs/vida/vida.md
 
 **Auxi Studio por Daniel Chong** es la plataforma (dominio auxistudio.com): un mundo de mini apps gratuitas con una sola cuenta. La portada y el inicio (`/`) viven en `src/screens/Plataforma.tsx`; nombres y mini apps se cambian solo en `src/lib/plataforma.ts`. Las mini apps de hoy:
 
-- **Auxi Teach** (estudiantes, `/teach`): la primera que se construyó. Antes se llamaba Auxi Studio; `/studio/...` redirige a `/teach/...`.
+- **Auxi Student** (estudiantes, `/student`): la primera que se construyó. Antes se llamaba Auxi Studio; `/studio/...` redirige a `/student/...`.
 - **Auxi Vida** (personas, `/vida`).
 - **Vendoe** (negocios): app aparte con su propio dominio. `/negocio` cuenta el clic y redirige a vendoe.es.
 
-La plataforma es el gancho gratuito; el producto de pago es **Vendoe**. Cada mini app tiene su propia URL de entrada para medir su tráfico por separado (la mini app de cada evento: `teach`, `vida`, `negocio` o `plataforma`). Más adelante se sumarán más mini apps (una fila en `MINI_APPS`) y un enlace a la landing de Daniel (`LANDING_URL`).
+La plataforma es el gancho gratuito; el producto de pago es **Vendoe**. Cada mini app tiene su propia URL de entrada para medir su tráfico por separado (la mini app de cada evento: `student`, `vida`, `negocio` o `plataforma`). Más adelante se sumarán más mini apps (una fila en `MINI_APPS`) y un enlace a la landing de Daniel (`LANDING_URL`).
 
-Al leer el resto de este archivo, donde dice «Studio» se refiere a **Auxi Teach**.
+Al leer el resto de este archivo, donde dice «Studio» se refiere a **Auxi Student**.
 
 ## La promesa de Studio
 

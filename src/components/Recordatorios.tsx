@@ -28,9 +28,9 @@ function avisosDe(e: Estado): Aviso[] {
     const repaso = debidosDeRepaso(e, curso.id).length;
     const siguiente = nodos(curso, e).find((n) => n.abierto && !n.hecho);
     if (repaso > 0) {
-      lista.push({ id: "repaso", texto: `Tienes ${repaso} ${repaso === 1 ? "pregunta" : "preguntas"} para repasar hoy. Son 2 minutos.`, boton: "Repasar", ir: () => navegar("/teach/leccion?n=repaso"), tono: "estudio" });
+      lista.push({ id: "repaso", texto: `Tienes ${repaso} ${repaso === 1 ? "pregunta" : "preguntas"} para repasar hoy. Son 2 minutos.`, boton: "Repasar", ir: () => navegar("/student/leccion?n=repaso"), tono: "estudio" });
     } else if ((e.diasEstudio[hoy()] ?? 0) === 0 && siguiente) {
-      lista.push({ id: "leccion", texto: `Hoy aún no estudias. «${siguiente.titulo}» te toma pocos minutos.`, boton: "Empezar", ir: () => navegar(`/teach/leccion?n=${siguiente.clave}`), tono: "estudio" });
+      lista.push({ id: "leccion", texto: `Hoy aún no estudias. «${siguiente.titulo}» te toma pocos minutos.`, boton: "Empezar", ir: () => navegar(`/student/leccion?n=${siguiente.clave}`), tono: "estudio" });
     }
   }
 
@@ -39,7 +39,7 @@ function avisosDe(e: Estado): Aviso[] {
     .sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
   if (entrega) {
     const d = diasEntre(hoy(), entrega.fecha);
-    lista.push({ id: "entrega", texto: `«${entrega.titulo}» ${d === 0 ? "vence hoy" : d === 1 ? "vence mañana" : `vence en ${d} días`}.`, boton: "Ver entregas", ir: () => navegar("/teach/entregas"), tono: "estudio" });
+    lista.push({ id: "entrega", texto: `«${entrega.titulo}» ${d === 0 ? "vence hoy" : d === 1 ? "vence mañana" : `vence en ${d} días`}.`, boton: "Ver entregas", ir: () => navegar("/student/entregas"), tono: "estudio" });
   }
 
   // 2) Cupo de temas y pase libre (siempre a la vista mientras no lo tenga).
@@ -53,7 +53,7 @@ function avisosDe(e: Estado): Aviso[] {
         : quedan === 1
           ? "Te queda 1 tema gratis. Con el pase libre no tendrás límite, para siempre. Solo cumples unos pasos."
           : `Tienes ${quedan} temas gratis. Con el pase libre no hay límite, para siempre. Solo cumples unos pasos.`;
-    lista.push({ id: "pase", texto, boton: "Ver los pasos", ir: () => navegar("/teach/apoyo"), tono: "pase" });
+    lista.push({ id: "pase", texto, boton: "Ver los pasos", ir: () => navegar("/student/apoyo"), tono: "pase" });
   }
   return lista;
 }

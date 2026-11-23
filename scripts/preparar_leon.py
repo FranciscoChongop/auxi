@@ -2,6 +2,7 @@
 
 - A1 a A8: quita el fondo lila liso, recorta y guarda WebP liviano con transparencia.
 - A9: genera los íconos de la app (PWA, iPhone y favicon).
+- Plataforma: originales/plataforma/*.png|jpg -> public/plataforma/*.webp (banners, sin mascota).
 - Vida (B1 a B9): lo mismo desde originales/leon/vida hacia public/leon/vida
   (B9 solo se guarda como WebP; los íconos de la app siguen siendo los de A9).
 
@@ -148,7 +149,25 @@ def icono_vida() -> None:
     cuadrado.resize((512, 512), Image.LANCZOS).save(LEON / "vida" / "B9-icono.webp", "WEBP", quality=82, method=6)
 
 
+def banners() -> None:
+    """Banners de la plataforma: originales/plataforma/*.png|jpg -> public/plataforma/*.webp (máx. 1600 px)."""
+    origen = RAIZ / "originales" / "plataforma"
+    destino = RAIZ / "public" / "plataforma"
+    if not origen.exists():
+        return
+    destino.mkdir(parents=True, exist_ok=True)
+    for f in sorted(origen.iterdir()):
+        if f.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp"):
+            continue
+        im = Image.open(f).convert("RGB")
+        im.thumbnail((1600, 1600), Image.LANCZOS)
+        salida = destino / f"{f.stem}.webp"
+        im.save(salida, "WEBP", quality=80, method=6)
+        print(f"{salida.name}: {im.size[0]}x{im.size[1]}, {salida.stat().st_size // 1024} KB")
+
+
 def main() -> None:
+    banners()
     poses(POSES, ORIGEN, LEON)
     if (LEON / "A8-caras.webp").exists():
         caras(LEON / "A8-caras.webp", LEON / "caras", ["feliz", "guino", "sorpresa", "lengua", "tierno", "lentes"])

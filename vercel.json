@@ -1,4 +1,4 @@
 {
-  "redirects": [{ "source": "/studio/:path*", "destination": "/teach/:path*", "permanent": true }],
+  "redirects": [{ "source": "/studio/:path*", "destination": "/student/:path*", "permanent": true }],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

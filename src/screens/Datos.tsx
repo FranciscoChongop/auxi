@@ -48,7 +48,7 @@ export default function Datos() {
     };
     actualizar(() => ({ datos }));
     metricas.perfilCompletado({ pais, carrera: datos.carrera, universidad: datos.universidad, edad: datos.anio ? rango(datos.anio) : "sin dato" });
-    reemplazar("/teach/inicio");
+    reemplazar("/student/inicio");
   }
 
   const completo = nombre.trim().length >= 2 && !!anio && carrera.trim().length >= 2 && universidad.trim().length >= 2 && !!pais;
@@ -120,7 +120,7 @@ export default function Datos() {
           type="button"
           onClick={async () => {
             await salir();
-            reemplazar("/teach");
+            reemplazar("/student");
           }}
           className="h-11 cursor-pointer font-extrabold text-text-soft"
         >

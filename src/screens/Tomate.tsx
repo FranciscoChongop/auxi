@@ -161,7 +161,7 @@ export default function Tomate() {
 
   if (fase === "juego") {
     return (
-      <Pantalla titulo="Descanso" atras="/teach/metodos" conBarra={false}>
+      <Pantalla titulo="Descanso" atras="/student/metodos" conBarra={false}>
         <Burbujas
           palabras={palabras}
           alTerminar={(n) => {
@@ -185,7 +185,7 @@ export default function Tomate() {
 
   const madurez = fase === "foco" ? 1 - restante / total : 1;
   return (
-    <Pantalla titulo="El tomate" atras="/teach/metodos" conBarra={false}>
+    <Pantalla titulo="El tomate" atras="/student/metodos" conBarra={false}>
       <SelectorTema etiqueta="Estudias" />
       <div className="flex gap-2" role="radiogroup" aria-label="Duración">
         {MODOS.map((m) => (

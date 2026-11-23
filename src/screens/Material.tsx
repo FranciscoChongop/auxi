@@ -51,7 +51,7 @@ export default function Material() {
   const importados = Object.keys(e.importados).length;
 
   return (
-    <Pantalla titulo="Sube lo que tengas" conBarra={!!e.cursoId} atras={e.cursoId ? "/teach/inicio" : undefined}>
+    <Pantalla titulo="Sube lo que tengas" conBarra={!!e.cursoId} atras={e.cursoId ? "/student/inicio" : undefined}>
       <p className="-mt-2 text-text-soft">Pásalo por tu IA favorita y pega el resultado. León lo convierte en juego.</p>
 
       <Opcion
@@ -59,7 +59,7 @@ export default function Material() {
         titulo="Crear con mi IA"
         ayuda="ChatGPT, Claude o Gemini lo leen; tú pegas lo que te dan"
         icono={<Icono tipo="ia" />}
-        onClick={() => navegar("/teach/importar")}
+        onClick={() => navegar("/student/importar")}
       />
       {importados > 0 && (
         <Opcion
@@ -67,7 +67,7 @@ export default function Material() {
           titulo="Elegir de Mis cursos"
           ayuda={`${importados} ${importados === 1 ? "tema listo" : "temas listos"} para estudiar`}
           icono={<Icono tipo="curso" />}
-          onClick={() => navegar("/teach/cursos")}
+          onClick={() => navegar("/student/cursos")}
         />
       )}
 

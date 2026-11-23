@@ -117,7 +117,7 @@ export default function Leccion() {
       fallados: [...fallados.current],
     });
     metricas.leccionCompletada({ precision: hecha.precision, primera: hecha.primera, primerDia: primerDiaDeUso() });
-    reemplazar("/teach/celebracion");
+    reemplazar("/student/celebracion");
   }
 
   function reintentar() {
@@ -274,7 +274,7 @@ export default function Leccion() {
             </div>
             <div className="flex flex-col gap-3">
               <Boton onClick={reintentar}>Intentar de nuevo</Boton>
-              <Boton variante="secundario" onClick={() => reemplazar("/teach/inicio")}>
+              <Boton variante="secundario" onClick={() => reemplazar("/student/inicio")}>
                 Volver al camino
               </Boton>
             </div>
@@ -286,7 +286,7 @@ export default function Leccion() {
         <p className="text-text-soft">Lo que avanzaste en esta lección no se guarda.</p>
         <div className="mt-6 flex flex-col gap-3">
           <Boton onClick={() => setSalir(false)}>Seguir estudiando</Boton>
-          <Boton variante="secundario" onClick={() => reemplazar("/teach/inicio")}>
+          <Boton variante="secundario" onClick={() => reemplazar("/student/inicio")}>
             Salir
           </Boton>
         </div>
@@ -315,7 +315,7 @@ function Vacia({ titulo, texto }: { titulo: string; texto: string }) {
         <h1 className="text-titulo font-black">{titulo}</h1>
         <p className="text-text-soft">{texto}</p>
       </div>
-      <Boton onClick={() => reemplazar("/teach/inicio")}>Volver al camino</Boton>
+      <Boton onClick={() => reemplazar("/student/inicio")}>Volver al camino</Boton>
     </main>
   );
 }

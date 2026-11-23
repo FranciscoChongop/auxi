@@ -75,13 +75,13 @@ export default function Silabo() {
     sonidos.leccionCompleta();
     void lanzarConfeti();
     aviso(nuevas.length ? `Agregué ${nuevas.length} ${nuevas.length === 1 ? "entrega" : "entregas"} a tu calendario.` : "Esas entregas ya estaban guardadas.", nuevas.length ? "exito" : "info");
-    reemplazar("/teach/entregas?ver=calendario");
+    reemplazar("/student/entregas?ver=calendario");
   }
 
   const cursos = datos ? [...new Set(datos.entregas.map((x) => x.curso))] : [];
 
   return (
-    <Pantalla titulo="Importa tu sílabo" atras="/teach/entregas" conBarra={false}>
+    <Pantalla titulo="Importa tu sílabo" atras="/student/entregas" conBarra={false}>
       <p className="-mt-2 text-text-soft">Tu IA lee el sílabo. Auxi arma tus entregas y tu calendario.</p>
 
       <Paso n={1} titulo="Copia el prompt">
