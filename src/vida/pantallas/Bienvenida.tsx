@@ -23,8 +23,8 @@ export default function Bienvenida() {
     <Pagina className="flex flex-col">
       <div className="flex items-center justify-between px-5" style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}>
         <MarcaVida />
-        <a href="/studio" className="flex min-h-11 items-center text-ayuda font-extrabold text-text-soft">
-          ¿Eres estudiante? Studio
+        <a href="/teach" className="flex min-h-11 items-center text-ayuda font-extrabold text-text-soft">
+          ¿Eres estudiante? Auxi Teach
         </a>
       </div>
 
@@ -63,10 +63,10 @@ export default function Bienvenida() {
         </div>
         <p className="mt-3 text-center text-ayuda text-text-soft">Gratis. Auxi Vida no mueve tu plata ni presta.</p>
         <p className="mt-1 flex justify-center gap-4 text-ayuda font-extrabold">
-          <a href="/studio/privacidad" className="min-h-11 content-center text-brand underline">
+          <a href="/teach/privacidad" className="min-h-11 content-center text-brand underline">
             Privacidad
           </a>
-          <a href="/studio/terminos" className="min-h-11 content-center text-brand underline">
+          <a href="/teach/terminos" className="min-h-11 content-center text-brand underline">
             Condiciones
           </a>
         </p>

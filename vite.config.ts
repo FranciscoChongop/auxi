@@ -12,10 +12,10 @@ export default defineConfig({
       includeAssets: ["icons/apple-touch-icon.png", "icons/favicon-32.png"],
       manifest: {
         name: "Auxi Studio",
-        short_name: "Auxi",
-        description: "Sube lo que te dejaron y estudia jugando con León.",
+        short_name: "Auxi Studio",
+        description: "Mini apps gratis de Daniel Chong: estudia jugando y ordena tu plata.",
         lang: "es-PE",
-        start_url: "/studio",
+        start_url: "/",
         scope: "/",
         display: "standalone",
         orientation: "portrait",

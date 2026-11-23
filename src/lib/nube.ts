@@ -94,7 +94,7 @@ function capturarErrorDeEntrada() {
     const err = q.get("error_description") ?? q.get("error");
     if (!err) return;
     sessionStorage.setItem("auxi.errorEntrada", err.replace(/\+/g, " "));
-    history.replaceState(null, "", location.pathname.startsWith("/vida") ? "/vida/cuenta" : "/studio/entrada");
+    history.replaceState(null, "", location.pathname.startsWith("/vida") ? "/vida/cuenta" : location.pathname.startsWith("/teach") ? "/teach/entrada" : "/entrar");
   } catch {
     // sin almacenamiento
   }
@@ -141,7 +141,7 @@ export function iniciarNube() {
 /* ---------- Acciones de la pantalla de cuenta ---------- */
 
 /** Vuelve a la mini app desde donde se entró (Studio o Vida). */
-const urlDeVuelta = () => `${location.origin}${location.pathname.startsWith("/vida") ? "/vida/inicio" : "/studio"}`;
+const urlDeVuelta = () => `${location.origin}${location.pathname.startsWith("/vida") ? "/vida/inicio" : location.pathname.startsWith("/teach") ? "/teach" : "/"}`;
 
 export async function entrarConGoogle() {
   if (!supabase) return "Las cuentas aún no están activadas.";

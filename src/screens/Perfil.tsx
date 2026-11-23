@@ -64,8 +64,8 @@ export default function Perfil() {
 
   async function compartir(id: string, texto: string, premio: number) {
     try {
-      if (navigator.share) await navigator.share({ title: "Auxi Studio", text: texto, url: location.origin + "/studio" });
-      else await navigator.clipboard.writeText(`${texto} ${location.origin}/studio`);
+      if (navigator.share) await navigator.share({ title: "Auxi Teach", text: texto, url: location.origin + "/teach" });
+      else await navigator.clipboard.writeText(`${texto} ${location.origin}/teach`);
       if (id === "invitar") metricas.invitacion("compartir");
       premiar(id, premio);
     } catch {
@@ -74,8 +74,8 @@ export default function Perfil() {
   }
 
   function hacerMision(id: string, premio: number) {
-    if (id === "compartir") compartir(id, `Llevo ${rachaVigente(e)} días de racha estudiando con León en Auxi Studio.`, premio);
-    if (id === "invitar") compartir(id, "Estudia jugando conmigo en Auxi Studio. Es gratis.", premio);
+    if (id === "compartir") compartir(id, `Llevo ${rachaVigente(e)} días de racha estudiando con León en Auxi Teach.`, premio);
+    if (id === "invitar") compartir(id, "Estudia jugando conmigo en Auxi Teach. Es gratis.", premio);
     if (id === "opinar") setOpinion(true);
     if (id === "instagram") {
       window.open(INSTAGRAM_URL, "_blank", "noopener");
@@ -97,7 +97,7 @@ export default function Perfil() {
 
       <button
         type="button"
-        onClick={() => navegar("/studio/monedas")}
+        onClick={() => navegar("/teach/monedas")}
         className="flex min-h-14 cursor-pointer items-center justify-between rounded-tarjeta border-2 border-surface bg-card px-4 text-left"
       >
         <span>
@@ -168,12 +168,12 @@ export default function Perfil() {
           {e.pasePorVida ? "Ya tienes el pase libre de por vida." : "Apoya a @soydanielchong y estudia sin límite de temas, para siempre. Lo revisamos a mano."}
         </p>
         <div className="mt-3">
-          <Boton variante="secundario" onClick={() => navegar("/studio/apoyo")}>
+          <Boton variante="secundario" onClick={() => navegar("/teach/apoyo")}>
             {e.pasePorVida ? "Ver mi pase" : "Empezar"}
           </Boton>
         </div>
         {esDueno(cuenta.email) && (
-          <button type="button" onClick={() => navegar("/studio/revision")} className="mt-1 h-11 w-full cursor-pointer font-extrabold underline underline-offset-4">
+          <button type="button" onClick={() => navegar("/teach/revision")} className="mt-1 h-11 w-full cursor-pointer font-extrabold underline underline-offset-4">
             Panel de revisión
           </button>
         )}
@@ -206,7 +206,7 @@ export default function Perfil() {
 
       <button
         type="button"
-        onClick={() => navegar("/studio/ayuda")}
+        onClick={() => navegar("/teach/ayuda")}
         className="flex min-h-16 cursor-pointer items-center gap-3 rounded-tarjeta border-2 border-surface bg-card px-4 py-3 text-left"
       >
         <CaraDeLeon cara="feliz" tamano={44} />
@@ -220,7 +220,7 @@ export default function Perfil() {
       <Bloque titulo="Ajustes">
         <button
           type="button"
-          onClick={() => navegar("/studio/cuenta?volver=/studio/perfil")}
+          onClick={() => navegar("/teach/cuenta?volver=/teach/perfil")}
           className="mb-2 flex min-h-12 w-full cursor-pointer items-center justify-between gap-3 text-left"
         >
           <span>
@@ -236,7 +236,7 @@ export default function Perfil() {
           <span className="font-bold">Avisos de entregas</span>
           <span className="text-ayuda font-bold text-text-soft">Muy pronto</span>
         </div>
-        <button type="button" onClick={() => navegar("/studio/tour")} className="flex min-h-11 w-full cursor-pointer items-center justify-between font-bold text-left">
+        <button type="button" onClick={() => navegar("/teach/tour")} className="flex min-h-11 w-full cursor-pointer items-center justify-between font-bold text-left">
           Ver la guía de Auxi otra vez
           <span className="text-ayuda font-extrabold text-brand">Ver</span>
         </button>
@@ -252,7 +252,7 @@ export default function Perfil() {
             type="button"
             onClick={async () => {
               await salir();
-              reemplazar("/studio");
+              reemplazar("/teach");
             }}
             className="mt-3 h-12 w-full cursor-pointer rounded-boton border-2 border-error font-extrabold text-error"
           >
@@ -263,6 +263,18 @@ export default function Perfil() {
           Borrar mi avance de este celular
         </button>
       </Bloque>
+
+      <button
+        type="button"
+        onClick={() => navegar("/")}
+        className="flex min-h-14 cursor-pointer items-center justify-between rounded-tarjeta border-2 border-surface bg-card px-4 text-left"
+      >
+        <span>
+          <span className="block font-extrabold">Todas mis mini apps</span>
+          <span className="block text-ayuda text-text-soft">Vuelve a Auxi Studio para elegir otra</span>
+        </span>
+        <span className="font-extrabold text-brand">Abrir</span>
+      </button>
 
       <section className="flex items-center gap-4 rounded-tarjeta bg-surface p-4">
         <img src="/brand/vendoe.svg" alt="Vendoe" className="h-10 w-auto" />
@@ -366,7 +378,7 @@ export default function Perfil() {
             type="button"
             onClick={() => {
               reiniciarTodo();
-              reemplazar("/studio");
+              reemplazar("/teach");
             }}
             className="h-12 cursor-pointer font-extrabold text-error"
           >

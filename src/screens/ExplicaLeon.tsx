@@ -90,14 +90,14 @@ export default function ExplicaLeon() {
 
   if (!t) {
     return (
-      <Pantalla titulo="Explícaselo a León" atras="/studio/metodos" conBarra={false}>
+      <Pantalla titulo="Explícaselo a León" atras="/teach/metodos" conBarra={false}>
         <SinTema texto="Para explicárselo a León necesitas un tema. Agrega el primero." />
       </Pantalla>
     );
   }
 
   return (
-    <Pantalla titulo="Explícaselo a León" atras="/studio/metodos" conBarra={false}>
+    <Pantalla titulo="Explícaselo a León" atras="/teach/metodos" conBarra={false}>
       <SelectorTema etiqueta="Explicas" />
       <div className="flex items-center gap-3">
         <Leon pose="pensativo" alto={110} />

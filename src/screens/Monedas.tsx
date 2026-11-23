@@ -62,7 +62,7 @@ export default function Monedas() {
   }
 
   return (
-    <Pantalla titulo="Monedas" atras="/studio/perfil">
+    <Pantalla titulo="Monedas" atras="/teach/perfil">
       <div className="flex items-center gap-3 rounded-tarjeta bg-brand p-4 text-white" style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}>
         <Moneda className="size-12" />
         <div>
@@ -126,7 +126,7 @@ export default function Monedas() {
             </li>
           ))}
         </ul>
-        <Boton variante="secundario" onClick={() => navegar("/studio/perfil")}>
+        <Boton variante="secundario" onClick={() => navegar("/teach/perfil")}>
           Ver las misiones de apoyo
         </Boton>
         <p className="text-center text-ayuda text-text-soft">

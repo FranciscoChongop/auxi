@@ -6,7 +6,7 @@ import Entrada from "../../screens/Entrada";
 import { actualizarVida } from "../estado";
 import { CaraLeonVida, LeonVida, Pagina, PieFijo } from "../ui";
 
-/** Después del primer gasto: crear la cuenta Auxi (la misma de Studio). Siempre se puede dejar para después. */
+/** Después del primer gasto: crear la cuenta Auxi (la misma de Auxi Teach). Siempre se puede dejar para después. */
 export default function Cuenta() {
   const cuenta = useCuenta();
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function Cuenta() {
         <h1 className="mt-4 text-titulo font-black">{conectado ? "Ya estás con tu cuenta Auxi" : "Tu avance está en este celular"}</h1>
         <p className="mt-2 max-w-xs text-text-soft">
           {conectado
-            ? `Entraste como ${cuenta.email ?? "tu cuenta"}. Es la misma cuenta de Studio. En esta versión de prueba, lo que anotas en Vida se guarda en este celular; pronto se guardará también en tu cuenta.`
+            ? `Entraste como ${cuenta.email ?? "tu cuenta"}. Es la misma cuenta de Auxi Teach. En esta versión de prueba, lo que anotas en Vida se guarda en este celular; pronto se guardará también en tu cuenta.`
             : "Las cuentas aún no están activadas aquí. Todo lo que anotas se guarda en este celular."}
         </p>
       </div>

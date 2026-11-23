@@ -115,3 +115,7 @@ Voz de León: cercano, curioso, breve. Tutea. Frases de menos de 12 palabras en 
 - [ ] Texto legible a 390 px de ancho, contraste 4,5 o más.
 - [ ] Funciona con `prefers-reduced-motion`.
 - [ ] Probada en tamaño de celular con la skill webapp-testing.
+
+## Auxi Studio (la plataforma)
+
+La portada y el inicio de **Auxi Studio por Daniel Chong** usan los colores base (cobalto sobre fondo casi blanco). Cada mini app aparece como una tarjeta de **su propio color**: Auxi Teach cobalto `#2430D9`, Auxi Vida turquesa profundo `#0E5B57`, Vendoe índigo `#4A4EDB`. La marca es una órbita con tres puntos (uno por mini app) y «por Daniel Chong» debajo. Los puntos de la órbita giran despacio solo en la portada y se quedan quietos si la persona reduce el movimiento. Pie fijo: «Auxi Studio por Daniel Chong», Instagram, Privacidad y Condiciones (y «Sobre mí» cuando exista `LANDING_URL`). Vendoe se presenta siempre como una app aparte, con su propia página.

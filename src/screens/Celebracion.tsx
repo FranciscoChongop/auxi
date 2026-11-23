@@ -48,37 +48,37 @@ export default function Celebracion() {
   }, [c]);
 
   if (!c) {
-    reemplazar("/studio/inicio");
+    reemplazar("/teach/inicio");
     return null;
   }
 
   function seguir() {
     if (cuenta.modo === "invitado") {
-      reemplazar("/studio/inicio");
+      reemplazar("/teach/inicio");
       return;
     }
     if (c!.primera && !e.avisoCuentaVisto && cuenta.modo !== "conectado") {
       setGuardar(true);
       return;
     }
-    reemplazar(c!.cofre ? "/studio/cofre" : "/studio/inicio");
+    reemplazar(c!.cofre ? "/teach/cofre" : "/teach/inicio");
   }
 
   async function compartir() {
-    const texto = `Terminé «${c!.titulo}» en Auxi Studio con ${c!.precision} % de precisión. Racha: ${c!.rachaDias} ${c!.rachaDias === 1 ? "día" : "días"}.`;
+    const texto = `Terminé «${c!.titulo}» en Auxi Teach con ${c!.precision} % de precisión. Racha: ${c!.rachaDias} ${c!.rachaDias === 1 ? "día" : "días"}.`;
     try {
       // Con imagen de León cuando el celular lo permite.
       try {
         const r = await fetch("/marketing/logro.jpg");
         const archivo = new File([await r.blob()], "mi-logro-auxi.jpg", { type: "image/jpeg" });
         if (navigator.canShare?.({ files: [archivo] })) {
-          await navigator.share({ files: [archivo], title: "Mi logro en Auxi", text: `${texto} https://auxi-three.vercel.app/studio` });
+          await navigator.share({ files: [archivo], title: "Mi logro en Auxi", text: `${texto} https://auxi-three.vercel.app/teach` });
           return;
         }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
       }
-      if (navigator.share) await navigator.share({ title: "Mi logro en Auxi", text: texto, url: "https://auxi-three.vercel.app/studio" });
+      if (navigator.share) await navigator.share({ title: "Mi logro en Auxi", text: texto, url: "https://auxi-three.vercel.app/teach" });
       else {
         await navigator.clipboard.writeText(texto);
         aviso("Copiado. Pégalo en tus estados.", "exito");
@@ -146,7 +146,7 @@ export default function Celebracion() {
         alCerrar={() => {
           setGuardar(false);
           actualizar(() => ({ avisoCuentaVisto: true }));
-          reemplazar(c.cofre ? "/studio/cofre" : "/studio/inicio");
+          reemplazar(c.cofre ? "/teach/cofre" : "/teach/inicio");
         }}
         titulo="Guarda tu avance"
       >
@@ -155,7 +155,7 @@ export default function Celebracion() {
           <Boton
             onClick={() => {
               actualizar(() => ({ avisoCuentaVisto: true }));
-              navegar(`/studio/cuenta?volver=${c.cofre ? "/studio/cofre" : "/studio/inicio"}`);
+              navegar(`/teach/cuenta?volver=${c.cofre ? "/teach/cofre" : "/teach/inicio"}`);
             }}
           >
             Crear mi cuenta gratis

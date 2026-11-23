@@ -19,7 +19,7 @@ function Privacidad() {
     <>
       <p className="text-text-soft">Última actualización: 22 de noviembre de 2026.</p>
       <Seccion titulo="Quién la ofrece">
-        <p>Auxi es una plataforma gratuita creada por Daniel Chong (@soydanielchong) con dos mini apps: Auxi Studio (para estudiar) y Auxi Vida (para ordenar tu plata). Esta página explica qué datos guardamos y para qué.</p>
+        <p>Auxi Studio es una plataforma gratuita creada por Daniel Chong (@soydanielchong). Reúne mini apps: Auxi Teach (para estudiar) y Auxi Vida (para ordenar tu plata), y un enlace a Vendoe (para negocios), que es una app aparte con su propia página. Esta página explica qué datos guardamos y para qué.</p>
       </Seccion>
       <Seccion titulo="Qué datos guardamos">
         <ul className="list-disc space-y-1 pl-5">
@@ -78,8 +78,8 @@ function Terminos() {
   return (
     <>
       <p className="text-text-soft">Última actualización: 22 de noviembre de 2026.</p>
-      <Seccion titulo="Qué es Auxi">
-        <p>Auxi es gratuita e incluye Auxi Studio (estudiar con juegos) y Auxi Vida (ordenar tu plata). Al usarla aceptas estas condiciones sencillas.</p>
+      <Seccion titulo="Qué es Auxi Studio">
+        <p>Auxi Studio es gratuita e incluye Auxi Teach (estudiar con juegos) y Auxi Vida (ordenar tu plata). Al usarla aceptas estas condiciones sencillas.</p>
       </Seccion>
       <Seccion titulo="Tu cuenta">
         <p>Eres responsable de tu contraseña y de lo que hagas con tu cuenta. Debes dar datos verdaderos en lo que sea necesario para usar la app.</p>
@@ -113,6 +113,7 @@ function Terminos() {
 export default function Legal() {
   const ruta = useRuta();
   const esTerminos = ruta.includes("terminos");
+  const inicio = ruta.startsWith("/teach") ? "/teach" : "/";
   return (
     <main
       className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5"
@@ -121,7 +122,7 @@ export default function Legal() {
       <h1 className="text-titulo font-black">{esTerminos ? "Condiciones del servicio" : "Política de privacidad"}</h1>
       {esTerminos ? <Terminos /> : <Privacidad />}
       <div className="mt-auto pt-4">
-        <Boton variante="secundario" onClick={() => (window.history.length > 1 ? volver("/studio") : reemplazar("/studio"))}>
+        <Boton variante="secundario" onClick={() => (window.history.length > 1 ? volver(inicio) : reemplazar(inicio))}>
           Volver
         </Boton>
       </div>

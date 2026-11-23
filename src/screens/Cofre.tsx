@@ -79,7 +79,7 @@ export default function Cofre() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => reemplazar("/studio/inicio")}
+          onClick={() => reemplazar("/teach/inicio")}
           aria-label="Cerrar"
           className="grid size-11 cursor-pointer place-items-center rounded-full bg-surface"
         >
@@ -145,7 +145,7 @@ export default function Cofre() {
       </div>
 
       {fase === "abierto" || yaAbierto ? (
-        <Boton onClick={() => reemplazar("/studio/inicio")}>Continuar</Boton>
+        <Boton onClick={() => reemplazar("/teach/inicio")}>Continuar</Boton>
       ) : (
         <Boton variante="premio" sinSonido deshabilitado={fase === "abriendo"} onClick={abrir}>
           {fase === "abriendo" ? "Abriendo…" : "Abrir cofre"}

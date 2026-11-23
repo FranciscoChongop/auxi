@@ -44,7 +44,7 @@ export default function Tour() {
 
   function terminar() {
     actualizar(() => ({ tourVisto: true }));
-    reemplazar("/studio/inicio");
+    reemplazar("/teach/inicio");
   }
 
   return (

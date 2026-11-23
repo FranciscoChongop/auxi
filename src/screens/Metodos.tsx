@@ -154,7 +154,7 @@ export default function Metodos() {
         <motion.button
           {...entradaEnCascada(0)}
           type="button"
-          onClick={() => navegar(`/studio/metodos/${sugerencia.id}`)}
+          onClick={() => navegar(`/teach/metodos/${sugerencia.id}`)}
           className="flex cursor-pointer items-center gap-3 rounded-tarjeta bg-brand p-4 text-left text-white"
           style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}
         >
@@ -199,7 +199,7 @@ export default function Metodos() {
             </p>
           </div>
           <div className="px-4 pb-4">
-            <Boton onClick={() => navegar(`/studio/metodos/${m.id}`)}>Empezar</Boton>
+            <Boton onClick={() => navegar(`/teach/metodos/${m.id}`)}>Empezar</Boton>
           </div>
         </motion.section>
       ))}

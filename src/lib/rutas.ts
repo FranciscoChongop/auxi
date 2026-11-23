@@ -29,7 +29,7 @@ export function reemplazar(ruta: string) {
   avisar();
 }
 
-export function volver(porDefecto = "/studio/inicio") {
+export function volver(porDefecto = "/teach/inicio") {
   if (window.history.length > 1) window.history.back();
   else reemplazar(porDefecto);
 }

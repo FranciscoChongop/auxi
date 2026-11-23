@@ -95,11 +95,11 @@ export default function Importar() {
     sonidos.leccionCompleta();
     void lanzarConfeti();
     aviso(r.nuevo ? "¡Listo! Tu tema ya está en Mis cursos." : `Agregué ${r.agregadas} ${r.agregadas === 1 ? "unidad" : "unidades"} a tu tema.`, "exito");
-    reemplazar("/studio/camino");
+    reemplazar("/teach/camino");
   }
 
   return (
-    <Pantalla titulo="Crea tu lección" atras="/studio/cursos" conBarra={false}>
+    <Pantalla titulo="Crea tu lección" atras="/teach/cursos" conBarra={false}>
       <p className="-mt-2 text-text-soft">Tu IA favorita lee tu material. Auxi lo convierte en juego. Gratis.</p>
 
       <Paso n={1} titulo="Copia el prompt">
@@ -214,7 +214,7 @@ export default function Importar() {
               <p className="mt-1 text-text-soft">
                 Tienes {importadosUsados(e)} temas importados. Para otro tema nuevo necesitas un cupo: cuesta {PRECIO_CUPO} monedas. Tus temas de antes siguen abiertos.
               </p>
-              <button type="button" onClick={() => navegar("/studio/monedas")} className="mt-2 h-11 cursor-pointer font-extrabold text-brand">
+              <button type="button" onClick={() => navegar("/teach/monedas")} className="mt-2 h-11 cursor-pointer font-extrabold text-brand">
                 Ver cómo conseguir monedas
               </button>
             </section>

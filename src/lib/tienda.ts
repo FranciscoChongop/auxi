@@ -190,9 +190,9 @@ export function ponerExamen(cursoId: string, temaId: string, fecha: string | nul
 export function estudiarTema(info: InfoTema, navegar: (ruta: string) => void) {
   if (info.contenido) {
     actualizar(() => ({ cursoId: info.contenido!.id, estudiando: { cursoId: info.curso.id, temaId: info.tema.id } }));
-    navegar("/studio/camino");
+    navegar("/teach/camino");
   } else {
-    navegar(`/studio/importar?curso=${info.curso.id}&tema=${info.tema.id}`);
+    navegar(`/teach/importar?curso=${info.curso.id}&tema=${info.tema.id}`);
   }
 }
 

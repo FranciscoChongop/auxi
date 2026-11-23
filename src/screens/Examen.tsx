@@ -81,7 +81,7 @@ export default function Examen() {
     const info = todosLosTemas(e).find((t) => t.tema.id === listo.idTema);
     const d = diasEntre(hoy(), fecha);
     return (
-      <Pantalla titulo="Examen anotado" atras="/studio/inicio" conBarra={false}>
+      <Pantalla titulo="Examen anotado" atras="/teach/inicio" conBarra={false}>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <Leon pose="anima" alto={200} rebote />
           <h2 className="text-titulo font-black">¡Vamos con todo!</h2>
@@ -96,9 +96,9 @@ export default function Examen() {
           {info ? (
             <Boton onClick={() => estudiarTema(info, navegar)}>{info.contenido ? "Empezar a estudiar" : "Subir mi material y crear lecciones"}</Boton>
           ) : (
-            <Boton onClick={() => navegar(`/studio/importar?curso=${listo.idCurso}&tema=${listo.idTema}`)}>Subir mi material y crear lecciones</Boton>
+            <Boton onClick={() => navegar(`/teach/importar?curso=${listo.idCurso}&tema=${listo.idTema}`)}>Subir mi material y crear lecciones</Boton>
           )}
-          <Boton variante="secundario" onClick={() => navegar("/studio/inicio")}>
+          <Boton variante="secundario" onClick={() => navegar("/teach/inicio")}>
             Ahora no
           </Boton>
         </div>
@@ -107,7 +107,7 @@ export default function Examen() {
   }
 
   return (
-    <Pantalla titulo="¿Tienes un examen?" atras="/studio/inicio" conBarra={false}>
+    <Pantalla titulo="¿Tienes un examen?" atras="/teach/inicio" conBarra={false}>
       <p className="-mt-2 text-text-soft">Cuéntame de qué es y cuándo. Lo pongo primero y armo tu plan.</p>
 
       <Seccion n={1} titulo="¿De qué curso?">

@@ -190,9 +190,9 @@ export default function Curso() {
 
   if (!curso) {
     return (
-      <Pantalla titulo="Curso" atras="/studio/cursos">
+      <Pantalla titulo="Curso" atras="/teach/cursos">
         <p className="text-text-soft">No encontré este curso.</p>
-        <Boton onClick={() => reemplazar("/studio/cursos")}>Ver mis cursos</Boton>
+        <Boton onClick={() => reemplazar("/teach/cursos")}>Ver mis cursos</Boton>
       </Pantalla>
     );
   }
@@ -202,7 +202,7 @@ export default function Curso() {
   return (
     <Pantalla
       titulo={curso.nombre}
-      atras="/studio/cursos"
+      atras="/teach/cursos"
       derecha={
         <button type="button" onClick={() => setEditar(true)} className="h-11 cursor-pointer px-2 font-extrabold text-brand">
           Editar
@@ -250,7 +250,7 @@ export default function Curso() {
               const temaId = crearTema(curso.id, nombreTema);
               setNombreTema("");
               setNuevoTema(false);
-              navegar(`/studio/importar?curso=${curso.id}&tema=${temaId}`);
+              navegar(`/teach/importar?curso=${curso.id}&tema=${temaId}`);
             }}
           >
             Seguir
@@ -295,7 +295,7 @@ export default function Curso() {
                 ponerExamen(curso.id, t.id, null);
               });
               actualizar((s) => ({ misCursos: s.misCursos.filter((c) => c.id !== curso.id) }));
-              reemplazar("/studio/cursos");
+              reemplazar("/teach/cursos");
             }}
             className="h-11 cursor-pointer font-extrabold text-error"
           >

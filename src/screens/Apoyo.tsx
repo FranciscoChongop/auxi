@@ -14,7 +14,7 @@ import { sonidos } from "../lib/sonidos";
 
 function enlaceWhatsApp(s: { codigo: string; instagram: string | null; tiktok?: string | null }) {
   const texto = [
-    "Hola, pedí el pase libre de Auxi Studio.",
+    "Hola, pedí el pase libre de Auxi Teach.",
     `Código: ${s.codigo}`,
     s.instagram ? `Instagram: @${s.instagram}` : "",
     s.tiktok ? `TikTok: @${s.tiktok}` : "",
@@ -74,13 +74,13 @@ export default function Apoyo() {
   /* ---------- Ya lo tiene ---------- */
   if (e.pasePorVida) {
     return (
-      <Pantalla titulo="Pase libre" atras="/studio/perfil">
+      <Pantalla titulo="Pase libre" atras="/teach/perfil">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <Leon pose="celebra" alto={200} rebote />
           <h2 className="text-titulo font-black">¡Tienes el pase libre!</h2>
           <p className="max-w-[32ch] text-text-soft">Temas importados sin límite, para siempre. Gracias por apoyar a @soydanielchong.</p>
         </div>
-        <Boton onClick={() => navegar("/studio/cursos")}>Ir a Mis cursos</Boton>
+        <Boton onClick={() => navegar("/teach/cursos")}>Ir a Mis cursos</Boton>
       </Pantalla>
     );
   }
@@ -88,13 +88,13 @@ export default function Apoyo() {
   /* ---------- Sin cuenta ---------- */
   if (cuenta.modo !== "conectado") {
     return (
-      <Pantalla titulo="Pase libre" atras="/studio/perfil">
+      <Pantalla titulo="Pase libre" atras="/teach/perfil">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <Leon pose="anima" alto={190} rebote />
           <h2 className="text-tarjeta font-extrabold">Primero crea tu cuenta</h2>
           <p className="max-w-[32ch] text-text-soft">La necesitamos para guardar tu solicitud y activarte el pase en cualquier celular.</p>
         </div>
-        <Boton onClick={() => navegar("/studio/cuenta?volver=/studio/apoyo")}>Crear mi cuenta gratis</Boton>
+        <Boton onClick={() => navegar("/teach/cuenta?volver=/teach/apoyo")}>Crear mi cuenta gratis</Boton>
       </Pantalla>
     );
   }
@@ -102,7 +102,7 @@ export default function Apoyo() {
   const pendiente = solicitud?.estado === "pendiente";
 
   return (
-    <Pantalla titulo="Camino al pase libre" atras="/studio/perfil">
+    <Pantalla titulo="Camino al pase libre" atras="/teach/perfil">
       <div className="-mt-2 flex items-center gap-3 rounded-tarjeta bg-brand p-4 text-white" style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}>
         <div className="flex-1">
           <p className="text-[20px] leading-6 font-black">Pase libre de por vida</p>

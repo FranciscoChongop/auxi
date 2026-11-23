@@ -10,7 +10,7 @@ export function SinTema({ titulo = "Aún no tienes temas", texto = "Agrega el pr
       <h2 className="text-tarjeta font-extrabold">{titulo}</h2>
       <p className="max-w-[30ch] text-text-soft">{texto}</p>
       <div className="w-full">
-        <Boton onClick={() => navegar("/studio/cursos")}>Agregar mi primer tema</Boton>
+        <Boton onClick={() => navegar("/teach/cursos")}>Agregar mi primer tema</Boton>
       </div>
     </section>
   );

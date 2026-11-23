@@ -153,7 +153,7 @@ export function Continuar({ e, curso, actual, avance }: { e: Estado; curso: Curs
         <span className="numeros text-ayuda font-black">{Math.round(avance * 100)} %</span>
       </div>
       <div className="mt-4">
-        <Boton variante="secundario" onClick={() => navegar(actual ? `/studio/leccion?n=${actual.clave}` : "/studio/material")}>
+        <Boton variante="secundario" onClick={() => navegar(actual ? `/teach/leccion?n=${actual.clave}` : "/teach/material")}>
           {actual ? (avance > 0 ? "Continuar" : "Empezar") : "Estudiar otro tema"}
         </Boton>
       </div>
@@ -193,7 +193,7 @@ export function Hoy({ e }: { e: Estado }) {
         <Fila
           izquierda={<span className={`text-ayuda ${faltan <= 1 ? "text-error" : "text-text-soft"}`}>{faltan === 0 ? "Hoy" : faltan === 1 ? "Mañana" : `${faltan} días`}</span>}
           color={color(proxima.curso)}
-          onClick={() => navegar("/studio/entregas")}
+          onClick={() => navegar("/teach/entregas")}
         >
           <span className="block truncate font-extrabold">{proxima.titulo}</span>
           <span className="block text-ayuda text-text-soft">
@@ -202,7 +202,7 @@ export function Hoy({ e }: { e: Estado }) {
           </span>
         </Fila>
       ) : (
-        <Fila izquierda={<CaraDeLeon cara="feliz" tamano={36} />} onClick={() => navegar("/studio/entregas")} derecha={<span className="font-black text-brand">Ver</span>}>
+        <Fila izquierda={<CaraDeLeon cara="feliz" tamano={36} />} onClick={() => navegar("/teach/entregas")} derecha={<span className="font-black text-brand">Ver</span>}>
           <span className="block font-extrabold">Nada pendiente</span>
           <span className="block text-ayuda text-text-soft">Pega tu sílabo y te aviso antes de cada entrega.</span>
         </Fila>
@@ -250,14 +250,14 @@ export function Accesos({ errores }: { errores: number }) {
     <motion.section {...entradaEnCascada(5)} className="flex flex-col gap-3">
       <h2 className="text-tarjeta font-extrabold">Todo en un toque</h2>
       <div className="grid grid-cols-2 gap-3">
-        <Acceso titulo="Repaso" ayuda={errores ? "2 minutos" : "Nada pendiente"} insignia={errores} onClick={() => navegar("/studio/leccion?n=repaso")} icono={<Ic d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v4h4" />} />
-        <Acceso titulo="Mis cursos" ayuda="Temas y exámenes" onClick={() => navegar("/studio/cursos")} icono={<Ic d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />} />
-        <Acceso titulo="El tomate" ayuda="25 min de foco" onClick={() => navegar("/studio/metodos/tomate")} icono={<Ic d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4M5 13.5a7 7 0 1 0 14 0 7 7 0 0 0-14 0z" />} />
-        <Acceso titulo="Las 5 cajas" ayuda="Tarjetas rápidas" onClick={() => navegar("/studio/metodos/cajas")} icono={<Ic d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />} />
-        <Acceso titulo="Explícaselo a León" ayuda="Gana estrellas" onClick={() => navegar("/studio/metodos/leon")} icono={<Ic d="M5 5.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-4 3.5v-3.5H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" />} />
-        <Acceso titulo="Calendario" ayuda="Entregas y feriados" onClick={() => navegar("/studio/entregas?ver=calendario")} icono={<Ic d="M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1zM4 10h16M8 3.5v4M16 3.5v4" />} />
-        <Acceso titulo="Importar sílabo" ayuda="Arma tus fechas" onClick={() => navegar("/studio/silabo")} icono={<Ic d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4" />} />
-        <Acceso titulo="Mis monedas" ayuda="Qué puedes obtener" onClick={() => navegar("/studio/monedas")} icono={<Ic d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" />} />
+        <Acceso titulo="Repaso" ayuda={errores ? "2 minutos" : "Nada pendiente"} insignia={errores} onClick={() => navegar("/teach/leccion?n=repaso")} icono={<Ic d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v4h4" />} />
+        <Acceso titulo="Mis cursos" ayuda="Temas y exámenes" onClick={() => navegar("/teach/cursos")} icono={<Ic d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />} />
+        <Acceso titulo="El tomate" ayuda="25 min de foco" onClick={() => navegar("/teach/metodos/tomate")} icono={<Ic d="M12 6.5c-1.5-2-4-2-5-1M12 6.5c1.5-2 4-2 5-1M12 6.5V4M5 13.5a7 7 0 1 0 14 0 7 7 0 0 0-14 0z" />} />
+        <Acceso titulo="Las 5 cajas" ayuda="Tarjetas rápidas" onClick={() => navegar("/teach/metodos/cajas")} icono={<Ic d="M3.5 9h17v10.5H3.5zM6 9V5.5h12V9M10 13h4" />} />
+        <Acceso titulo="Explícaselo a León" ayuda="Gana estrellas" onClick={() => navegar("/teach/metodos/leon")} icono={<Ic d="M5 5.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-6l-4 3.5v-3.5H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" />} />
+        <Acceso titulo="Calendario" ayuda="Entregas y feriados" onClick={() => navegar("/teach/entregas?ver=calendario")} icono={<Ic d="M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1zM4 10h16M8 3.5v4M16 3.5v4" />} />
+        <Acceso titulo="Importar sílabo" ayuda="Arma tus fechas" onClick={() => navegar("/teach/silabo")} icono={<Ic d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4" />} />
+        <Acceso titulo="Mis monedas" ayuda="Qué puedes obtener" onClick={() => navegar("/teach/monedas")} icono={<Ic d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" />} />
       </div>
     </motion.section>
   );
@@ -272,7 +272,7 @@ export function MisTemas({ e }: { e: Estado }) {
     <motion.section {...entradaEnCascada(2)} className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-tarjeta font-extrabold">Mis temas</h2>
-        <button type="button" onClick={() => navegar("/studio/cursos")} className="h-11 cursor-pointer px-1 font-extrabold text-brand">
+        <button type="button" onClick={() => navegar("/teach/cursos")} className="h-11 cursor-pointer px-1 font-extrabold text-brand">
           Ver todos
         </button>
       </div>
@@ -283,7 +283,7 @@ export function MisTemas({ e }: { e: Estado }) {
   );
 }
 
-/* ---------- Resumen del camino (el camino completo vive en /studio/camino) ---------- */
+/* ---------- Resumen del camino (el camino completo vive en /teach/camino) ---------- */
 
 export function ResumenCamino({ curso, lista }: { curso: Curso; lista: Nodo[] }) {
   const actual = lista.find((n) => n.abierto && !n.hecho);
@@ -292,7 +292,7 @@ export function ResumenCamino({ curso, lista }: { curso: Curso; lista: Nodo[] })
     <motion.button
       {...entradaEnCascada(1)}
       type="button"
-      onClick={() => navegar("/studio/camino")}
+      onClick={() => navegar("/teach/camino")}
       onPointerDown={() => {
         sonidos.toque();
         vibrar("toque");
@@ -339,7 +339,7 @@ export function TarjetaExamen({ e }: { e: Estado }) {
       <motion.button
         {...entradaEnCascada(0)}
         type="button"
-        onClick={() => navegar("/studio/examen")}
+        onClick={() => navegar("/teach/examen")}
         onPointerDown={() => sonidos.toque()}
         whileTap={{ y: 3, boxShadow: "0 1px 0 var(--surface)", transition: { duration: 0.06 } }}
         style={{ boxShadow: "0 4px 0 var(--surface)" }}
@@ -378,7 +378,7 @@ export function TarjetaExamen({ e }: { e: Estado }) {
           {prox.contenido ? "Estudiar para el examen" : "Subir mi material"}
         </Boton>
       </div>
-      <button type="button" onClick={() => navegar("/studio/examen")} className="mt-1 h-11 w-full cursor-pointer font-extrabold text-brand">
+      <button type="button" onClick={() => navegar("/teach/examen")} className="mt-1 h-11 w-full cursor-pointer font-extrabold text-brand">
         Anotar otro examen
       </button>
     </motion.section>

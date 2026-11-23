@@ -46,14 +46,14 @@ export default function Cajas() {
 
   if (sinTarjetas) {
     return (
-      <Pantalla titulo="Las 5 cajas" atras="/studio/metodos" conBarra={false}>
+      <Pantalla titulo="Las 5 cajas" atras="/teach/metodos" conBarra={false}>
         <SinTema texto="Las 5 cajas usan las tarjetas de tus temas. Agrega uno para empezar." />
       </Pantalla>
     );
   }
 
   return (
-    <Pantalla titulo="Las 5 cajas" atras="/studio/metodos" conBarra={false}>
+    <Pantalla titulo="Las 5 cajas" atras="/teach/metodos" conBarra={false}>
       <SelectorTema etiqueta="Repasas" />
       {/* Las cajas se llenan */}
       <div className="grid grid-cols-5 gap-2" aria-label="Tarjetas por caja">

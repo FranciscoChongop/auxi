@@ -51,7 +51,7 @@ export default function Ayuda() {
   const [abierta, setAbierta] = useState<number | null>(null);
 
   function enviar() {
-    const partes = [`Hola, quiero reportar un problema en Auxi Studio.`, ``, `Tipo: ${tipo}`, `Qué pasó: ${texto.trim()}`];
+    const partes = [`Hola, quiero reportar un problema en Auxi Teach.`, ``, `Tipo: ${tipo}`, `Qué pasó: ${texto.trim()}`];
     if (tecnicos) {
       partes.push(``, `Datos técnicos:`, `- Pantalla: ${ruta}`, `- Celular: ${navigator.userAgent.slice(0, 120)}`, `- Fecha: ${hoy()}`);
     }
@@ -64,7 +64,7 @@ export default function Ayuda() {
   }
 
   return (
-    <Pantalla titulo="Atención al cliente" atras="/studio/perfil">
+    <Pantalla titulo="Atención al cliente" atras="/teach/perfil">
       <div className="-mt-2 flex items-center gap-3">
         <CaraDeLeon cara="feliz" tamano={48} />
         <p className="font-bold">¿Algo no funciona o tienes una duda? Cuéntanos y lo resolvemos.</p>

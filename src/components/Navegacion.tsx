@@ -89,7 +89,7 @@ export function Marcadores() {
       </span>
       <button
         type="button"
-        onClick={() => navegar("/studio/monedas")}
+        onClick={() => navegar("/teach/monedas")}
         className="-m-2 flex min-h-11 cursor-pointer items-center gap-1 p-2 font-black"
         aria-label={`${e.monedas} monedas. Ver en qué usarlas`}
       >
@@ -103,11 +103,11 @@ export function Marcadores() {
 /* ---------- Barra inferior ---------- */
 
 const PESTANAS = [
-  { ruta: "/studio/inicio", nombre: "Inicio", icono: "inicio" },
-  { ruta: "/studio/cursos", nombre: "Cursos", icono: "cursos" },
-  { ruta: "/studio/metodos", nombre: "Métodos", icono: "metodos" },
-  { ruta: "/studio/entregas", nombre: "Entregas", icono: "entregas" },
-  { ruta: "/studio/perfil", nombre: "Perfil", icono: "perfil" },
+  { ruta: "/teach/inicio", nombre: "Inicio", icono: "inicio" },
+  { ruta: "/teach/cursos", nombre: "Cursos", icono: "cursos" },
+  { ruta: "/teach/metodos", nombre: "Métodos", icono: "metodos" },
+  { ruta: "/teach/entregas", nombre: "Entregas", icono: "entregas" },
+  { ruta: "/teach/perfil", nombre: "Perfil", icono: "perfil" },
 ] as const;
 
 export function BarraInferior() {

@@ -31,7 +31,7 @@ export default function Bienvenida() {
       className="mx-auto flex min-h-dvh max-w-md flex-col px-5"
       style={{ paddingTop: "calc(env(safe-area-inset-top) + 20px)", paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
     >
-      <p className="text-center text-ayuda font-extrabold tracking-wide text-brand">Auxi Studio</p>
+      <p className="text-center text-ayuda font-extrabold tracking-wide text-brand">Auxi Teach</p>
 
       <div className="flex flex-col items-center pt-2 text-center">
         <Leon pose="saluda" alto={210} rebote />
@@ -62,11 +62,11 @@ export default function Bienvenida() {
       </ul>
 
       <div className="mt-auto flex flex-col gap-3 pt-6">
-        <Boton onClick={() => navegar("/studio/entrada")}>Iniciar sesión o crear cuenta</Boton>
+        <Boton onClick={() => navegar("/teach/entrada")}>Iniciar sesión o crear cuenta</Boton>
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
         <p className="flex justify-center gap-4 text-ayuda font-extrabold text-brand">
-          <a href="/studio/privacidad" className="inline-flex min-h-11 items-center underline">Privacidad</a>
-          <a href="/studio/terminos" className="inline-flex min-h-11 items-center underline">Condiciones</a>
+          <a href="/teach/privacidad" className="inline-flex min-h-11 items-center underline">Privacidad</a>
+          <a href="/teach/terminos" className="inline-flex min-h-11 items-center underline">Condiciones</a>
         </p>
       </div>
     </main>

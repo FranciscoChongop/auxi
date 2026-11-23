@@ -32,14 +32,14 @@ export default function Revision() {
 
   if (!permitido) {
     return (
-      <Pantalla titulo="Panel de revisión" atras="/studio/perfil">
+      <Pantalla titulo="Panel de revisión" atras="/teach/perfil">
         <p className="rounded-tarjeta bg-surface p-4 text-center font-bold text-text-soft">Este panel es solo para el dueño de Auxi. Entra con su cuenta.</p>
       </Pantalla>
     );
   }
 
   return (
-    <Pantalla titulo="Panel de revisión" atras="/studio/perfil">
+    <Pantalla titulo="Panel de revisión" atras="/teach/perfil">
       <p className="-mt-2 text-text-soft">Busca el código en tu WhatsApp, mira las capturas y aprueba con un toque.</p>
       <Boton variante="secundario" onClick={() => void cargar()}>
         Actualizar lista

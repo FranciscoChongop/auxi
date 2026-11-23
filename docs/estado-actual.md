@@ -1,13 +1,18 @@
-# Estado de Auxi Studio
+# Estado de Auxi Studio (plataforma) y de Auxi Teach
 
-App publicada: https://auxi-three.vercel.app/studio (Vercel se actualiza solo al subir a `main`).
+Plataforma: **Auxi Studio por Daniel Chong** (auxistudio.com). Mini apps: Auxi Teach (`/teach`, antes llamada Auxi Studio), Auxi Vida (`/vida`) y Vendoe (`/negocio` redirige a vendoe.es).
+
+App publicada: https://auxi-three.vercel.app (Vercel se actualiza solo al subir a `main`; el dominio propio se conecta desde Vercel → Settings → Domains).
+
+- **Plataforma:** portada con León y las tres mini apps, inicio de sesión único en `/entrar`, inicio «¿A dónde quieres entrar?» con una tarjeta por mini app, y páginas `/privacidad` y `/terminos`. `/studio/...` redirige a `/teach/...` (también con una redirección permanente en `vercel.json`).
+- **Pendiente del dominio:** conectar auxistudio.com en Vercel y en Latinoamérica Hosting; agregar `https://auxistudio.com/**` y `/teach` a las URL de retorno de Supabase; poner el dominio en Google Cloud (marca, privacidad y condiciones: `/privacidad` y `/terminos`); verificar el dominio en Resend; cuando exista el dominio, redirigir `auxi-three.vercel.app` al nuevo; llenar `LANDING_URL` cuando la landing esté lista.
 
 ## Hecho
 - **Fase 1 y 2:** diseño, 7 tipos de juego, camino de niveles, celebración, cofre, métodos (tomate, 5 cajas, Explícaselo a León), entregas, calendario, perfil.
 - **Fase 3:** cuentas con Supabase (código de 6 números por correo con Resend), avance en la nube, publicación en Vercel.
 - **Crear lecciones sin costo de API:** el prompt va a ChatGPT, Claude o Gemini y el resultado se pega en Auxi (Mis cursos → tema). Lo mismo con el sílabo (entregas, feriados, exámenes y calendario).
 - **Monedas:** 2 temas importados gratis, +1 cupo por 60, pase libre por 500, protector por 50.
-- **Camino al pase libre:** la persona pide el pase con su @ de Instagram, manda capturas por WhatsApp con un código y el dueño aprueba en `/studio/revision` (solo la cuenta `chongdaniel91@gmail.com`).
+- **Camino al pase libre:** la persona pide el pase con su @ de Instagram, manda capturas por WhatsApp con un código y el dueño aprueba en `/teach/revision` (solo la cuenta `chongdaniel91@gmail.com`).
 - **Exámenes y prioridad**, selector curso → tema, bienvenida breve, atención al cliente (WhatsApp 960 650 372).
 - **Fase 5 (parte):** repaso espaciado (1, 3 y 7 días) y capa de métricas lista (sin clave no envía nada).
 

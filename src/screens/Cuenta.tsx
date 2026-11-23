@@ -8,7 +8,7 @@ import Entrada from "./Entrada";
 
 export default function Cuenta() {
   const cuenta = useCuenta();
-  const [volver] = useState(() => parametro("volver") ?? "/studio/inicio");
+  const [volver] = useState(() => parametro("volver") ?? "/teach/inicio");
   if (cuenta.modo === "sin-nube") {
     return (
       <Pantalla titulo="Tu cuenta" atras={volver} conBarra={false}>
@@ -40,7 +40,7 @@ export default function Cuenta() {
             type="button"
             onClick={async () => {
               await salir();
-              reemplazar("/studio");
+              reemplazar("/teach");
             }}
             className="h-11 cursor-pointer font-extrabold text-error"
           >
