@@ -3,6 +3,7 @@
 - A1 a A8: quita el fondo lila liso, recorta y guarda WebP liviano con transparencia.
 - A9: genera los íconos de la app (PWA, iPhone y favicon).
 - Plataforma: originales/plataforma/*.png|jpg -> public/plataforma/*.webp (banners, sin mascota).
+- Marca: originales/marca/logo.png|jpg|webp (fondo blanco) -> public/marca/simbolo.webp y logo.webp sin fondo.
 - Vida (B1 a B9): lo mismo desde originales/leon/vida hacia public/leon/vida
   (B9 solo se guarda como WebP; los íconos de la app siguen siendo los de A9).
 
@@ -166,8 +167,53 @@ def banners() -> None:
         print(f"{salida.name}: {im.size[0]}x{im.size[1]}, {salida.stat().st_size // 1024} KB")
 
 
+def sin_blanco(im: Image.Image) -> Image.Image:
+    """Quita el fondo blanco conservando sombras suaves (convierte el blanco en transparencia)."""
+    a = np.asarray(im.convert("RGB")).astype(np.float32) / 255.0
+    alfa = np.clip((1.0 - a.min(axis=2)) * 1.15, 0, 1)  # cuánto se aleja del blanco
+    alfa[alfa < 0.04] = 0
+    color = np.where(alfa[..., None] > 0, (a - (1 - alfa[..., None])) / np.maximum(alfa[..., None], 1e-3), 0)
+    rgba = np.dstack([np.clip(color, 0, 1), alfa])
+    return Image.fromarray((rgba * 255).astype(np.uint8), "RGBA")
+
+
+def marca() -> None:
+    """Logo de Auxi Studio: separa el símbolo (la A con su órbita) del texto y quita el fondo blanco."""
+    origen = next((RAIZ / "originales" / "marca" / f"logo{e}" for e in (".png", ".jpg", ".jpeg", ".webp") if (RAIZ / "originales" / "marca" / f"logo{e}").exists()), None)
+    if origen is None:
+        return
+    destino = RAIZ / "public" / "marca"
+    destino.mkdir(parents=True, exist_ok=True)
+    limpio = sin_blanco(Image.open(origen))
+    alfa = np.asarray(limpio)[..., 3]
+    filas = np.where((alfa > 40).sum(axis=1) > 2)[0]
+    # El texto está debajo del símbolo, separado por la franja vacía más alta en la mitad inferior.
+    vacias = [y for y in range(filas[0], filas[-1]) if (alfa[y] > 40).sum() <= 2]
+    corte = None
+    if vacias:
+        grupos, inicio = [], vacias[0]
+        for y0, y1 in zip(vacias, vacias[1:] + [None]):
+            if y1 != y0 + 1:
+                grupos.append((inicio, y0))
+                inicio = y1
+        grupos = [g for g in grupos if g[0] > alfa.shape[0] * 0.45]
+        if grupos:
+            corte = max(grupos, key=lambda g: g[1] - g[0])[0]
+    completo = limpio.crop(limpio.getbbox())
+    completo.thumbnail((800, 800), Image.LANCZOS)
+    completo.save(destino / "logo.webp", "WEBP", quality=88, method=6)
+    simbolo = limpio.crop((0, 0, limpio.width, corte)) if corte else limpio
+    simbolo = simbolo.crop(simbolo.getbbox())
+    lado = max(simbolo.size)
+    lienzo = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+    lienzo.paste(simbolo, ((lado - simbolo.width) // 2, (lado - simbolo.height) // 2))
+    lienzo.resize((256, 256), Image.LANCZOS).save(destino / "simbolo.webp", "WEBP", quality=90, method=6)
+    print(f"marca lista: simbolo.webp y logo.webp (corte del texto en y={corte})")
+
+
 def main() -> None:
     banners()
+    marca()
     poses(POSES, ORIGEN, LEON)
     if (LEON / "A8-caras.webp").exists():
         caras(LEON / "A8-caras.webp", LEON / "caras", ["feliz", "guino", "sorpresa", "lengua", "tierno", "lentes"])

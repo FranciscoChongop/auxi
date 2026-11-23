@@ -20,6 +20,16 @@ Imágenes para la propuesta v2 («estructura adulta, alma de León»). Puedes ve
 | `cuenta.webp` | Franja «Una cuenta. Tus datos, bajo tu control.» |
 | `autor.webp` | Sección «Hola, soy Daniel Chong» (mientras no haya foto real) |
 
+## Estado (23 de noviembre)
+| Archivo | Estado |
+|---|---|
+| `estudio` (I-04) | Recibida y en uso: «Vienen más apps» |
+| `espacio` y `espacio-movil` (I-05) | Recibidas y en uso: saludo de Mi espacio |
+| `proximamente` (I-06) | Recibida y en uso: mosaico de Mi espacio |
+| `og-plataforma`, `og-student`, `og-vida` (I-07) | Recibidas; se arman con nombre, frase y León en la fase P1B |
+| `presentacion` (foto para «Hola, soy Daniel Chong») | Falta guardarla en `originales/plataforma/presentacion.png` |
+| Logo de Auxi Studio | Falta guardarlo en `originales/marca/logo.png` (con fondo blanco); `npm run imagenes` saca el símbolo y quita el fondo |
+
 ## Imágenes nuevas
 
 ### I-04 · En el estudio (`estudio.png`, 1600 × 900, horizontal)

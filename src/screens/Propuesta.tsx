@@ -118,8 +118,12 @@ function Candado({ className = "size-5" }: { className?: string }) {
 function Marca({ chica = false, clara = false, gira = false }: { chica?: boolean; clara?: boolean; gira?: boolean }) {
   const quieto = !!useReducedMotion();
   const t = chica ? 30 : 38;
+  const [simbolo, setSimbolo] = useState(true);
   return (
     <span className={`flex items-center gap-2.5 ${clara ? "text-white" : ""}`}>
+      {simbolo ? (
+        <img src="/marca/simbolo.webp" alt="" width={t + 6} height={t + 6} onError={() => setSimbolo(false)} draggable={false} />
+      ) : (
       <span className="relative" style={{ width: t, height: t }}>
         <motion.svg viewBox="0 0 40 40" className="absolute inset-0 size-full" animate={gira && !quieto ? { rotate: 360 } : {}} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} aria-hidden="true">
           <circle cx="20" cy="20" r="13" fill="none" stroke={clara ? "#fff" : "#2430D9"} strokeWidth="2.4" strokeDasharray="3 4" strokeLinecap="round" />
@@ -131,6 +135,7 @@ function Marca({ chica = false, clara = false, gira = false }: { chica?: boolean
           <circle cx="20" cy="20" r="5.5" fill="#F2B341" stroke="#C98A1C" strokeWidth="2" />
         </svg>
       </span>
+      )}
       <span className="leading-none">
         <span className="block text-[19px] font-black tracking-[-0.01em]" style={{ fontFamily: NUNITO }}>
           Auxi Studio
@@ -480,7 +485,7 @@ function Landing({ celular }: { celular: boolean }) {
       </section>
 
       <section id="estudio" className="mx-auto max-w-[1200px] px-4 pb-14 @4xl:px-8 @4xl:pb-20">
-        <div className="grid items-center gap-6 rounded-[28px] border-2 border-dashed border-[#B9BEDD] bg-white p-6 @4xl:grid-cols-12 @4xl:p-10">
+        <div className="grid items-center gap-6 rounded-[28px] border border-[color:var(--linea)] bg-white p-6 @4xl:grid-cols-12 @4xl:p-10">
           <div className="@4xl:col-span-6">
             <p className="flex items-center gap-2 font-bold text-[color:var(--indigo)]">
               <Candado className="size-5" />
@@ -489,15 +494,18 @@ function Landing({ celular }: { celular: boolean }) {
             <h2 className="h2 mt-2">Vienen más apps</h2>
             <p className="cuerpo-l mt-3">Estoy preparando nuevas herramientas. Cuando estén listas, aparecerán aquí y en tu espacio, con la misma cuenta.</p>
           </div>
-          <div className="captura aspect-[16/9] @4xl:col-span-6">Imagen «En el estudio» (I-04): módulos de fieltro sin nombres ni fechas</div>
+          <div className="@4xl:col-span-6">
+            <Banner nombre="estudio" tono="hero" velo="ninguno" parallax={false} className="aspect-[16/9]" />
+          </div>
         </div>
       </section>
 
       <section id="sobre" className="bg-white">
         <div className="mx-auto grid max-w-[1200px] items-center gap-8 px-4 py-14 @4xl:grid-cols-12 @4xl:gap-12 @4xl:px-8 @4xl:py-20">
           <div className="@4xl:col-span-5">
-            <Banner nombre="autor" tono="autor" parallax={false} className="aspect-[4/3] @4xl:aspect-[4/5]" />
-            <p className="chico mt-2">Si me pasas una foto tuya, va aquí. Si no, se queda esta imagen.</p>
+            <Banner nombre="autor" tono="autor" velo="ninguno" parallax={false} className="aspect-[4/3] @4xl:aspect-[4/5]">
+              <img src="/plataforma/presentacion.webp" alt="Daniel Chong frente a una luz azul" className="size-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} draggable={false} />
+            </Banner>
           </div>
           <div className="@4xl:col-span-6 @4xl:col-start-7">
             <h2 className="h2">Hola, soy Daniel Chong</h2>
@@ -646,8 +654,8 @@ function Stat({ children, etiqueta }: { children: ReactNode; etiqueta: string })
 function MiEspacio({ celular }: { celular: boolean }) {
   return (
     <AppShell celular={celular} producto="Mi espacio" color="#141A4D" items={[{ nombre: "Mi espacio", activo: true }, { nombre: "Auxi Student" }, { nombre: "Auxi Vida" }, { nombre: "Vendoe (sitio aparte)" }]}>
-      <Banner nombre="hero" tono="hero" modo="contenido" velo="izquierda" parallax={false}>
-        <div className="flex items-center gap-2 p-5 text-white @4xl:px-10 @4xl:py-6">
+      <Banner key={celular ? "m" : "c"} nombre={celular ? "espacio-movil" : "espacio"} tono="hero" modo="contenido" velo={celular ? "izquierda" : "ninguno"} parallax={false}>
+        <div className="flex items-center gap-2 p-5 text-white @4xl:py-7 @4xl:pr-10 @4xl:pl-[33%]">
           <div className="flex-1">
             <p className="text-[15px] text-white/85">Domingo 23 de noviembre</p>
             <h1 className="h2 mt-1">Hola, Daniel</h1>
@@ -726,14 +734,16 @@ function MiEspacio({ celular }: { celular: boolean }) {
               </Banner>
             </motion.li>
           ))}
-          <li className="grid aspect-square place-items-center rounded-[28px] border-2 border-dashed border-[#B9BEDD] bg-white p-4 text-center text-[color:var(--gris)]">
-            <span>
-              <Candado className="mx-auto size-7 text-[color:var(--indigo)]" />
-              <span className="mt-2 block font-black text-[color:var(--tinta)]" style={{ fontFamily: NUNITO }}>
-                Próximamente
-              </span>
-              <span className="text-[13px]">En el estudio</span>
-            </span>
+          <li>
+            <Banner nombre="proximamente" tono="vendoe" velo="fuerte" parallax={false} className="aspect-square">
+              <div className="flex h-full flex-col justify-end p-4 text-white">
+                <span className="flex items-center gap-1.5 text-[19px] leading-[22px] font-black" style={{ fontFamily: NUNITO }}>
+                  <Candado className="size-4" />
+                  Próximamente
+                </span>
+                <span className="text-[13px] text-white/85">En el estudio</span>
+              </div>
+            </Banner>
           </li>
         </ul>
       </section>

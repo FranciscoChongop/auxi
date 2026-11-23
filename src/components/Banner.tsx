@@ -112,8 +112,8 @@ type Props = {
   /** "caja": el contenido llena el banner (con aspect-ratio). "contenido": el banner crece con el contenido. */
   modo?: "caja" | "contenido";
   parallax?: boolean;
-  /** Velo oscuro para que el texto blanco se lea: "abajo" (normal), "fuerte" (tarjetas) o "izquierda" (texto a la izquierda). */
-  velo?: "abajo" | "fuerte" | "izquierda";
+  /** Velo oscuro para que el texto blanco se lea: "abajo" (normal), "fuerte" (tarjetas) o "izquierda" (texto a la izquierda) o "ninguno" (imagen sola, sin texto). */
+  velo?: "abajo" | "fuerte" | "izquierda" | "ninguno";
   children?: ReactNode;
 };
 
@@ -151,10 +151,10 @@ export function Banner({ nombre, nombreMovil, tono, alt = "", className = "", mo
         </picture>
       </motion.div>
       {/* Velo oscuro: el texto blanco siempre se lee, sea cual sea la imagen. */}
-      <div
+      {velo !== "ninguno" && <div
         className={`absolute inset-0 bg-gradient-to-t to-transparent ${velo === "fuerte" ? "from-[#0B1140]/90 via-[#0B1140]/45" : velo === "izquierda" ? "from-black/45 via-black/5" : "from-black/60 via-black/10"}`}
         aria-hidden="true"
-      />
+      />}
       {velo === "izquierda" && <div className="absolute inset-0 bg-gradient-to-r from-[#141A4D]/85 via-[#141A4D]/45 to-transparent md:via-[#141A4D]/30" aria-hidden="true" />}
       <div className={modo === "caja" ? "absolute inset-0" : "relative"}>{children}</div>
     </div>
