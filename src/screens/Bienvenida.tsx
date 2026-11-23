@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { Boton } from "../components/Boton";
 import { Leon } from "../components/Leon";
+import { useCuenta } from "../lib/nube";
 import { navegar } from "../lib/rutas";
 
 const t = { fill: "none", stroke: "currentColor", strokeWidth: 2.3, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -26,6 +27,9 @@ const PUNTOS: { titulo: string; texto: string; icono: ReactNode }[] = [
 
 /** Portada: invita a iniciar sesión o crear la cuenta. */
 export default function Bienvenida() {
+  // Con la sesión iniciada (o sin nube, en pruebas) el botón entra directo; solo pide cuenta a quien no la tiene.
+  const cuenta = useCuenta();
+  const dentro = cuenta.modo === "conectado" || cuenta.modo === "sin-nube";
   return (
     <main
       className="mx-auto flex min-h-dvh max-w-md flex-col px-5"
@@ -62,7 +66,7 @@ export default function Bienvenida() {
       </ul>
 
       <div className="mt-auto flex flex-col gap-3 pt-6">
-        <Boton onClick={() => navegar("/student/entrada")}>Iniciar sesión o crear cuenta</Boton>
+        <Boton onClick={() => navegar(dentro ? "/student/inicio" : "/student/entrada")}>{dentro ? "Entrar" : "Iniciar sesión o crear cuenta"}</Boton>
         <p className="text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
         <p className="flex justify-center gap-4 text-ayuda font-extrabold text-brand">
           <a href="/student/privacidad" className="inline-flex min-h-11 items-center underline">Privacidad</a>

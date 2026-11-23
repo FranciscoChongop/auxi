@@ -8,7 +8,13 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const clave = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
+/**
+ * Solo para probar en tu computadora: con VITE_SIN_LOGIN=si en .env.local, la app entra sin cuenta
+ * (guarda solo en el navegador). Nunca funciona en la versión publicada: import.meta.env.DEV es falso allá.
+ */
+const sinLogin = import.meta.env.DEV && import.meta.env.VITE_SIN_LOGIN === "si";
+
 export const supabase: SupabaseClient | null =
-  url && clave ? createClient(url, clave, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }) : null;
+  url && clave && !sinLogin ? createClient(url, clave, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }) : null;
 
 export const BUCKET_ARCHIVOS = "archivos";

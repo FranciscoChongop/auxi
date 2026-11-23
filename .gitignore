@@ -13,3 +13,4 @@ Thumbs.db
 public/leon/IUMAGENES AUXI STUDIO/
 # Credenciales de prueba (nunca se suben)
 *.local.txt
+*.local.sql
