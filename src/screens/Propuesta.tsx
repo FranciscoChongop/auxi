@@ -6,7 +6,7 @@
 import "@fontsource/figtree/latin-500.css";
 import "@fontsource/figtree/latin-600.css";
 import "@fontsource/figtree/latin-700.css";
-import { animate, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, animate, motion, useInView, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Banner, type Tono } from "../components/Banner";
 import { CaraDeLeon, Leon, type CaraLeon } from "../components/Leon";
@@ -50,14 +50,14 @@ const ESTILOS = `
 /* ---------- Piezas con movimiento ---------- */
 
 /** Número que cuenta hacia su valor (nunca salta). Quieto si se reduce el movimiento. */
-function Contador({ valor, prefijo = "", retraso = 0 }: { valor: number; prefijo?: string; retraso?: number }) {
+function Contador({ valor, desde = 0, prefijo = "", retraso = 0 }: { valor: number; desde?: number; prefijo?: string; retraso?: number }) {
   const quieto = !!useReducedMotion();
-  const [v, setV] = useState(quieto ? valor : 0);
+  const [v, setV] = useState(quieto ? valor : desde);
   useEffect(() => {
     if (quieto) return setV(valor);
-    const c = animate(0, valor, { duration: 0.9, delay: retraso, ease: "easeOut", onUpdate: (x) => setV(Math.round(x)) });
+    const c = animate(desde, valor, { duration: 0.9, delay: retraso, ease: "easeOut", onUpdate: (x) => setV(Math.round(x)) });
     return () => c.stop();
-  }, [valor, quieto, retraso]);
+  }, [valor, desde, quieto, retraso]);
   return (
     <span className="num">
       {prefijo}
@@ -185,83 +185,357 @@ function Telefono({ children, fondo }: { children: ReactNode; fondo: string }) {
   );
 }
 
-/** Una pregunta de Auxi Student tal como se ve en la lección. */
-function PantallaStudent() {
+/* ---------- Recorridos animados: cada app se muestra en movimiento, en sus 3 momentos clave ---------- */
+
+const DURACION_ESCENA = 3800;
+const N = { fontFamily: NUNITO };
+
+/** Círculo que marca dónde «toca» el dedo. */
+function Toque({ retraso, className }: { retraso: number; className: string }) {
+  const quieto = !!useReducedMotion();
+  if (quieto) return null;
   return (
-    <Telefono fondo="#F7F8FC">
-      <div className="flex items-center gap-2 px-3 pt-3">
-        <span className="flex-1">
-          <span className="block h-2 overflow-hidden rounded-full bg-[#E6E8FA]">
-            <span className="block h-full w-3/5 rounded-full bg-[#5FE3DC]" />
-          </span>
-        </span>
-        <span className="flex items-center gap-1 font-black" style={{ fontFamily: NUNITO }}>
-          <Moneda className="size-4" />
-          120
-        </span>
-      </div>
-      <p className="mt-4 px-3 text-[11px] font-semibold text-[#5B6084]">Matemática · Fracciones</p>
-      <p className="px-3 text-[16px] leading-[20px] font-black" style={{ fontFamily: NUNITO }}>
-        ¿Qué fracción es igual a 1/2?
-      </p>
-      <div className="mt-3 flex flex-col gap-2 px-3">
-        {["2/4", "2/3", "3/5"].map((o, i) => (
-          <span key={o} className={`num rounded-[12px] border-2 border-b-[4px] px-3 py-2 text-[15px] font-black ${i === 0 ? "border-[#2FB7B0] bg-[#5FE3DC]" : "border-[#DDE0EE] bg-white"}`} style={{ fontFamily: NUNITO }}>
-            {o}
-          </span>
-        ))}
-      </div>
-      <div className="mt-auto flex items-center gap-2 bg-[#DDF8F6] px-3 py-3">
-        <CaraDeLeon cara="feliz" tamano={30} />
-        <span className="font-bold">¡Eso! +10 monedas</span>
-      </div>
-      <div className="bg-[#DDF8F6] px-3 pb-4">
-        <span className="block rounded-[12px] bg-[#2430D9] py-2.5 text-center font-black text-white shadow-[0_3px_0_#1A23A6]" style={{ fontFamily: NUNITO }}>
-          Continuar
-        </span>
-      </div>
-    </Telefono>
+    <motion.span
+      aria-hidden="true"
+      className={`pointer-events-none absolute z-10 size-9 rounded-full bg-[#141A4D]/25 ring-2 ring-white ${className}`}
+      initial={{ opacity: 0, scale: 0.4 }}
+      animate={{ opacity: [0, 1, 1, 0], scale: [0.4, 1, 1.2, 1.5] }}
+      transition={{ delay: retraso, duration: 0.7, times: [0, 0.3, 0.6, 1] }}
+    />
   );
 }
 
-/** «Hoy» de Auxi Vida: el disponible del día y los últimos movimientos. */
-function PantallaVida() {
+/** Texto que se escribe solo, letra por letra. */
+function Tecleo({ texto, retraso = 0, velocidad = 30 }: { texto: string; retraso?: number; velocidad?: number }) {
+  const quieto = !!useReducedMotion();
+  const [n, setN] = useState(quieto ? texto.length : 0);
+  useEffect(() => {
+    if (quieto) return setN(texto.length);
+    let intervalo = 0;
+    const inicio = window.setTimeout(() => {
+      let i = 0;
+      intervalo = window.setInterval(() => {
+        i += 1;
+        setN(i);
+        if (i >= texto.length) window.clearInterval(intervalo);
+      }, velocidad);
+    }, retraso * 1000);
+    return () => {
+      window.clearTimeout(inicio);
+      window.clearInterval(intervalo);
+    };
+  }, [texto, quieto, retraso, velocidad]);
   return (
-    <Telefono fondo="#F3FAF8">
-      <p className="px-3 pt-3 text-[15px] font-black" style={{ fontFamily: NUNITO }}>
-        Hoy
-      </p>
-      <div className="mx-3 mt-2 rounded-[16px] bg-[#0E5B57] p-3 text-white">
-        <p className="text-white/85">Disponible estimado</p>
-        <p className="num text-[30px] leading-[34px] font-black" style={{ fontFamily: NUNITO }}>
-          S/ 31
-        </p>
-        <p className="text-[10px] text-white/75">No es tu saldo del banco</p>
-      </div>
-      <div className="mx-3 mt-2 flex items-center gap-2 rounded-[12px] bg-white p-2">
-        <CaraLeonVida cara="feliz" tamano={26} />
-        <span>Ayer te sobraron S/ 4.</span>
-      </div>
-      <div className="mx-3 mt-2 flex flex-col divide-y divide-[#DCF1EE] rounded-[12px] bg-white px-2">
-        {[
-          ["Menú", "− S/ 12"],
-          ["Pasaje", "− S/ 3"],
-          ["Turno", "+ S/ 75"],
-        ].map(([a, b]) => (
-          <span key={a} className="flex justify-between py-2">
-            <span>{a}</span>
-            <span className="num font-bold">{b}</span>
-          </span>
-        ))}
-      </div>
-      <div className="mt-auto px-3 pb-4">
-        <span className="block rounded-[12px] bg-[#0E5B57] py-2.5 text-center font-black text-white shadow-[0_3px_0_#07403D]" style={{ fontFamily: NUNITO }}>
-          ＋ Registrar
-        </span>
-      </div>
-    </Telefono>
+    <>
+      {texto.slice(0, n)}
+      {n < texto.length && <span className="ml-px inline-block h-3 w-px translate-y-0.5 bg-current" />}
+    </>
   );
 }
+
+/** Aparece desde abajo después de un momento. */
+function Entra({ retraso, children, className = "" }: { retraso: number; children: ReactNode; className?: string }) {
+  return (
+    <motion.div className={className} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: retraso, type: "spring", stiffness: 420, damping: 26 }}>
+      {children}
+    </motion.div>
+  );
+}
+
+function BotonFalso({ texto, color, sombra, toque, tinta = "#FFFFFF" }: { texto: string; color: string; sombra: string; toque?: number; tinta?: string }) {
+  return (
+    <div className="relative">
+      <motion.span
+        className="block rounded-[12px] py-2.5 text-center font-black"
+        style={{ ...N, background: color, color: tinta, boxShadow: `0 3px 0 ${sombra}` }}
+        animate={toque !== undefined ? { y: [0, 0, 2, 0], boxShadow: [`0 3px 0 ${sombra}`, `0 3px 0 ${sombra}`, `0 1px 0 ${sombra}`, `0 3px 0 ${sombra}`] } : {}}
+        transition={toque !== undefined ? { delay: toque, duration: 0.5, times: [0, 0.3, 0.5, 1] } : {}}
+      >
+        {texto}
+      </motion.span>
+      {toque !== undefined && <Toque retraso={toque} className="top-0 left-1/2 -translate-x-1/2" />}
+    </div>
+  );
+}
+
+type Escena = { titulo: string; detalle: string; pantalla: ReactNode };
+
+/** Teléfono que pasa solo por las escenas mientras se ve en pantalla. Se puede pausar o elegir una escena. */
+function Recorrido({ nombre, escenas, color, fondo }: { nombre: string; escenas: Escena[]; color: string; fondo: string }) {
+  const quieto = !!useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const visible = useInView(ref, { amount: 0.35 });
+  const [i, setI] = useState(0);
+  const [pausa, setPausa] = useState(false);
+  const corre = visible && !pausa && !quieto;
+  useEffect(() => {
+    if (!corre) return;
+    const t = window.setTimeout(() => setI((x) => (x + 1) % escenas.length), DURACION_ESCENA);
+    return () => window.clearTimeout(t);
+  }, [corre, i, escenas.length]);
+  return (
+    <div ref={ref} className="flex w-full flex-col items-center gap-4">
+      <Telefono fondo={fondo}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={i} className="relative flex flex-1 flex-col" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -28 }} transition={{ duration: 0.22, ease: "easeOut" }}>
+            {escenas[i].pantalla}
+          </motion.div>
+        </AnimatePresence>
+      </Telefono>
+      <ol className="flex w-full max-w-[300px] flex-col gap-1" aria-label={`Recorrido por ${nombre}`}>
+        {escenas.map((e, k) => (
+          <li key={e.titulo}>
+            <button
+              type="button"
+              onClick={() => setI(k)}
+              aria-current={k === i ? "step" : undefined}
+              className={`relative flex min-h-11 w-full items-center gap-2.5 overflow-hidden rounded-[12px] px-3 text-left transition-colors ${k === i ? "bg-white shadow-[0_2px_0_rgba(20,26,77,.08)]" : "hover:bg-white/60"}`}
+            >
+              <span className="num grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-black text-white" style={{ ...N, background: k === i ? color : "#9AA0C0" }}>
+                {k + 1}
+              </span>
+              <span className="py-2">
+                <span className="block text-[14px] leading-[18px] font-bold">{e.titulo}</span>
+                {k === i && <span className="block text-[13px] leading-[17px] text-[color:var(--gris)]">{e.detalle}</span>}
+              </span>
+              {k === i && corre && (
+                <motion.span key={`avance-${i}`} className="absolute bottom-0 left-0 h-[3px]" style={{ background: color }} initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: DURACION_ESCENA / 1000, ease: "linear" }} aria-hidden="true" />
+              )}
+            </button>
+          </li>
+        ))}
+      </ol>
+      {!quieto && (
+        <button type="button" onClick={() => setPausa(!pausa)} className="-mt-2 min-h-11 px-2 text-[14px] font-semibold underline" style={{ color }}>
+          {pausa ? "Seguir el recorrido" : "Pausar el recorrido"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* --- Auxi Student --- */
+const ESCENAS_STUDENT: Escena[] = [
+  {
+    titulo: "Pega tus apuntes",
+    detalle: "Lo que te dio tu IA se vuelve una lección.",
+    pantalla: (
+      <div className="flex flex-1 flex-col px-3 pt-3">
+        <p className="text-[15px] font-black" style={N}>
+          Crear tema
+        </p>
+        <p className="text-[11px] text-[#5B6084]">Pega lo que te respondió tu IA</p>
+        <div className="mt-2 h-[150px] rounded-[12px] border-2 border-[#DDE0EE] bg-white p-2 text-[11px] leading-[15px]">
+          <Tecleo texto="1. ¿Qué fracción es igual a 1/2? a) 2/4  b) 2/3  c) 3/5 — 2. ¿Cuál es mayor, 3/4 o 2/3? …" retraso={0.3} velocidad={20} />
+        </div>
+        <Entra retraso={2.4} className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-[#ECEEFB] p-2 text-[11px] font-bold">
+          <Check className="size-4" />8 preguntas listas
+        </Entra>
+        <div className="mt-auto pb-4">
+          <BotonFalso texto="Crear lección" color="#2430D9" sombra="#1A23A6" toque={2.9} />
+        </div>
+      </div>
+    ),
+  },
+  {
+    titulo: "Responde jugando",
+    detalle: "Si fallas, León te da una pista.",
+    pantalla: (
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-center gap-2 px-3 pt-3">
+          <span className="block h-2 flex-1 overflow-hidden rounded-full bg-[#E6E8FA]">
+            <motion.span className="block h-full rounded-full bg-[#5FE3DC]" initial={{ width: "40%" }} animate={{ width: "60%" }} transition={{ delay: 1.2, type: "spring", stiffness: 140, damping: 18 }} />
+          </span>
+          <span className="flex items-center gap-1 font-black" style={N}>
+            <Moneda className="size-4" />
+            120
+          </span>
+        </div>
+        <p className="mt-4 px-3 text-[11px] font-semibold text-[#5B6084]">Matemática · Fracciones</p>
+        <p className="px-3 text-[16px] leading-[20px] font-black" style={N}>
+          ¿Qué fracción es igual a 1/2?
+        </p>
+        <div className="mt-3 flex flex-col gap-2 px-3">
+          {["2/4", "2/3", "3/5"].map((o, k) => (
+            <div key={o} className="relative">
+              <motion.span
+                className="num block rounded-[12px] border-2 border-b-[4px] px-3 py-2 text-[15px] font-black"
+                style={N}
+                initial={{ backgroundColor: "#FFFFFF", borderColor: "#DDE0EE" }}
+                animate={k === 0 ? { backgroundColor: "#5FE3DC", borderColor: "#2FB7B0", scale: [1, 1.05, 1] } : {}}
+                transition={{ delay: 1.0, duration: 0.35 }}
+              >
+                {o}
+              </motion.span>
+              {k === 0 && <Toque retraso={0.7} className="top-0.5 left-4" />}
+            </div>
+          ))}
+        </div>
+        <motion.div className="mt-auto bg-[#DDF8F6] px-3 pt-3 pb-4" initial={{ y: 90 }} animate={{ y: 0 }} transition={{ delay: 1.3, type: "spring", stiffness: 380, damping: 30 }}>
+          <span className="flex items-center gap-2">
+            <CaraDeLeon cara="feliz" tamano={30} />
+            <span className="font-bold">¡Eso! Vas en racha.</span>
+          </span>
+          <span className="mt-2 block">
+            <BotonFalso texto="Continuar" color="#2430D9" sombra="#1A23A6" />
+          </span>
+        </motion.div>
+      </div>
+    ),
+  },
+  {
+    titulo: "Gana y vuelve mañana",
+    detalle: "Monedas, racha y repaso de lo que fallaste.",
+    pantalla: (
+      <div className="flex flex-1 flex-col items-center px-3 pt-4 text-center">
+        <Leon pose="celebra" alto={110} rebote />
+        <p className="mt-1 text-[17px] font-black" style={N}>
+          ¡Lección completa!
+        </p>
+        <div className="mt-3 grid w-full grid-cols-2 gap-2">
+          <Entra retraso={0.4} className="rounded-[12px] bg-[#FFF6E2] p-2">
+            <span className="flex items-center justify-center gap-1 text-[20px] font-black" style={N}>
+              <Moneda className="size-5" />+<Contador valor={10} retraso={0.5} />
+            </span>
+            <span className="text-[10px] text-[#6B4A0A]">monedas</span>
+          </Entra>
+          <Entra retraso={0.7} className="rounded-[12px] bg-[#FFF1E6] p-2">
+            <span className="flex items-center justify-center gap-1 text-[20px] font-black" style={N}>
+              <motion.span initial={{ scale: 0.6 }} animate={{ scale: [0.6, 1.3, 1] }} transition={{ delay: 1, duration: 0.5 }}>
+                <Llama activa className="size-5" />
+              </motion.span>
+              <Contador valor={5} desde={4} retraso={1} />
+            </span>
+            <span className="text-[10px] text-[#7A3A12]">días de racha</span>
+          </Entra>
+        </div>
+        <Entra retraso={1.6} className="mt-2 w-full rounded-[12px] bg-white p-2 text-left text-[11px] ring-1 ring-[#DDE0EE]">
+          <span className="font-bold">Mañana:</span> repasa las 2 preguntas que fallaste.
+        </Entra>
+        <div className="mt-auto w-full pb-4">
+          <BotonFalso texto="Abrir el cofre" color="#F2B341" sombra="#C98A1C" tinta="#141A4D" toque={2.6} />
+        </div>
+      </div>
+    ),
+  },
+];
+
+/* --- Auxi Vida --- */
+const ESCENAS_VIDA: Escena[] = [
+  {
+    titulo: "Anota en segundos",
+    detalle: "Monto, categoría y listo.",
+    pantalla: (
+      <div className="flex flex-1 flex-col px-3 pt-3">
+        <p className="text-[15px] font-black" style={N}>
+          Registrar gasto
+        </p>
+        <div className="mt-2 flex h-14 items-center gap-2 rounded-[14px] border-2 border-[#0E5B57] bg-white px-3">
+          <span className="text-[20px] font-black text-[#4E6470]" style={N}>
+            S/
+          </span>
+          <span className="num text-[24px] font-black" style={N}>
+            <Tecleo texto="12" retraso={0.4} velocidad={260} />
+          </span>
+        </div>
+        <p className="mt-3 text-[11px] font-bold text-[#4E6470]">Categoría</p>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {["Comida", "Pasaje", "Casa", "Otros"].map((c, k) => (
+            <div key={c} className="relative">
+              <motion.span
+                className="block rounded-full border-2 px-2.5 py-1 font-bold"
+                initial={{ backgroundColor: "#FFFFFF", borderColor: "#DCF1EE", color: "#141A4D" }}
+                animate={k === 0 ? { backgroundColor: "#0E5B57", borderColor: "#0E5B57", color: "#FFFFFF" } : {}}
+                transition={{ delay: 1.4, duration: 0.2 }}
+              >
+                {c}
+              </motion.span>
+              {k === 0 && <Toque retraso={1.1} className="-top-1 left-2" />}
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-[11px] font-bold text-[#4E6470]">Nota</p>
+        <div className="mt-1 rounded-[12px] border-2 border-[#DCF1EE] bg-white px-2 py-2">
+          <Tecleo texto="Menú" retraso={1.8} velocidad={90} />
+        </div>
+        <Entra retraso={3.0} className="mt-3 flex items-center gap-2 rounded-[12px] bg-[#DCF1EE] p-2 font-bold">
+          <Check color="#0E5B57" className="size-4" />
+          Guardado
+        </Entra>
+        <div className="mt-auto pb-4">
+          <BotonFalso texto="Guardar" color="#0E5B57" sombra="#07403D" toque={2.6} />
+        </div>
+      </div>
+    ),
+  },
+  {
+    titulo: "Mira tu día",
+    detalle: "Cuánto te queda para hoy, al instante.",
+    pantalla: (
+      <div className="flex flex-1 flex-col px-3 pt-3">
+        <p className="text-[15px] font-black" style={N}>
+          Hoy
+        </p>
+        <div className="mt-2 rounded-[16px] bg-[#0E5B57] p-3 text-white">
+          <p className="text-white/85">Disponible estimado</p>
+          <p className="text-[30px] leading-[34px] font-black" style={N}>
+            <Contador valor={31} desde={43} prefijo="S/ " retraso={0.6} />
+          </p>
+          <p className="text-[10px] text-white/75">No es tu saldo del banco</p>
+        </div>
+        <div className="mt-2 flex flex-col rounded-[12px] bg-white px-2">
+          <motion.span className="flex justify-between border-b border-[#DCF1EE] py-2" initial={{ opacity: 0, height: 0, backgroundColor: "#FFF6E2" }} animate={{ opacity: 1, height: "auto", backgroundColor: "#FFFFFF" }} transition={{ delay: 0.4, duration: 0.5, backgroundColor: { delay: 1.6, duration: 0.6 } }}>
+            <span>Menú</span>
+            <span className="num font-bold">− S/ 12</span>
+          </motion.span>
+          {[
+            ["Pasaje", "− S/ 3"],
+            ["Turno", "+ S/ 75"],
+          ].map(([a, b]) => (
+            <span key={a} className="flex justify-between border-b border-[#DCF1EE] py-2 last:border-0">
+              <span>{a}</span>
+              <span className="num font-bold">{b}</span>
+            </span>
+          ))}
+        </div>
+        <Entra retraso={1.8} className="mt-2 flex items-center gap-2 rounded-[12px] bg-white p-2 ring-1 ring-[#DCF1EE]">
+          <CaraLeonVida cara="feliz" tamano={26} />
+          <span>Vas bien. Ayer te sobraron S/ 4.</span>
+        </Entra>
+      </div>
+    ),
+  },
+  {
+    titulo: "Revisa antes de pagar",
+    detalle: "León te dice si un mensaje parece estafa.",
+    pantalla: (
+      <div className="flex flex-1 flex-col px-3 pt-3">
+        <p className="text-[15px] font-black" style={N}>
+          Protégete
+        </p>
+        <Entra retraso={0.2} className="mt-2 rounded-[14px] rounded-tl-[4px] bg-white p-2.5 ring-1 ring-[#DCF1EE]">
+          <span className="text-[10px] font-bold text-[#4E6470]">Mensaje que te llegó</span>
+          <span className="mt-0.5 block">Hola, te deposité S/ 200 por error. Devuélvelo hoy a este otro número, porfa.</span>
+        </Entra>
+        <Entra retraso={1.0} className="mt-3 flex items-center gap-2">
+          <CaraLeonVida cara="serio" tamano={30} />
+          <span className="font-bold">Esto parece estafa.</span>
+        </Entra>
+        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#F4E1DD]">
+          <motion.span className="block h-full rounded-full bg-[#C2412D]" initial={{ width: "0%" }} animate={{ width: "85%" }} transition={{ delay: 1.3, type: "spring", stiffness: 90, damping: 18 }} />
+        </div>
+        <ul className="mt-2 flex flex-col gap-1.5">
+          {["Te apura para que actúes hoy", "Pide devolver a otro número", "Revisa tu Yape antes de mover nada"].map((x, k) => (
+            <Entra key={x} retraso={1.8 + k * 0.35} className="flex items-start gap-1.5">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-[#C2412D]" />
+              <span>{x}</span>
+            </Entra>
+          ))}
+        </ul>
+      </div>
+    ),
+  },
+];
 
 function TarjetaApp({ nombre, color, panel, beneficio, capacidades, principal, pantalla, teal = false }: { nombre: string; color: string; panel: string; beneficio: string; capacidades: string[]; principal: string; pantalla: ReactNode; teal?: boolean }) {
   return (
@@ -488,7 +762,7 @@ function Landing({ celular }: { celular: boolean }) {
             beneficio="Convierte tus apuntes en lecciones que se juegan."
             capacidades={["Pegas tu PDF o apuntes en tu IA con el pedido de Auxi y salen preguntas", "Si fallas, León te da una pista antes que la respuesta", "Repasa lo que fallaste en los días siguientes", "Exámenes y entregas con avisos 7, 3 y 1 día antes"]}
             principal="Empezar con Auxi Student"
-            pantalla={<PantallaStudent />}
+            pantalla={<Recorrido nombre="Auxi Student" escenas={ESCENAS_STUDENT} color="#2430D9" fondo="#F7F8FC" />}
           />
           <TarjetaApp
             nombre="Auxi Vida"
@@ -497,7 +771,7 @@ function Landing({ celular }: { celular: boolean }) {
             beneficio="Sabe cuánto puedes gastar hoy sin pasarte."
             capacidades={["Un disponible estimado para cada día, con el cálculo a la vista", "Importa movimientos de reportes, capturas o texto", "Metas de ahorro y pagos con aviso", "Protégete: revisa un mensaje o un vendedor antes de pagar"]}
             principal="Probar con datos de ejemplo"
-            pantalla={<PantallaVida />}
+            pantalla={<Recorrido nombre="Auxi Vida" escenas={ESCENAS_VIDA} color="#0E5B57" fondo="#F3FAF8" />}
             teal
           />
         </div>
@@ -630,9 +904,14 @@ function Landing({ celular }: { celular: boolean }) {
               Hola, soy Daniel Chong
             </p>
             <p className="mt-1 text-[16px] leading-[24px] text-[color:var(--gris)]">Me apasiona crear soluciones digitales para negocios y personas. Aquí comparto lo que aprendo, también mis errores. Te doy la bienvenida: sácale todo el provecho.</p>
-            <a href="#instagram" className="mt-1 inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
-              Sígueme en Instagram
-            </a>
+            <div className="mt-1 flex flex-wrap gap-x-5">
+              <a href="#instagram" className="inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
+                Sígueme en Instagram
+              </a>
+              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
+                Contáctame por privado
+              </a>
+            </div>
           </div>
         </div>
       </section>
