@@ -4,6 +4,7 @@
 - A9: genera los íconos de la app (PWA, iPhone y favicon).
 - Plataforma: originales/plataforma/*.png|jpg -> public/plataforma/*.webp (banners, sin mascota).
 - Marca: originales/marca/logo.png|jpg|webp (fondo blanco) -> public/marca/simbolo.webp y logo.webp sin fondo.
+- Íconos de app: originales/marca/icono-<app>.png (transparente) -> public/marca/icono-<app>.webp.
 - Vida (B1 a B9): lo mismo desde originales/leon/vida hacia public/leon/vida
   (B9 solo se guarda como WebP; los íconos de la app siguen siendo los de A9).
 
@@ -211,9 +212,31 @@ def marca() -> None:
     print(f"marca lista: simbolo.webp y logo.webp (corte del texto en y={corte})")
 
 
+def iconos_apps() -> None:
+    """Íconos 3D de cada app: originales/marca/icono-<app>.png (fondo transparente) -> public/marca/icono-<app>.webp (256 px)."""
+    origen = RAIZ / "originales" / "marca"
+    destino = RAIZ / "public" / "marca"
+    if not origen.exists():
+        return
+    destino.mkdir(parents=True, exist_ok=True)
+    for f in sorted(origen.glob("icono-*")):
+        if f.suffix.lower() not in (".png", ".webp"):
+            continue
+        im = Image.open(f).convert("RGBA")
+        caja = im.getbbox()
+        if caja:
+            im = im.crop(caja)
+        lado = max(im.size)
+        lienzo = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+        lienzo.paste(im, ((lado - im.width) // 2, (lado - im.height) // 2))
+        lienzo.resize((256, 256), Image.LANCZOS).save(destino / f"{f.stem}.webp", "WEBP", quality=90, method=6)
+        print(f"{f.stem}.webp listo")
+
+
 def main() -> None:
     banners()
     marca()
+    iconos_apps()
     poses(POSES, ORIGEN, LEON)
     if (LEON / "A8-caras.webp").exists():
         caras(LEON / "A8-caras.webp", LEON / "caras", ["feliz", "guino", "sorpresa", "lengua", "tierno", "lentes"])

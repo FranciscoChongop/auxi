@@ -15,9 +15,10 @@ import { Llama, Moneda } from "../components/Navegacion";
 import { sonidos } from "../lib/sonidos";
 import { Barra, BotonTema, Candado, Check, Contador, ESTILOS, Marca, NUNITO, TemaContexto, type Tema } from "../propuesta/comun";
 import { Landing } from "../propuesta/Landing";
+import { PanelMotion } from "../propuesta/motion/Motion";
 import { CaraLeonVida, LeonVida } from "../vida/ui";
 
-type Vista = "landing" | "espacio" | "student" | "vida" | "sistema";
+type Vista = "landing" | "motion" | "espacio" | "student" | "vida" | "sistema";
 type Ancho = "celular" | "computadora";
 
 /* ---------- AppShell compartido (Mi espacio, Student, Vida) ---------- */
@@ -562,13 +563,13 @@ function Sistema() {
       <div className="mt-3 flex flex-wrap gap-6">
         {(
           [
-            ["student", "Auxi Student", "Libro abierto, visto bueno y chispa: aprender jugando"],
-            ["vida", "Auxi Vida", "Moneda con brote: tu plata que crece"],
-            ["vendoe", "Vendoe", "Toldo y bolsa: vender desde el celular"],
+            ["student", "Auxi Student", "Birrete con borla dorada y la órbita de Auxi: aprender"],
+            ["vida", "Auxi Vida", "Moneda «S/» con brote: tu plata que crece"],
+            ["vendoe", "Vendoe", "Bolsa de compras: vender"],
           ] as [AppConIcono, string, string][]
         ).map(([a, n, d]) => (
           <div key={a} className="flex max-w-[260px] items-center gap-3">
-            <IconoApp app={a} tamano={64} />
+            <IconoApp app={a} tamano={112} />
             <span>
               <span className="block font-bold">{n}</span>
               <span className="chico">{d}</span>
@@ -655,7 +656,7 @@ export default function Propuesta() {
   const tema: Tema = preferencia === "sistema" ? (sistemaOscuro ? "oscuro" : "claro") : preferencia;
 
   useEffect(() => {
-    document.title = "Propuesta visual v4 · Auxi Studio";
+    document.title = "Propuesta visual v5 · Auxi Studio";
     const medir = () => {
       setEscala(Math.min(1, ((zona.current?.clientWidth ?? px) - 32) / px));
       setAltoBarra(barra.current?.offsetHeight ?? 56);
@@ -676,6 +677,7 @@ export default function Propuesta() {
 
   const pestanas: [Vista, string][] = [
     ["landing", "Landing"],
+    ["motion", "Motion"],
     ["espacio", "Mi espacio"],
     ["student", "Auxi Student"],
     ["vida", "Auxi Vida"],
@@ -689,7 +691,7 @@ export default function Propuesta() {
       <div className={`min-h-dvh ${tema === "oscuro" ? "bg-[#03051A]" : "bg-[#E4E6EF]"}`} style={{ fontFamily: "Figtree, system-ui, sans-serif" }}>
         <style>{ESTILOS}</style>
         <div ref={barra} className="sticky top-0 z-50 flex flex-wrap items-center gap-2 border-b border-[#C9CDE0] bg-white px-4 py-2 text-[14px] font-semibold text-[#141A4D]">
-          <span className="mr-2">Propuesta v4 · boceto</span>
+          <span className="mr-2">Propuesta v5 · boceto</span>
           <div role="tablist" className="flex flex-wrap gap-1">
             {pestanas.map(([id, n]) => (
               <button key={id} role="tab" aria-selected={vista === id} onClick={() => setVista(id)} className={boton(vista === id)}>
@@ -725,6 +727,7 @@ export default function Propuesta() {
             {/* --tope: el encabezado fijo de la landing queda debajo de la barra de la propuesta (en la app real es 0). */}
             <div key={`${vista}-${ancho}-${nuevo}`} data-tema={tema} className="pp @container overflow-clip rounded-[12px] shadow-[0_10px_30px_rgba(20,26,77,.15)]" style={{ width: px, zoom: escala, ["--tope" as string]: `${altoBarra / escala}px` }}>
               {vista === "landing" && <Landing celular={celular} />}
+              {vista === "motion" && <PanelMotion celular={celular} />}
               {vista === "espacio" && <MiEspacio celular={celular} />}
               {vista === "student" && <StudentInicio celular={celular} nuevo={nuevo} />}
               {vista === "vida" && <VidaHoy celular={celular} />}

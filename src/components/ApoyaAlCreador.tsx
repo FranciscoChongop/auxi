@@ -1,4 +1,5 @@
 export const INSTAGRAM_URL = "https://www.instagram.com/soydanielchong/";
+export const TIKTOK_URL = "https://www.tiktok.com/@soydanielchong";
 
 function LogoInstagram({ className = "size-4" }: { className?: string }) {
   return (

@@ -1,4 +1,8 @@
-# Propuesta visual v4: ecosistema en órbita (para aprobar antes del cambio grande)
+# Propuesta visual v5: landing corta y motion graphics del camino (para aprobar antes del cambio grande)
+
+> **v5 (24 nov):** landing corta: encabezado, héroe limpio (título, una frase, dos botones y León), «Dos apps. Una cuenta.» con un celular por app que muestra **el camino** en un motion graphic de unos 15 s (`src/propuesta/motion/Motion.tsx`, pestaña «Motion» del boceto) y su explicación debajo, Vendoe en una línea, «Gratis, de verdad», preguntas frecuentes, «Daniel Chong, creador de Auxi Studio» (foto una sola vez, Instagram, TikTok y WhatsApp) y pie. Íconos de app nuevos en la familia del logo. Brief para agentes de motion en `docs/motion/brief-agentes.md`; pedidos de imágenes en `docs/imagenes/README.md`.
+
+## Versión anterior (v4)
 
 > **v4 (24 nov):** lenguaje de «ecosistema»: escenarios de espacio (héroe, ecosistema, cierre), una sección con color propio por app, íconos de app (`src/components/IconoApp.tsx`), historia con celular fijo que cambia al hacer scroll, bento con micro-animaciones, precios con Vendoe como única app de pago, preguntas con contacto, modo claro y oscuro. Código del boceto en `src/propuesta/` (comun.tsx y Landing.tsx). Ruta completa y fases siguientes en `docs/plan-landing-y-sistema.md`.
 

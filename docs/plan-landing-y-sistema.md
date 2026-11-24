@@ -86,3 +86,12 @@ Imágenes entregadas (hay que guardarlas en `originales/plataforma/`): `hero.png
 - **E:** revisión completa x2 y capturas reales para la landing.
 
 Referencias usadas (patrones, no copias): historias con elemento fijo que cambia al hacer scroll, bento con demostraciones animadas dentro de cada tarjeta, encabezado fijo que se vuelve sólido, movimiento solo con transform/opacity. Fuentes: saasframe.io (tendencias 2026), vezadigital.com (scroll storytelling), ui.aceternity.com y motion.dev (bento).
+
+## Pedido del 24 nov (3): landing corta y retentiva, motion graphics del camino
+Daniel: el motion graphic debe mostrar **el camino** (sube el PDF → se vuelve un minijuego → juegas de distintas formas → ganas y repasas), no cómo se practica; corto. La landing se alarga y se siente plana y genérica: tiene que entenderse a la primera y retener. Quitar «Lo extra con monedas» (solo decir que es gratis). «Daniel Chong, creador de Auxi Studio» con su texto, **Instagram, TikTok (mismo usuario) y WhatsApp**. No repetir la foto. Héroe sin sobrecarga. Íconos de app nuevos «al 100 %». Darle un brief a sus agentes de motion graphics. Un espacio fijo para pedir imágenes nuevas.
+
+1. ✅ Motion graphics por separado (`src/propuesta/motion/`, pestaña «Motion» del boceto): Student y Vida, 4 escenas de ~3,5 s en bucle, dentro de un celular realista; solo corren a la vista, con pausa; si existe un video en `public/motion/<app>.webm|mp4`, se usa ese.
+2. ✅ Íconos v2: misma familia que el logo (volumen, brillo, órbita con esferas); si existe `public/marca/icono-<app>.webp`, se usa la imagen.
+3. ✅ Landing v5: encabezado · héroe limpio (título, una frase, 2 botones, León) · «Dos apps, una cuenta» con dos escenarios (celular con motion + explicación abajo) · Vendoe en una línea · «Todo es gratis» · preguntas · Daniel Chong, creador de Auxi Studio (foto una sola vez, Instagram, TikTok, WhatsApp) · pie. Fuera: mapa del ecosistema, historias largas, bento, precios con monedas, foto repetida.
+4. ✅ `docs/motion/brief-agentes.md` (brief para agentes de motion graphics) y `docs/imagenes/README.md` (espacio único para pedir imágenes).
+5. ✅ Revisión en celular, computadora y oscuro; commit.
