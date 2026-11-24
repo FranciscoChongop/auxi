@@ -75,7 +75,7 @@ function Barra({ pct, color = "var(--cobalto)", fondo = "var(--lila)", alto = 10
   );
 }
 
-/** Chip de premio que aparece de golpe y luego flota despacio (solo en el héroe). */
+/** Chip de premio que aparece una sola vez en el héroe (no queda flotando). */
 function Chip({ children, retraso, className }: { children: ReactNode; retraso: number; className: string }) {
   const quieto = !!useReducedMotion();
   return (
@@ -85,14 +85,12 @@ function Chip({ children, retraso, className }: { children: ReactNode; retraso: 
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={quieto ? { duration: 0.2, delay: retraso } : { type: "spring", stiffness: 500, damping: 16, delay: retraso }}
     >
-      <motion.div
-        animate={quieto ? {} : { y: [0, -7, 0] }}
-        transition={{ duration: 3.6 + retraso, repeat: Infinity, ease: "easeInOut", delay: retraso + 0.6 }}
+      <div
         className="flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[14px] leading-[18px] font-extrabold whitespace-nowrap text-[color:var(--tinta)] shadow-[0_5px_0_rgba(11,17,64,.28)] @4xl:text-[16px]"
         style={{ fontFamily: NUNITO }}
       >
         {children}
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
@@ -146,113 +144,152 @@ function Marca({ chica = false, clara = false, gira = false }: { chica?: boolean
   );
 }
 
-/* ---------- 1. Landing ---------- */
+/* ---------- 1. Landing v3: lo justo para decidir, sin relleno ---------- */
 
-/** El momento memorable: León dentro de la órbita y los premios que aparecen uno tras otro. */
+const WHATSAPP = "https://wa.me/51960650372";
+
+/** Héroe: León entra una vez y aparecen tres premios. Nada se queda girando ni flotando. */
 function EscenaLeon({ celular }: { celular: boolean }) {
-  const quieto = !!useReducedMotion();
-  const t = celular ? 232 : 360;
+  const t = celular ? 200 : 300;
   return (
-    <div className="relative mx-auto" style={{ width: celular ? 340 : 520, height: t + (celular ? 56 : 80) }}>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: t, height: t }}>
-        <motion.svg
-          viewBox="0 0 100 100"
-          className="absolute inset-0 size-full"
-          initial={{ opacity: 0 }}
-          animate={quieto ? { opacity: 1 } : { opacity: 1, rotate: 360 }}
-          transition={{ opacity: { duration: 0.6, delay: 0.2 }, rotate: { duration: 60, repeat: Infinity, ease: "linear" } }}
-          aria-hidden="true"
-        >
-          <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(255,255,255,.45)" strokeWidth=".8" strokeDasharray="2 3" />
-          <circle cx="97" cy="50" r="3.6" fill="#2430D9" stroke="#fff" strokeWidth="1.2" />
-          <circle cx="26.5" cy="90.7" r="3.6" fill="#0E5B57" stroke="#fff" strokeWidth="1.2" />
-          <circle cx="26.5" cy="9.3" r="3.6" fill="#4A4EDB" stroke="#fff" strokeWidth="1.2" />
-        </motion.svg>
-        <div className="absolute inset-[12%] rounded-full bg-white/12 ring-1 ring-white/25" aria-hidden="true" />
-        <motion.div className="absolute inset-0 grid place-items-center" animate={quieto ? {} : { y: [0, -8, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}>
-          <Leon pose="saluda" alto={Math.round(t * 0.8)} rebote />
-        </motion.div>
+    <div className="relative mx-auto" style={{ width: celular ? 330 : 440, height: t + 36 }}>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 ring-1 ring-white/20" style={{ width: t, height: t }} aria-hidden="true" />
+      <div className="absolute inset-0 grid place-items-center">
+        <Leon pose="saluda" alto={Math.round(t * 0.92)} rebote />
       </div>
-      <Chip retraso={0.7} className="top-[6%] left-0">
+      <Chip retraso={0.6} className="top-[6%] left-0">
         <Moneda className="size-6" />
         +15 monedas
       </Chip>
-      <Chip retraso={0.95} className="top-[20%] right-0">
+      <Chip retraso={0.8} className="top-[34%] right-0">
         <Llama activa className="size-6" />
         Racha de 4 días
       </Chip>
-      <Chip retraso={1.2} className="bottom-[18%] left-[1%]">
+      <Chip retraso={1.0} className="bottom-[4%] left-[2%]">
         <span className="grid size-6 place-items-center rounded-full bg-[color:var(--teal)] text-[11px] font-black text-white">S/</span>
         <span className="num">31 para hoy</span>
       </Chip>
-      <Chip retraso={1.45} className="right-[3%] bottom-[2%]">
-        <span className="grid size-6 place-items-center rounded-full bg-[color:var(--turquesa)]">
-          <Check color="#141A4D" className="size-4" />
-        </span>
-        ¡Eso! 5 de 5
-      </Chip>
     </div>
   );
 }
 
-/** Cinta con frases que se desplazan (se queda quieta si se reduce el movimiento). */
-function Cinta() {
-  const quieto = !!useReducedMotion();
-  const frases = ["Estudia jugando", "Ordena tu plata", "Revisa antes de pagar", "Una sola cuenta", "Gratis", "Con León"];
-  const colores = ["#5FE3DC", "#F2B341", "#7B7FF0"];
-  const fila = (
-    <span className="flex shrink-0 items-center gap-6 pr-6">
-      {frases.map((f, i) => (
-        <span key={f} className="flex items-center gap-6">
-          <span>{f}</span>
-          <span className="size-2.5 rounded-full" style={{ background: colores[i % colores.length] }} />
-        </span>
-      ))}
-    </span>
-  );
+/** Marco de celular para mostrar cómo se ve cada app (boceto hasta tener capturas reales). */
+function Telefono({ children, fondo }: { children: ReactNode; fondo: string }) {
   return (
-    <div className="overflow-hidden bg-[color:var(--tinta)] py-3 text-[16px] font-extrabold whitespace-nowrap text-white" style={{ fontFamily: NUNITO }} aria-hidden="true">
-      <motion.div className="flex w-max" animate={quieto ? {} : { x: ["0%", "-50%"] }} transition={{ duration: 32, repeat: Infinity, ease: "linear" }}>
-        {fila}
-        {fila}
-      </motion.div>
+    <div className="mx-auto w-[220px] rounded-[34px] bg-[#1E2340] p-[7px] shadow-[0_18px_40px_rgba(20,26,77,.22)]">
+      <div className="flex h-[430px] flex-col overflow-hidden rounded-[28px] text-[12px] leading-[16px]" style={{ background: fondo }}>
+        <div className="mx-auto mt-2 h-[5px] w-16 rounded-full bg-black/15" aria-hidden="true" />
+        {children}
+      </div>
     </div>
   );
 }
 
-function TarjetaApp({ banner, tono, nombre, etiqueta, beneficio, capacidades, principal, teal = false }: { banner: string; tono: Tono; nombre: string; etiqueta: string; beneficio: string; capacidades: string[]; principal: string; teal?: boolean }) {
+/** Una pregunta de Auxi Student tal como se ve en la lección. */
+function PantallaStudent() {
   return (
-    <motion.article whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="flex flex-col rounded-[32px] border border-[color:var(--linea)] bg-white p-1.5 shadow-[0_8px_0_rgba(20,26,77,.07)]">
-      <Banner nombre={banner} tono={tono} velo="fuerte" parallax={false} className="aspect-[16/9]">
-        <div className="flex h-full flex-col justify-between p-5 text-white">
-          <span className="self-start rounded-full bg-white/90 px-3 py-1 text-[13px] font-extrabold text-[color:var(--tinta)]" style={{ fontFamily: NUNITO }}>
-            {etiqueta}
+    <Telefono fondo="#F7F8FC">
+      <div className="flex items-center gap-2 px-3 pt-3">
+        <span className="flex-1">
+          <span className="block h-2 overflow-hidden rounded-full bg-[#E6E8FA]">
+            <span className="block h-full w-3/5 rounded-full bg-[#5FE3DC]" />
           </span>
-          <span className="text-[30px] leading-[34px] font-black drop-shadow-[0_2px_6px_rgba(0,0,0,.35)]" style={{ fontFamily: NUNITO }}>
-            {nombre}
+        </span>
+        <span className="flex items-center gap-1 font-black" style={{ fontFamily: NUNITO }}>
+          <Moneda className="size-4" />
+          120
+        </span>
+      </div>
+      <p className="mt-4 px-3 text-[11px] font-semibold text-[#5B6084]">Matemática · Fracciones</p>
+      <p className="px-3 text-[16px] leading-[20px] font-black" style={{ fontFamily: NUNITO }}>
+        ¿Qué fracción es igual a 1/2?
+      </p>
+      <div className="mt-3 flex flex-col gap-2 px-3">
+        {["2/4", "2/3", "3/5"].map((o, i) => (
+          <span key={o} className={`num rounded-[12px] border-2 border-b-[4px] px-3 py-2 text-[15px] font-black ${i === 0 ? "border-[#2FB7B0] bg-[#5FE3DC]" : "border-[#DDE0EE] bg-white"}`} style={{ fontFamily: NUNITO }}>
+            {o}
           </span>
-        </div>
-      </Banner>
-      <div className="flex flex-1 flex-col p-5 @4xl:p-7">
-        <h3 className="h3">{beneficio}</h3>
-        <ul className="mt-4 flex flex-col gap-2.5">
+        ))}
+      </div>
+      <div className="mt-auto flex items-center gap-2 bg-[#DDF8F6] px-3 py-3">
+        <CaraDeLeon cara="feliz" tamano={30} />
+        <span className="font-bold">¡Eso! +10 monedas</span>
+      </div>
+      <div className="bg-[#DDF8F6] px-3 pb-4">
+        <span className="block rounded-[12px] bg-[#2430D9] py-2.5 text-center font-black text-white shadow-[0_3px_0_#1A23A6]" style={{ fontFamily: NUNITO }}>
+          Continuar
+        </span>
+      </div>
+    </Telefono>
+  );
+}
+
+/** «Hoy» de Auxi Vida: el disponible del día y los últimos movimientos. */
+function PantallaVida() {
+  return (
+    <Telefono fondo="#F3FAF8">
+      <p className="px-3 pt-3 text-[15px] font-black" style={{ fontFamily: NUNITO }}>
+        Hoy
+      </p>
+      <div className="mx-3 mt-2 rounded-[16px] bg-[#0E5B57] p-3 text-white">
+        <p className="text-white/85">Disponible estimado</p>
+        <p className="num text-[30px] leading-[34px] font-black" style={{ fontFamily: NUNITO }}>
+          S/ 31
+        </p>
+        <p className="text-[10px] text-white/75">No es tu saldo del banco</p>
+      </div>
+      <div className="mx-3 mt-2 flex items-center gap-2 rounded-[12px] bg-white p-2">
+        <CaraLeonVida cara="feliz" tamano={26} />
+        <span>Ayer te sobraron S/ 4.</span>
+      </div>
+      <div className="mx-3 mt-2 flex flex-col divide-y divide-[#DCF1EE] rounded-[12px] bg-white px-2">
+        {[
+          ["Menú", "− S/ 12"],
+          ["Pasaje", "− S/ 3"],
+          ["Turno", "+ S/ 75"],
+        ].map(([a, b]) => (
+          <span key={a} className="flex justify-between py-2">
+            <span>{a}</span>
+            <span className="num font-bold">{b}</span>
+          </span>
+        ))}
+      </div>
+      <div className="mt-auto px-3 pb-4">
+        <span className="block rounded-[12px] bg-[#0E5B57] py-2.5 text-center font-black text-white shadow-[0_3px_0_#07403D]" style={{ fontFamily: NUNITO }}>
+          ＋ Registrar
+        </span>
+      </div>
+    </Telefono>
+  );
+}
+
+function TarjetaApp({ nombre, color, panel, beneficio, capacidades, principal, pantalla, teal = false }: { nombre: string; color: string; panel: string; beneficio: string; capacidades: string[]; principal: string; pantalla: ReactNode; teal?: boolean }) {
+  return (
+    <article className="grid overflow-hidden rounded-[28px] border border-[color:var(--linea)] bg-white @4xl:grid-cols-[1fr_340px]">
+      <div className="p-6 @4xl:p-10">
+        <p className="flex items-center gap-2 text-[17px] font-black" style={{ fontFamily: NUNITO, color }}>
+          <span className="size-3 rounded-full" style={{ background: color }} aria-hidden="true" />
+          {nombre}
+        </p>
+        <h3 className="h3 mt-2 text-[24px] leading-[30px]">{beneficio}</h3>
+        <ul className="mt-5 flex flex-col gap-3">
           {capacidades.map((c) => (
-            <li key={c} className="flex gap-2.5 text-[15px] leading-[22px]">
-              <Check color={teal ? "#0E5B57" : "#2430D9"} className="mt-0.5 size-5" />
+            <li key={c} className="flex gap-2.5 text-[16px] leading-[23px]">
+              <Check color={color} className="mt-0.5 size-5" />
               {c}
             </li>
           ))}
         </ul>
-        <div className="mt-auto flex flex-wrap gap-3 pt-6">
+        <div className="mt-7 flex flex-wrap gap-3">
           <a className={`btn ${teal ? "btn-t" : "btn-p"}`} href="#abrir">
             {principal}
           </a>
-          <a className="btn btn-s" href="#detalle">
-            Ver cómo funciona
-          </a>
         </div>
       </div>
-    </motion.article>
+      <div className="flex items-center justify-center px-6 pt-2 pb-8 @4xl:py-8" style={{ background: panel }}>
+        {pantalla}
+      </div>
+    </article>
   );
 }
 
@@ -275,7 +312,7 @@ function PruebaPregunta() {
   const cara: CaraLeon = elegida === null ? "lentes" : bien ? "feliz" : "tierno";
   const mensaje = elegida === null ? "Toca una respuesta. Si fallas, te doy una pista." : bien ? "¡Eso! 1/2 y 2/4 son la misma parte del total." : "Casi. Pista: multiplica arriba y abajo por el mismo número.";
   return (
-    <div className="rounded-[28px] border border-[color:var(--linea)] bg-white p-5 shadow-[0_8px_0_rgba(20,26,77,.07)] @4xl:p-7">
+    <div className="rounded-[28px] border border-[color:var(--linea)] bg-white p-5 @4xl:p-7">
       <div className="flex items-center gap-3">
         <span className="flex-1">
           <Barra pct={bien ? 100 : 60} color="var(--turquesa)" />
@@ -290,7 +327,7 @@ function PruebaPregunta() {
       <div className="mt-5 grid grid-cols-3 gap-3">
         {opciones.map((o, i) => {
           const esta = elegida === i;
-          const estilo = esta ? (i === 0 ? "border-[color:var(--success,#2FB7B0)] bg-[color:var(--turquesa)]" : "border-[#C2412D] bg-[#FBEAE7]") : "border-[color:var(--linea)] bg-white hover:border-[color:var(--cobalto)]";
+          const estilo = esta ? (i === 0 ? "border-[#2FB7B0] bg-[color:var(--turquesa)]" : "border-[#C2412D] bg-[#FBEAE7]") : "border-[color:var(--linea)] bg-white hover:border-[color:var(--cobalto)]";
           return (
             <motion.button
               key={o}
@@ -321,24 +358,66 @@ function PruebaPregunta() {
   );
 }
 
+/** Ícono simple para «Por qué Auxi». */
+function Icono({ tipo }: { tipo: "pista" | "ia" | "dado" | "nube" }) {
+  const trazo = { fill: "none", stroke: "#2430D9", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  return (
+    <span className="grid size-12 shrink-0 place-items-center rounded-[14px] bg-[color:var(--lila)]" aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="size-6">
+        {tipo === "pista" && <path {...trazo} d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" />}
+        {tipo === "ia" && <path {...trazo} d="M8 9h8M8 13h5M5 4h14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-7l-4 3v-3H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />}
+        {tipo === "dado" && <path {...trazo} d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM8.5 8.5h.01M15.5 15.5h.01M12 12h.01" />}
+        {tipo === "nube" && <path {...trazo} d="M7 18a4 4 0 0 1-.6-8A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9H7zM10 14l1.5 1.5L15 12" />}
+      </svg>
+    </span>
+  );
+}
+
+function Pregunta({ q, children }: { q: string; children: ReactNode }) {
+  return (
+    <details className="group border-b border-[color:var(--linea)] py-1">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
+        {q}
+        <svg viewBox="0 0 20 20" className="size-5 shrink-0 transition-transform group-open:rotate-45" aria-hidden="true">
+          <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </summary>
+      <p className="pb-4 text-[16px] leading-[24px] text-[color:var(--gris)]">{children}</p>
+    </details>
+  );
+}
+
 function Landing({ celular }: { celular: boolean }) {
   const [menu, setMenu] = useState(false);
+  const secciones: [string, string][] = [
+    ["#apps", "Apps"],
+    ["#precios", "Precios"],
+    ["#preguntas", "Preguntas"],
+  ];
   return (
     <div>
-      <header className="bg-[color:var(--bg)]">
-        <div className="mx-auto flex h-[72px] max-w-[1200px] items-center justify-between gap-4 px-4 @4xl:px-8">
-          <Marca gira />
+      {/* En el boceto va debajo de la barra de la propuesta; en la app real, pegado arriba. */}
+      <header className="sticky top-0 z-20 border-b border-[color:var(--linea)] bg-[color:var(--bg)]/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 @4xl:px-8">
+          <Marca />
           <nav aria-label="Principal" className="hidden items-center gap-7 font-semibold @4xl:flex">
-            <a href="#apps">Apps</a>
-            <a href="#prueba">Pruébalo</a>
-            <a href="#sobre">Sobre mí</a>
+            {secciones.map(([h, n]) => (
+              <a key={h} href={h} className="flex min-h-11 items-center hover:text-[color:var(--cobalto)]">
+                {n}
+              </a>
+            ))}
           </nav>
           <div className="flex items-center gap-2">
-            <a className="btn btn-s min-h-11 px-4 text-[15px]" href="#entrar">
+            <a className="flex min-h-11 items-center px-2 font-bold text-[color:var(--cobalto)]" href="#entrar">
               Entrar
             </a>
+            {!celular && (
+              <a className="btn btn-p min-h-11 px-4 text-[15px]" href="#crear">
+                Crear cuenta gratis
+              </a>
+            )}
             {celular && (
-              <button type="button" aria-expanded={menu} aria-label="Abrir menú" onClick={() => setMenu(!menu)} className="grid size-12 place-items-center rounded-[12px]">
+              <button type="button" aria-expanded={menu} aria-label="Abrir menú" onClick={() => setMenu(!menu)} className="grid size-11 place-items-center rounded-[12px]">
                 <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
                   <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
@@ -348,101 +427,103 @@ function Landing({ celular }: { celular: boolean }) {
         </div>
         {celular && menu && (
           <nav aria-label="Principal" className="flex flex-col border-t border-[color:var(--linea)] px-4 py-2 font-semibold">
-            {["Apps", "Pruébalo", "Sobre mí"].map((x) => (
-              <a key={x} href="#apps" className="flex min-h-12 items-center">
-                {x}
+            {secciones.map(([h, n]) => (
+              <a key={h} href={h} className="flex min-h-12 items-center">
+                {n}
               </a>
             ))}
+            <a className="btn btn-p my-2" href="#crear">
+              Crear cuenta gratis
+            </a>
           </nav>
         )}
       </header>
 
-      {/* Héroe: imagen de fieltro, León en su órbita y los premios que aparecen. Un solo momento orquestado. */}
-      <section className="px-3 @4xl:px-8">
+      {/* Héroe: qué es, para quién y qué ganas. */}
+      <section className="px-3 pt-4 @4xl:px-8 @4xl:pt-6">
         <div className="mx-auto max-w-[1200px]">
           <Banner key={celular ? "m" : "c"} nombre={celular ? "hero-movil" : "hero"} tono="hero" modo="contenido" velo="izquierda" parallax={false}>
-            <div className="grid items-center gap-4 px-5 pt-6 pb-8 text-white @4xl:grid-cols-12 @4xl:gap-0 @4xl:px-14 @4xl:py-14">
-              <div className="@4xl:order-2 @4xl:col-span-6">
+            <div className="grid items-center gap-2 px-5 pt-4 pb-8 text-white @4xl:grid-cols-12 @4xl:gap-0 @4xl:px-14 @4xl:py-12">
+              <div className="@4xl:order-2 @4xl:col-span-5">
                 <EscenaLeon celular={celular} />
               </div>
-              <div className="@4xl:order-1 @4xl:col-span-6">
-                <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.45, ease: "easeOut" }} className="h1 max-w-[15ch] drop-shadow-[0_2px_10px_rgba(0,0,0,.25)]">
-                  Apps gratis para estudiar jugando y ordenar tu plata.
+              <div className="@4xl:order-1 @4xl:col-span-7">
+                <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }} className="h1 max-w-[16ch]">
+                  Estudia jugando y ordena tu plata, gratis.
                 </motion.h1>
-                <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.45, ease: "easeOut" }} className="mt-4 max-w-[44ch] text-[18px] leading-[28px] text-white/90">
-                  Auxi Studio reúne las apps que creo para el día a día. Entras con una sola cuenta y León te acompaña en cada una.
+                <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }} className="mt-4 max-w-[48ch] text-[18px] leading-[28px] text-white/90">
+                  Auxi Student convierte tus apuntes en preguntas que se juegan. Auxi Vida te dice cuánto puedes gastar hoy. Las dos con una sola cuenta.
                 </motion.p>
-                <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.45, ease: "easeOut" }} className="mt-7 flex flex-wrap gap-3">
+                <div className="mt-7 flex flex-wrap gap-3">
                   <a className="btn btn-b" href="#crear">
                     Crear mi cuenta gratis
                   </a>
                   <a className="btn btn-f" href="#apps">
-                    Ver las apps
+                    Ver cómo funciona
                   </a>
-                </motion.div>
-                <p className="mt-3 text-[14px] text-white/80">Sin tarjeta. Lo básico siempre es gratis.</p>
+                </div>
+                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[15px] text-white/90">
+                  {["Lo básico siempre gratis", "Sin tarjeta", "En celular y computadora"].map((x) => (
+                    <li key={x} className="flex items-center gap-1.5">
+                      <Check color="#5FE3DC" className="size-5" />
+                      {x}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </Banner>
         </div>
       </section>
 
-      <div className="mt-8">
-        <Cinta />
-      </div>
-
-      <section id="apps" className="mx-auto max-w-[1200px] px-4 py-14 @4xl:px-8 @4xl:py-20">
-        <h2 className="h2">Elige tu app</h2>
-        <p className="cuerpo-l mt-3 max-w-[52ch]">Cada una resuelve una cosa. Puedes ver cómo funciona antes de crear tu cuenta.</p>
-        <div className="mt-8 grid gap-6 @4xl:grid-cols-2">
+      {/* Apps: qué hace cada una, con su pantalla. */}
+      <section id="apps" className="mx-auto max-w-[1200px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
+        <h2 className="h2">Dos apps, una cuenta</h2>
+        <p className="cuerpo-l mt-3 max-w-[54ch]">Entras una vez y usas la que necesites. Tu avance y tus datos se guardan en tu cuenta.</p>
+        <div className="mt-8 flex flex-col gap-6">
           <TarjetaApp
-            banner="student"
-            tono="student"
             nombre="Auxi Student"
-            etiqueta="Para estudiantes · gratis"
+            color="#2430D9"
+            panel="#ECEEFB"
             beneficio="Convierte tus apuntes en lecciones que se juegan."
-            capacidades={["Lecciones con preguntas a partir de tu material, usando tu propia IA", "Racha, monedas y un cofre diario por estudiar", "Repasa lo que fallaste y organiza tus entregas"]}
-            principal="Abrir Auxi Student"
+            capacidades={["Pegas tu PDF o apuntes en tu IA con el pedido de Auxi y salen preguntas", "Si fallas, León te da una pista antes que la respuesta", "Repasa lo que fallaste en los días siguientes", "Exámenes y entregas con avisos 7, 3 y 1 día antes"]}
+            principal="Empezar con Auxi Student"
+            pantalla={<PantallaStudent />}
           />
           <TarjetaApp
-            banner="vida"
-            tono="vida"
             nombre="Auxi Vida"
-            etiqueta="Tu plata del día · gratis"
-            beneficio="Sabe cuánto puedes gastar hoy y cuida tus metas."
-            capacidades={["Un disponible estimado para cada día, con el cálculo a la vista", "Importa movimientos de reportes, capturas o texto", "Protégete: revisa un mensaje o un vendedor antes de pagar"]}
-            principal="Probar sin dar mis datos"
+            color="#0E5B57"
+            panel="#E3F3F1"
+            beneficio="Sabe cuánto puedes gastar hoy sin pasarte."
+            capacidades={["Un disponible estimado para cada día, con el cálculo a la vista", "Importa movimientos de reportes, capturas o texto", "Metas de ahorro y pagos con aviso", "Protégete: revisa un mensaje o un vendedor antes de pagar"]}
+            principal="Probar con datos de ejemplo"
+            pantalla={<PantallaVida />}
             teal
           />
         </div>
-        <div className="mt-6">
-          <Banner nombre="vendoe" tono="vendoe" modo="contenido" velo="izquierda" parallax={false}>
-            <div className="flex flex-col items-start gap-4 p-6 text-white @4xl:flex-row @4xl:items-center @4xl:justify-between @4xl:px-10">
-              <div>
-                <p className="disp text-[24px] leading-[30px] font-black">¿Tienes un negocio?</p>
-                <p className="mt-1 max-w-[46ch] text-white/90">Vendoe es otra app que creé, con su propia página y su propia cuenta.</p>
-              </div>
-              <a className="btn btn-b" href="#vendoe">
-                Conocer Vendoe
-              </a>
-            </div>
-          </Banner>
-        </div>
+        <p className="mt-6 text-[16px] text-[color:var(--gris)]">
+          ¿Tienes un negocio?{" "}
+          <a href="#vendoe" className="font-bold text-[color:var(--indigo)] underline">
+            Vendoe
+          </a>{" "}
+          es otra app de Daniel Chong, con su propia página.
+        </p>
       </section>
 
-      <section id="prueba" className="bg-[color:var(--lila)]">
-        <div className="mx-auto grid max-w-[1200px] items-center gap-8 px-4 py-14 @4xl:grid-cols-12 @4xl:gap-12 @4xl:px-8 @4xl:py-20">
+      {/* Prueba + cómo se empieza. */}
+      <section id="prueba" className="mx-auto mt-16 max-w-[1200px] px-4 @4xl:mt-24 @4xl:px-8">
+        <div className="grid items-center gap-8 rounded-[32px] bg-[color:var(--lila)] p-5 @4xl:grid-cols-12 @4xl:gap-12 @4xl:p-12">
           <div className="@4xl:col-span-5">
-            <h2 className="h2">Pruébalo aquí mismo</h2>
-            <p className="cuerpo-l mt-3">Así se siente una pregunta en Auxi Student. Si aciertas, ganas monedas. Si fallas, León te da una pista en vez de la respuesta.</p>
-            <ol className="mt-8 flex flex-col gap-5">
+            <h2 className="h2">Pruébalo sin crear cuenta</h2>
+            <p className="cuerpo-l mt-3">Responde esta pregunta. Así se siente cada lección de Auxi Student.</p>
+            <ol className="mt-7 flex flex-col gap-4">
               {[
-                ["Crea tu cuenta gratis", "Una sola cuenta para todas las apps."],
-                ["Elige la app que necesitas hoy", "No tienes que usarlas todas."],
-                ["Vuelve cuando quieras", "Mi espacio te deja donde te quedaste."],
+                ["Crea tu cuenta", "Con tu correo o con Google."],
+                ["Elige tu app", "Student, Vida o las dos."],
+                ["Vuelve cuando quieras", "Sigues donde te quedaste, en cualquier equipo."],
               ].map(([t, d], i) => (
                 <li key={t} className="flex gap-4">
-                  <span className="num grid size-10 shrink-0 place-items-center rounded-full bg-[color:var(--cobalto)] text-[18px] font-black text-white" style={{ fontFamily: NUNITO }}>
+                  <span className="num grid size-9 shrink-0 place-items-center rounded-full bg-[color:var(--cobalto)] text-[16px] font-black text-white" style={{ fontFamily: NUNITO }}>
                     {i + 1}
                   </span>
                   <span>
@@ -459,104 +540,152 @@ function Landing({ celular }: { celular: boolean }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1200px] px-4 py-14 @4xl:px-8 @4xl:py-20">
-        <Banner nombre="cuenta" tono="cuenta" modo="contenido" velo="izquierda" parallax={false}>
-          <div className="grid gap-8 p-6 text-white @4xl:grid-cols-12 @4xl:p-12">
-            <div className="@4xl:col-span-5">
-              <h2 className="h2">Una cuenta. Tus datos, bajo tu control.</h2>
-              <a href="#privacidad" className="mt-4 inline-flex min-h-11 items-center font-semibold text-white underline">
-                Leer la política de privacidad
-              </a>
+      {/* Por qué Auxi. */}
+      <section className="mx-auto max-w-[1200px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
+        <h2 className="h2">Lo que hace distinto a Auxi</h2>
+        <div className="mt-8 grid gap-x-10 gap-y-8 @2xl:grid-cols-2">
+          {(
+            [
+              ["pista", "Te pregunta en vez de copiarte", "Si te equivocas, León te da una pista. La respuesta solo si la pides."],
+              ["ia", "Usa tu propia IA, sin costo extra", "Creas lecciones con ChatGPT, Claude o Gemini y pegas el resultado aquí."],
+              ["dado", "Premios sin trampas", "Las probabilidades del cofre siempre se ven. Nada de cuentas regresivas falsas."],
+              ["nube", "Todo en tu cuenta", "Student y Vida se guardan en tu cuenta. Solo tú los ves y puedes borrarla cuando quieras."],
+            ] as ["pista" | "ia" | "dado" | "nube", string, string][]
+          ).map(([i, t, d]) => (
+            <div key={t} className="flex gap-4">
+              <Icono tipo={i} />
+              <div>
+                <p className="text-[18px] font-black" style={{ fontFamily: NUNITO }}>
+                  {t}
+                </p>
+                <p className="mt-1 text-[16px] leading-[24px] text-[color:var(--gris)]">{d}</p>
+              </div>
             </div>
-            <dl className="grid gap-6 @2xl:grid-cols-3 @4xl:col-span-7">
+          ))}
+        </div>
+      </section>
+
+      {/* Precios. */}
+      <section id="precios" className="mx-auto max-w-[1200px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
+        <h2 className="h2">Precios claros</h2>
+        <p className="cuerpo-l mt-3 max-w-[56ch]">No pagas nada para usar Auxi. Las monedas solo abren extras y se ganan usando la app.</p>
+        <div className="mt-8 grid gap-5 @4xl:grid-cols-2">
+          <div className="rounded-[24px] border border-[color:var(--linea)] bg-white p-6 @4xl:p-8">
+            <p className="text-[22px] font-black" style={{ fontFamily: NUNITO }}>
+              Gratis, siempre
+            </p>
+            <ul className="mt-4 flex flex-col gap-3">
+              {["Lecciones, repaso y camino de niveles", "Métodos: El tomate, Las 5 cajas y Explícaselo a León", "Exámenes y entregas con avisos", "Auxi Vida completa", "2 temas creados con tu IA"].map((x) => (
+                <li key={x} className="flex gap-2.5">
+                  <Check className="mt-0.5 size-5" />
+                  {x}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-[24px] bg-[#FFF6E2] p-6 ring-1 ring-[#F2D9A2] @4xl:p-8">
+            <p className="flex items-center gap-2 text-[22px] font-black" style={{ fontFamily: NUNITO }}>
+              <Moneda className="size-7" />
+              Lo extra, con monedas
+            </p>
+            <dl className="mt-4 flex flex-col divide-y divide-[#F2D9A2]">
               {[
-                ["Auxi Student", "Tu avance se guarda en tu cuenta para seguir en otro equipo."],
-                ["Auxi Vida", "Tus datos se quedan en tu celular. Los descargas o borras cuando quieras."],
-                ["Borrar tu cuenta", "Está en tu perfil. Se borra todo, sin trámites."],
-              ].map(([t, d]) => (
-                <div key={t} className="rounded-[18px] bg-[#0B1140]/70 p-4 ring-1 ring-white/20 backdrop-blur-sm">
-                  <dt className="font-bold">{t}</dt>
-                  <dd className="mt-1 text-[15px] leading-[22px] text-white/90">{d}</dd>
+                ["Un tema más creado con IA", "60 monedas"],
+                ["Pase libre de por vida para crear temas", "500 monedas"],
+              ].map(([a, b]) => (
+                <div key={a} className="flex items-center justify-between gap-4 py-3">
+                  <dt>{a}</dt>
+                  <dd className="num shrink-0 font-black" style={{ fontFamily: NUNITO }}>
+                    {b}
+                  </dd>
                 </div>
               ))}
             </dl>
-          </div>
-        </Banner>
-      </section>
-
-      <section id="estudio" className="mx-auto max-w-[1200px] px-4 pb-14 @4xl:px-8 @4xl:pb-20">
-        <div className="grid items-center gap-6 rounded-[28px] border border-[color:var(--linea)] bg-white p-6 @4xl:grid-cols-12 @4xl:p-10">
-          <div className="@4xl:col-span-6">
-            <p className="flex items-center gap-2 font-bold text-[color:var(--indigo)]">
-              <Candado className="size-5" />
-              En el estudio
-            </p>
-            <h2 className="h2 mt-2">Vienen más apps</h2>
-            <p className="cuerpo-l mt-3">Estoy preparando nuevas herramientas. Cuando estén listas, aparecerán aquí y en tu espacio, con la misma cuenta.</p>
-          </div>
-          <div className="@4xl:col-span-6">
-            <Banner nombre="estudio" tono="hero" velo="ninguno" parallax={false} className="aspect-[16/9]" />
+            <p className="mt-3 text-[15px] leading-[22px] text-[#6B4A0A]">Ganas monedas terminando lecciones, con el cofre del día y con misiones opcionales. Lo que ya creaste nunca se bloquea.</p>
           </div>
         </div>
       </section>
 
-      <section id="sobre" className="bg-white">
-        <div className="mx-auto grid max-w-[1200px] items-center gap-8 px-4 py-14 @4xl:grid-cols-12 @4xl:gap-12 @4xl:px-8 @4xl:py-20">
-          <div className="@4xl:col-span-5">
-            <Banner nombre="autor" tono="autor" velo="ninguno" parallax={false} className="aspect-[4/3] @4xl:aspect-[4/5]">
-              <img src="/plataforma/presentacion.webp" alt="Daniel Chong frente a una luz azul" className="size-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} draggable={false} />
-            </Banner>
-          </div>
-          <div className="@4xl:col-span-6 @4xl:col-start-7">
-            <h2 className="h2">Hola, soy Daniel Chong</h2>
-            <div className="cuerpo-l mt-5 flex max-w-[54ch] flex-col gap-4 text-[color:var(--tinta)]">
-              <p>Me apasiona crear soluciones digitales para negocios y para personas. Auxi Studio es el lugar donde reúno lo que construyo.</p>
-              <p>Aquí también comparto lo que aprendo en el camino, incluidos mis errores, porque de ellos sale lo que mejor funciona.</p>
-              <p>Te doy la bienvenida. Este espacio es para ti: sácale todo el provecho posible.</p>
-            </div>
-            <a href="#instagram" className="mt-6 inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
+      {/* Preguntas frecuentes. */}
+      <section id="preguntas" className="mx-auto max-w-[860px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
+        <h2 className="h2">Preguntas frecuentes</h2>
+        <div className="mt-6 border-t border-[color:var(--linea)]">
+          <Pregunta q="¿De verdad es gratis?">Sí. Lo básico de Auxi Student y toda Auxi Vida son gratis. Las monedas solo abren extras y se ganan usando la app.</Pregunta>
+          <Pregunta q="¿Necesito crear una cuenta?">Sí, con tu correo o con Google. Así tu avance y tus datos se guardan y puedes seguir en otro equipo. Auxi Vida tiene un modo de ejemplo para mirarla antes.</Pregunta>
+          <Pregunta q="¿Cómo se crean las lecciones?">Copias el pedido de Auxi, lo pegas en tu IA (ChatGPT, Claude o Gemini) junto con tu PDF o tus apuntes, y pegas aquí la respuesta. Revisas las preguntas y listo.</Pregunta>
+          <Pregunta q="¿Auxi Vida se conecta a mi banco?">No. No mueve dinero ni ve tu saldo. Tú anotas o importas tus movimientos y el disponible del día es un estimado.</Pregunta>
+          <Pregunta q="¿Quién ve mis datos?">Solo tú. Se guardan en tu cuenta, puedes descargarlos y puedes borrar tu cuenta desde tu perfil.</Pregunta>
+          <Pregunta q="¿Funciona en iPhone y Android?">Sí, desde el navegador. También puedes agregarla a tu pantalla de inicio y abrirla como una app.</Pregunta>
+        </div>
+      </section>
+
+      {/* Sobre mí, en corto. */}
+      <section id="sobre" className="mx-auto max-w-[860px] px-4 pt-16 @4xl:px-8 @4xl:pt-20">
+        <div className="flex flex-col gap-5 rounded-[24px] border border-[color:var(--linea)] bg-white p-6 @2xl:flex-row @2xl:items-center">
+          <span className="block size-24 shrink-0 overflow-hidden rounded-full bg-[#0B1140]">
+            <img src="/plataforma/presentacion.webp" alt="Daniel Chong" className="size-full scale-[2.1] object-cover" style={{ transformOrigin: "50% 62%" }} />
+          </span>
+          <div>
+            <p className="text-[20px] font-black" style={{ fontFamily: NUNITO }}>
+              Hola, soy Daniel Chong
+            </p>
+            <p className="mt-1 text-[16px] leading-[24px] text-[color:var(--gris)]">Me apasiona crear soluciones digitales para negocios y personas. Aquí comparto lo que aprendo, también mis errores. Te doy la bienvenida: sácale todo el provecho.</p>
+            <a href="#instagram" className="mt-1 inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
               Sígueme en Instagram
             </a>
           </div>
         </div>
       </section>
 
-      <section className="bg-[color:var(--cobalto)] text-white">
-        <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-6 px-4 py-14 text-center @4xl:flex-row @4xl:gap-10 @4xl:px-8 @4xl:text-left">
-          <Leon pose="anima" alto={celular ? 150 : 190} />
+      {/* Cierre y contacto. */}
+      <section className="mx-auto max-w-[1200px] px-4 py-16 @4xl:px-8 @4xl:py-24">
+        <div className="flex flex-col items-center gap-6 rounded-[32px] bg-[color:var(--cobalto)] p-8 text-center text-white @4xl:flex-row @4xl:gap-10 @4xl:p-12 @4xl:text-left">
+          <Leon pose="anima" alto={celular ? 130 : 160} />
           <div className="flex-1">
-            <h2 className="h2 max-w-[20ch]">Empieza hoy con la app que necesitas.</h2>
-            <p className="mt-2 text-white/85">Gratis. Sin tarjeta.</p>
+            <h2 className="h2">Empieza hoy, es gratis.</h2>
+            <p className="mt-2 text-white/85">¿Tienes una duda? Escríbeme y te respondo.</p>
           </div>
-          <a className="btn btn-b" href="#crear">
-            Crear mi cuenta gratis
-          </a>
+          <div className="flex flex-col gap-3 @2xl:flex-row">
+            <a className="btn btn-b" href="#crear">
+              Crear mi cuenta gratis
+            </a>
+            <a className="btn btn-f" href={WHATSAPP} target="_blank" rel="noopener noreferrer">
+              Escribir por WhatsApp
+            </a>
+          </div>
         </div>
       </section>
-      <footer className="mx-auto grid max-w-[1200px] gap-8 px-4 py-10 text-[15px] @4xl:grid-cols-4 @4xl:px-8">
-        <Marca />
-        {[
-          ["Apps", ["Auxi Student", "Auxi Vida", "Vendoe (sitio aparte)"]],
-          ["Ayuda", ["Preguntas frecuentes", "Escríbeme por WhatsApp"]],
-          ["Legal", ["Privacidad", "Condiciones"]],
-        ].map(([t, items]) => (
-          <div key={t as string}>
-            <p className="font-bold">{t as string}</p>
-            <ul className="mt-2">
-              {(items as string[]).map((x) => (
-                <li key={x}>
-                  <a href="#f" className="flex min-h-10 items-center text-[color:var(--gris)] hover:text-[color:var(--tinta)]">
-                    {x}
-                  </a>
-                </li>
-              ))}
-            </ul>
+
+      <footer className="border-t border-[color:var(--linea)]">
+        <div className="mx-auto grid max-w-[1200px] gap-8 px-4 py-10 text-[15px] @4xl:grid-cols-4 @4xl:px-8">
+          <div>
+            <Marca />
+            <p className="chico mt-3">Apps gratis para estudiar y ordenar tu plata.</p>
           </div>
-        ))}
+          {[
+            ["Apps", ["Auxi Student", "Auxi Vida", "Vendoe (sitio aparte)"]],
+            ["Ayuda", ["Preguntas frecuentes", "WhatsApp", "Instagram"]],
+            ["Legal", ["Privacidad", "Condiciones"]],
+          ].map(([t, items]) => (
+            <div key={t as string}>
+              <p className="font-bold">{t as string}</p>
+              <ul className="mt-2">
+                {(items as string[]).map((x) => (
+                  <li key={x}>
+                    <a href="#f" className="flex min-h-11 items-center text-[color:var(--gris)] hover:text-[color:var(--tinta)]">
+                      {x}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </footer>
     </div>
   );
 }
+
 
 /* ---------- AppShell compartido (Mi espacio, Student, Vida) ---------- */
 type Item = { nombre: string; activo?: boolean };

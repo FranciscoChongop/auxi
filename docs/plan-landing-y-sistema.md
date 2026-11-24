@@ -13,7 +13,7 @@ Si el trabajo se corta, se retoma desde el primer paso que no esté marcado ✅.
    - `src/vida/estado.ts`: al entrar con cuenta, baja lo guardado y lo une con lo del celular (por id, sin duplicar); cada cambio se sube con espera corta. Sin la tabla instalada, sigue funcionando local como hoy.
    - Textos que decían «Vida se queda en tu celular» → «se guarda en tu cuenta» (landing, Perfil de Vida, privacidad).
    - Prueba automática de la unión.
-5. ⬜ **Landing v3** (en `/propuesta`, pestaña Landing). Orden:
+5. ✅ **Landing v3** (en `/propuesta`, pestaña Landing). Orden:
    1. Encabezado fijo compacto: logo, Apps · Precios · Preguntas, «Entrar» y «Crear cuenta gratis».
    2. Héroe: qué es, para quién y qué ganas, en 5 segundos. León con una sola entrada (sin flotar ni girar sin parar).
    3. Apps: Student y Vida con **vista real de la pantalla** (no ilustración genérica) y 3 beneficios concretos cada una; Vendoe en una línea.
@@ -25,9 +25,9 @@ Si el trabajo se corta, se retoma desde el primer paso que no esté marcado ✅.
    9. Cierre: CTA + WhatsApp (falta el número).
    10. Pie.
    - Se quitan: cinta que se mueve, órbita girando sin parar, chips que flotan, franja de 3 cajas de privacidad, «Vienen más apps» (queda en Mi espacio).
-6. ⬜ Revisión 2: repetir la revisión automática + recorrido manual de la landing v3, Mi espacio y las dos apps; corregir.
-7. ⬜ Prompts de imágenes v3 (`docs/plataforma/solicitud-imagenes-v3.md`): cada imagen explica algo de su sección (León haciendo la acción concreta, pantallas reales), no relleno.
-8. ⬜ Actualizar `docs/diseno/propuesta-p1a.md`, commit, y lista de propuestas para aprobar.
+6. ✅ Revisión 2: repetir la revisión automática + recorrido manual de la landing v3, Mi espacio y las dos apps; corregir.
+7. ✅ Prompts de imágenes v3 (`docs/plataforma/solicitud-imagenes-v3.md`): cada imagen explica algo de su sección (León haciendo la acción concreta, pantallas reales), no relleno.
+8. ✅ Actualizar `docs/diseno/propuesta-p1a.md`, commit, y lista de propuestas para aprobar.
 
 ## Hallazgos de la revisión 1
 | # | Dónde | Hallazgo | Acción |
@@ -41,5 +41,19 @@ Si el trabajo se corta, se retoma desde el primer paso que no esté marcado ✅.
 | R1-7 | `/entrar` | En desarrollo con `VITE_SIN_LOGIN` vuelve a `/` (correcto: no hay cuenta que pedir) | Sin cambio; se prueba en la versión publicada |
 | R1-8 | Todas | Sin errores de consola, sin imágenes rotas, sin desbordes horizontales | — |
 
+## Hallazgos de la revisión 2
+- Las 47 rutas, en celular y computadora: sin errores de consola, sin imágenes rotas, sin desbordes; redirecciones `/studio` → `/student` y `/negocio` → Vendoe correctas.
+- Landing v3: todas las áreas táctiles miden 44 px (el boceto se ve más chico porque el marco se escala); el único enlace pequeño es «Vendoe» dentro de una frase (permitido).
+- `npm test`: 8 de 8. `npm run build`: sin errores.
+
 ## Propuestas que necesitan aprobación de Daniel
-(se completa al final)
+1. **Correr el SQL** `supabase/migraciones/2026-11-24-vida-en-la-cuenta.sql` en Supabase. Hasta entonces Vida sigue solo en el equipo, aunque los textos ya dicen «en tu cuenta»: hay que correrlo antes de publicar.
+2. **Privacidad:** guardar datos de dinero en la nube cambia lo que promete la política. Se actualizó el texto, pero conviene una revisión legal antes del lanzamiento.
+3. **Textos de la landing v3:** titular «Estudia jugando y ordena tu plata, gratis.», las 6 preguntas frecuentes y la sección de precios.
+4. **WhatsApp:** la landing usa el número que ya está en Privacidad. ¿Es el correcto para atender dudas?
+5. **Monedas:** la landing dice que se ganan usando la app. ¿Confirmas que no se venderán con dinero?
+6. **Opiniones reales:** no hay testimonios y no se inventan. Propuesta: sumar una sección cuando haya opiniones reales con permiso (la misión «opinar» ya pide permiso para publicar).
+7. **«Vienen más apps»** sale de la landing y queda solo en Mi espacio.
+8. **Imágenes v3** (I-10 a I-13) según `docs/plataforma/solicitud-imagenes-v3.md`.
+9. **Límite conocido:** la primera vez que un equipo se enlaza con la cuenta se unen ambas copias de Vida; algo borrado en un equipo puede volver si el otro aún lo tenía. Después, manda la copia más nueva.
+10. **Tercera revisión:** si activas QA Bug Hunter y A11y Enforcer, hago una pasada más con ellos.

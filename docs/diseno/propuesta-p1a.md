@@ -1,4 +1,6 @@
-# Propuesta visual v2 (para aprobar antes del cambio grande)
+# Propuesta visual v2 + landing v3 (para aprobar antes del cambio grande)
+
+> **Landing v3 (24 nov):** la landing se rehízo más limpia: héroe con qué es y para quién, «Dos apps, una cuenta» con la pantalla de cada app, prueba, «Lo que hace distinto a Auxi», precios, preguntas frecuentes, «Sobre mí» corto y cierre con WhatsApp. Se quitaron la cinta, la órbita girando, los chips que flotan, la franja de privacidad y «Vienen más apps». Detalle y propuestas en `docs/plan-landing-y-sistema.md`; imágenes en `docs/plataforma/solicitud-imagenes-v3.md`. Lo de abajo sigue valiendo para Mi espacio, Student y Vida.
 
 Bocetos navegables en tu computadora: **http://localhost:5173/propuesta** (solo en desarrollo). Pestañas: Landing, Mi espacio, Auxi Student (con «Cuenta nueva»), Auxi Vida y Sistema; selector Celular 390 / Computadora 1280. Datos de ejemplo.
 
