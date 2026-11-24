@@ -44,7 +44,7 @@ export function BorrarCuenta() {
             <li>Tu cuenta ({cuenta.email}) y tu acceso con correo o Google.</li>
             <li>Tu avance de Auxi Student: cursos, temas, PDF, lecciones, racha y entregas.</li>
             <li>Tus monedas, cupos, pase libre y solicitudes de apoyo.</li>
-            <li>Lo que tu cuenta guardó de Auxi Vida en este dispositivo.</li>
+            <li>Tus datos de Auxi Vida, en la cuenta y en este dispositivo.</li>
           </ul>
           <p className="text-ayuda text-text-soft">Si usaste Auxi en otros dispositivos, lo guardado solo allí se queda en esos navegadores hasta que lo borres desde ellos.</p>
           <label className="block">

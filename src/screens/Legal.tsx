@@ -38,10 +38,10 @@ function Privacidad() {
       </Seccion>
       <Seccion titulo="Auxi Vida: tu plata">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Lo que registras en Auxi Vida (gastos, ingresos, metas, pagos, fechas y revisiones de Protégete) se guarda en tu celular. Puedes descargarlo o borrarlo desde Perfil → Mis datos.</li>
+          <li>Lo que registras en Auxi Vida (gastos, ingresos, metas, pagos, fechas y revisiones de Protégete) se guarda en tu celular y, si entraste con tu cuenta, también en tu cuenta para seguir en otro equipo. Solo tú puedes verlo. Puedes descargarlo o borrarlo desde Perfil → Mis datos.</li>
           <li>Auxi Vida no mueve tu plata, no presta y no recomienda productos financieros. No te pedimos claves, códigos ni datos de tarjetas.</li>
           <li>Las capturas, los PDF y los archivos que importas se leen en tu celular y no se guardan ni se envían a nadie. Solo se guarda lo que confirmas: monto, moneda, fecha, nombre, tipo y número de operación. La primera vez que lees una imagen, la app descarga el lector desde un servidor público (jsDelivr); tu imagen no sale del celular.</li>
-          <li>En Protégete, de lo que escribes solo se guarda una copia con claves y números ocultos, en tu celular, y puedes borrarla cuando quieras.</li>
+          <li>En Protégete, de lo que escribes solo se guarda una copia con claves y números ocultos, junto con tus demás datos de Vida, y puedes borrarla cuando quieras.</li>
         </ul>
       </Seccion>
       <Seccion titulo="Si conectas Gmail">

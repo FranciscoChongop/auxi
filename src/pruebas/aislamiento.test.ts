@@ -120,3 +120,29 @@ test("Importar: mismo número de operación es duplicado; mismo monto solo, no",
   assert.equal(mismoMonto.duplicado, undefined);
   assert.equal(mismoMonto.incluir, true);
 });
+
+test("Vida en la cuenta: el primer enlace une sin repetir; después manda la copia más nueva", () => {
+  const base = vida.obtenerVidaReal();
+  const mov = (id: string) => ({ id, tipo: "gasto" as const, monto: 5, categoria: "Comida", nota: id, fecha: "2026-11-20", origen: "manual" as const });
+  const local = { ...base, movimientos: [mov("a"), mov("b")], editado: "2026-11-20T10:00:00.000Z" };
+  const nube = { ...base, movimientos: [mov("b"), mov("c")], editado: "2026-11-21T10:00:00.000Z" };
+  // Primer enlace de este equipo: se suman a, b y c una sola vez.
+  const unida = vida.elegirCopia(local, nube, false)!;
+  assert.deepEqual(unida.movimientos.map((m) => m.id).sort(), ["a", "b", "c"]);
+  // Ya enlazado: si la cuenta es más nueva, gana la cuenta; si lo local es más nuevo, se queda lo local.
+  assert.equal(vida.elegirCopia(local, nube, true), nube);
+  assert.equal(vida.elegirCopia({ ...local, editado: "2026-11-22T10:00:00.000Z" }, nube, true), null);
+  // Sin copia en la cuenta: se queda lo local (y luego se sube).
+  assert.equal(vida.elegirCopia(local, null, true), null);
+});
+
+test("Vida en la cuenta: borrar deja una copia vacía con fecha (no vuelve desde la cuenta)", () => {
+  prop.avisarCambioDeCuenta("F");
+  vida.actualizarVida(() => ({ movimientos: [{ id: "z", tipo: "gasto", monto: 1, categoria: "Otros", nota: "z", fecha: "2026-11-20", origen: "manual" }] }));
+  const antes = vida.obtenerVidaReal().editado!;
+  vida.borrarVida();
+  const despues = vida.obtenerVidaReal();
+  assert.equal(despues.movimientos.length, 0);
+  assert.ok(despues.editado! >= antes);
+  assert.equal(vida.elegirCopia(despues, { ...despues, movimientos: [], editado: antes }, true), null);
+});

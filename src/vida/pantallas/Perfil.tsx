@@ -87,7 +87,7 @@ export default function Perfil() {
           <LeonVida pose="icono" alto={72} />
           <div>
             <p className="text-tarjeta font-extrabold">Tu perfil</p>
-            <p className="text-ayuda break-all text-text-soft">{cuenta.modo === "conectado" ? cuenta.email : "Lo que anotas se guarda en este celular."}</p>
+            <p className="text-ayuda break-all text-text-soft">{cuenta.modo === "conectado" ? cuenta.email : "Sin cuenta, lo que anotas se guarda solo en este celular."}</p>
           </div>
         </div>
 
@@ -204,7 +204,7 @@ export default function Perfil() {
         </Bloque>
 
         <Bloque titulo="Mis datos">
-          <p className="text-ayuda text-text-soft">Tus datos son tuyos y viven en este celular. Las capturas no se guardan; de tus revisiones solo guardo el texto con claves y números ocultos.</p>
+          <p className="text-ayuda text-text-soft">Tus datos son tuyos: se guardan en tu cuenta y en este celular, y solo tú los ves. Las capturas no se guardan; de tus revisiones solo guardo el texto con claves y números ocultos.</p>
           <div className="mt-3 flex flex-col gap-2">
             <Boton variante="secundario" onClick={exportar}>
               Descargar lo que anoté
@@ -257,7 +257,7 @@ export default function Perfil() {
       </div>
 
       <Ventana abierta={borrar} alCerrar={() => setBorrar(false)} titulo="¿Borrar todo lo de Vida?">
-        <p className="text-text-soft">Se borran tus números, movimientos, metas, pagos y revisiones de este celular. No se puede deshacer. Auxi Student no se toca.</p>
+        <p className="text-text-soft">Se borran tus números, movimientos, metas, pagos y revisiones, en este celular y en tu cuenta. No se puede deshacer. Auxi Student no se toca.</p>
         <div className="mt-5 flex flex-col gap-3">
           <Boton
             variante="secundario"

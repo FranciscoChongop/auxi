@@ -130,7 +130,7 @@ export default function Hoy() {
           {sinCuenta && (
             <section className="rounded-[20px] border-2 border-brand bg-card p-4" aria-label="Datos sin cuenta">
               <p className="font-extrabold">Hay datos de Vida guardados en este navegador sin cuenta</p>
-              <p className="mt-1 text-ayuda text-text-soft">¿Quieres pasarlos a tu cuenta? Seguirán guardados solo en este dispositivo. Si no son tuyos, déjalos aparte.</p>
+              <p className="mt-1 text-ayuda text-text-soft">¿Quieres pasarlos a tu cuenta? Así los verás también en tus otros equipos. Si no son tuyos, déjalos aparte.</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={pasarDatosSinCuenta} className="min-h-11 cursor-pointer rounded-[12px] bg-brand px-4 font-extrabold text-white">
                   Pasarlos a mi cuenta

@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { useCuenta } from "../lib/nube";
 import { useRuta, useRutaCompleta } from "../lib/rutas";
 import { cerrarDiasPasados, useVida } from "./estado";
+import "./nubeVida";
 import { AvisoDeshacer } from "./ui";
 
 // Código dividido por pantalla.

@@ -86,7 +86,7 @@ function Centro() {
               </button>
             )}
           </div>
-          <p className="text-ayuda text-text-soft">Solo en este celular. Guardo lo que escribiste con las claves y números ocultos.</p>
+          <p className="text-ayuda text-text-soft">Guardo lo que escribiste con las claves y números ocultos, junto con tus datos de Vida.</p>
           {e.casos.length === 0 ? (
             <p className="mt-2 rounded-[20px] border-2 border-dashed border-surface p-4 text-text-soft">Aún no revisas nada. Cuando lo hagas, puedes volver al caso y añadir más información.</p>
           ) : (
@@ -123,7 +123,7 @@ function Centro() {
       </div>
 
       <Ventana abierta={borrarTodo} alCerrar={() => setBorrarTodo(false)} titulo="¿Borrar todas tus revisiones?">
-        <p className="text-text-soft">Se borran de este celular y no se pueden recuperar.</p>
+        <p className="text-text-soft">Se borran de este celular y de tu cuenta, y no se pueden recuperar.</p>
         <div className="mt-5 flex flex-col gap-3">
           <Boton
             variante="secundario"

@@ -43,7 +43,7 @@ export default function Cuenta() {
         <h1 className="mt-4 text-titulo font-black">{conectado ? "Ya estás con tu cuenta Auxi" : "Tu avance está en este celular"}</h1>
         <p className="mt-2 max-w-xs text-text-soft">
           {conectado
-            ? `Entraste como ${cuenta.email ?? "tu cuenta"}. Es la misma cuenta de Auxi Student. En esta versión de prueba, lo que anotas en Vida se guarda en este celular; pronto se guardará también en tu cuenta.`
+            ? `Entraste como ${cuenta.email ?? "tu cuenta"}. Es la misma cuenta de Auxi Student. Lo que anotas en Vida se guarda en tu cuenta, así puedes seguir en otro celular o en tu computadora.`
             : "Las cuentas aún no están activadas aquí. Todo lo que anotas se guarda en este celular."}
         </p>
       </div>

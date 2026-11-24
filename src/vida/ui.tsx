@@ -454,7 +454,7 @@ export function CampoSoles({ valor, alCambiar, etiqueta, autoFocus = false, erro
           value={valor}
           onChange={(e) => alCambiar(e.target.value.replace(/[^\d.,]/g, "").replace(",", "."))}
           placeholder="0"
-          className="numeros w-full bg-transparent text-[28px] font-black text-text outline-none placeholder:text-text-soft/50"
+          className="numeros h-full w-full bg-transparent text-[28px] font-black text-text outline-none placeholder:text-text-soft/50"
           aria-label={etiqueta}
           aria-invalid={!!error}
         />

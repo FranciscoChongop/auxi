@@ -65,7 +65,7 @@ export type Cierre = { sobra: number; destino: "manana" | "colchon" };
 
 export type Objetivo = "gastar" | "ahorrar" | "pagos" | "estafa";
 
-/** Un caso de Protégete: lo que contó la persona (sin datos sensibles), sus respuestas y el resultado. Solo en este celular. */
+/** Un caso de Protégete: lo que contó la persona (sin datos sensibles), sus respuestas y el resultado. */
 export type Caso = {
   id: string;
   tipo: string;
@@ -107,6 +107,8 @@ export type EstadoVida = {
   importarVisto: boolean;
   formatosVistos: number;
   sugerencias: { activas: boolean; descartes: Record<string, string> };
+  /** Última vez que la persona cambió algo (sirve para saber qué copia es la más nueva entre equipos). */
+  editado?: string;
 };
 
 /**
@@ -191,7 +193,7 @@ export function actualizarVida(cambio: (e: EstadoVida) => Partial<EstadoVida>) {
     avisar();
     return;
   }
-  real = { ...real, ...cambio(real) };
+  real = { ...real, ...cambio(real), editado: new Date().toISOString() };
   try {
     localStorage.setItem(claveDe(dueno), JSON.stringify(real));
   } catch {
@@ -201,10 +203,12 @@ export function actualizarVida(cambio: (e: EstadoVida) => Partial<EstadoVida>) {
 }
 
 export function borrarVida() {
-  real = inicial();
+  // Con cuenta se guarda vacío y con fecha, para que la copia de la cuenta también quede vacía.
+  real = { ...inicial(), editado: new Date().toISOString() };
   ejemplo = null;
   try {
-    localStorage.removeItem(claveDe(dueno));
+    if (dueno) localStorage.setItem(claveDe(dueno), JSON.stringify(real));
+    else localStorage.removeItem(claveDe(dueno));
   } catch {
     // nada
   }
@@ -251,7 +255,7 @@ export function pasarDatosSinCuenta() {
         }).concat(sin.frascos.filter((x) => !real.frascos.some((f) => f.id === x.id))),
       }
     : { ...sin, avisos: { ...sin.avisos } };
-  real = { ...nuevo, avisos: { ...nuevo.avisos, datosSinCuenta: hoy() } };
+  real = { ...nuevo, avisos: { ...nuevo.avisos, datosSinCuenta: hoy() }, editado: new Date().toISOString() };
   try {
     localStorage.setItem(claveDe(dueno), JSON.stringify(real));
     localStorage.removeItem(CLAVE_SIN_CUENTA);
@@ -269,6 +273,71 @@ export function dejarDatosSinCuentaAparte() {
 function unirPorId<T extends { id: string }>(a: T[], b: T[]) {
   const ids = new Set(a.map((x) => x.id));
   return [...a, ...b.filter((x) => !ids.has(x.id))];
+}
+
+/* ---------- Copia en la cuenta (ver nubeVida.ts) ---------- */
+
+/** Cuenta dueña del espacio actual de Vida (null sin cuenta). */
+export const cuentaDeVida = () => dueno;
+
+/** Los datos propios de la persona (nunca los del modo ejemplo). */
+export const obtenerVidaReal = () => real;
+
+/** Avisa cada vez que cambian los datos de Vida. */
+export function suscribirVida(fn: () => void) {
+  oyentes.add(fn);
+  return () => oyentes.delete(fn);
+}
+
+/** Pone en este equipo la copia que llegó de la cuenta (solo si sigue siendo la misma cuenta). */
+export function aplicarDesdeNube(uid: string, crudo: Record<string, unknown>) {
+  if (uid !== dueno) return;
+  real = migrar(crudo);
+  try {
+    localStorage.setItem(claveDe(dueno), JSON.stringify(real));
+  } catch {
+    // nada
+  }
+  avisar();
+}
+
+/**
+ * Une dos copias de Vida de la misma cuenta la primera vez que un equipo se enlaza: suma movimientos,
+ * pagos, fechas, metas y casos sin repetir; en lo demás (plan, ajustes, racha) manda la copia más nueva.
+ */
+/** Al entrar: unir (primer enlace de este equipo), tomar la copia de la cuenta (más nueva) o quedarse con la local (null). */
+export function elegirCopia(local: EstadoVida, nube: EstadoVida | null, enlazado: boolean): EstadoVida | null {
+  if (!nube) return null;
+  if (!enlazado) return unirVida(local, { ...local, ...nube });
+  if ((nube.editado ?? "") > (local.editado ?? "")) return nube;
+  return null;
+}
+
+export function unirVida(a: EstadoVida, b: EstadoVida): EstadoVida {
+  const [nueva, vieja] = (a.editado ?? "") >= (b.editado ?? "") ? [a, b] : [b, a];
+  const frascos = nueva.frascos
+    .map((f) => {
+      const otro = vieja.frascos.find((x) => x.id === f.id);
+      return otro ? { ...f, aportes: unirPorId(f.aportes, otro.aportes) } : f;
+    })
+    .concat(vieja.frascos.filter((x) => !nueva.frascos.some((f) => f.id === x.id)));
+  return {
+    ...nueva,
+    iniciado: nueva.iniciado || vieja.iniciado,
+    plan: nueva.plan ?? vieja.plan,
+    movimientos: unirPorId(nueva.movimientos, vieja.movimientos),
+    pagos: unirPorId(nueva.pagos, vieja.pagos),
+    pendientes: unirPorId(nueva.pendientes, vieja.pendientes),
+    casos: unirPorId(nueva.casos, vieja.casos),
+    importaciones: unirPorId(nueva.importaciones, vieja.importaciones),
+    reglas: unirPorId(nueva.reglas, vieja.reglas),
+    frascos,
+    cierres: { ...vieja.cierres, ...nueva.cierres },
+    lecciones: { ...vieja.lecciones, ...nueva.lecciones },
+    misiones: { ...vieja.misiones, ...nueva.misiones },
+    avisos: { ...vieja.avisos, ...nueva.avisos },
+    editado: new Date().toISOString(),
+  };
 }
 
 export function useVida() {
