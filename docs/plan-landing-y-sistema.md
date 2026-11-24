@@ -57,3 +57,30 @@ Si el trabajo se corta, se retoma desde el primer paso que no esté marcado ✅.
 8. **Imágenes v3** (I-10 a I-13) según `docs/plataforma/solicitud-imagenes-v3.md`.
 9. **Límite conocido:** la primera vez que un equipo se enlaza con la cuenta se unen ambas copias de Vida; algo borrado en un equipo puede volver si el otro aún lo tenía. Después, manda la copia más nueva.
 10. **Tercera revisión:** si activas QA Bug Hunter y A11y Enforcer, hago una pasada más con ellos.
+
+## Pedido del 24 nov (después de ver la landing v3)
+Decisiones de Daniel: revisión legal de privacidad, textos de la landing y número de WhatsApp aprobados. «Vienen más apps» queda solo en Mi espacio. Las monedas no se venden con dinero **por ahora** (más adelante, según métricas, podría haber algo de pago).
+
+1. ⬜ Íconos propios de Auxi Student (libro abierto con visto bueno y chispa) y Auxi Vida (moneda con brote), misma familia que el logo; se usan donde se habla de cada app.
+2. ⬜ Escaparate animado por app (reemplaza tarjeta + celular chico): escenario de color propio (cobalto / verde azulado), texto grande que cambia por paso, barras de avance tipo historias, celular grande con elementos que salen de él (motion graphics). Se pausa y no corre fuera de pantalla ni con movimiento reducido.
+3. ⬜ Modo oscuro en todo el boceto (botón sol/luna en el encabezado y selector en la barra de la propuesta). En la app real se guardará en ajustes.
+4. ⬜ Revisar en celular, computadora y oscuro; commit.
+
+## Pedido del 24 nov (2): ecosistema profesional, «que todo se sienta wow»
+Daniel: el recorrido y la landing se sienten simples, «como hechos por un niño»; en computadora sobra espacio en blanco en «Dos apps, una cuenta». Quiere un **ecosistema profesional** (Auxi Studio como un sistema en órbita, sin tomarlo literal), con motion graphics, referencias reales y cuidado en cada detalle, **en la landing y en todas las apps**.
+
+Imágenes entregadas (hay que guardarlas en `originales/plataforma/`): `hero.png`, `hero-movil.png`, `app-student.png`, `app-vida.png`, `app-vendoe.png`. Las anteriores de héroe pasaron a `originales/plataforma/anteriores/`.
+
+### Fase A (esta): lenguaje visual v4 + landing
+1. ⬜ Referencias (patrones de landings de producto de primer nivel).
+2. ⬜ Código del boceto separado en `src/propuesta/` (piezas comunes y landing aparte).
+3. ⬜ Tokens v4 con modo claro y oscuro; íconos de app (Student, Vida, Vendoe).
+4. ⬜ Landing v4: encabezado de vidrio fijo; héroe a todo el ancho con la imagen nueva, León y órbitas que se dibujan; sección «Ecosistema» (mapa orbital de las apps + principios); por app: cabecera con su imagen, historia con celular fijo que cambia al hacer scroll (computadora) o escaparate automático (celular), y bento de funciones con micro-animaciones (incluida la pregunta de prueba); Vendoe; precios; preguntas + contacto; sobre mí; cierre; pie.
+5. ⬜ Mi espacio, Student y Vida del boceto con íconos, imágenes nuevas y modo oscuro.
+6. ⬜ Revisión en celular, computadora y oscuro; commit.
+
+### Fases siguientes (después del visto bueno)
+- **B:** sistema de diseño v4 en el código real (tokens, `AppShell`, componentes) + landing real en `/` y `/mi-espacio`.
+- **C:** todas las pantallas de Auxi Student con el nuevo lenguaje (inicio, lección, camino, métodos, entregas, perfil…).
+- **D:** todas las pantallas de Auxi Vida (hoy, registrar, movimientos, metas, Protégete, importar, perfil…).
+- **E:** revisión completa x2 y capturas reales para la landing.
