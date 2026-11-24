@@ -1,987 +1,50 @@
 /**
- * PROPUESTA VISUAL v2 (solo en desarrollo: /propuesta). Bocetos navegables para aprobar la dirección
- * antes del cambio grande: estructura ordenada (landing → Mi espacio → cada app) con el alma de siempre
- * (León, imágenes de fieltro, premios que se mueven). No es la app real: datos de ejemplo.
+ * PROPUESTA VISUAL v4 (solo en desarrollo: /propuesta). Bocetos navegables para aprobar la dirección
+ * antes del cambio grande: landing (src/propuesta/Landing.tsx), Mi espacio y el inicio de cada app,
+ * con modo claro y oscuro. No es la app real: datos de ejemplo.
  */
 import "@fontsource/figtree/latin-500.css";
 import "@fontsource/figtree/latin-600.css";
 import "@fontsource/figtree/latin-700.css";
-import { AnimatePresence, animate, motion, useInView, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Banner, type Tono } from "../components/Banner";
-import { CaraDeLeon, Leon, type CaraLeon } from "../components/Leon";
+import { IconoApp, type AppConIcono } from "../components/IconoApp";
+import { Leon } from "../components/Leon";
 import { Llama, Moneda } from "../components/Navegacion";
-import { lanzarConfeti } from "../lib/confeti";
 import { sonidos } from "../lib/sonidos";
+import { Barra, BotonTema, Candado, Check, Contador, ESTILOS, Marca, NUNITO, TemaContexto, type Tema } from "../propuesta/comun";
+import { Landing } from "../propuesta/Landing";
 import { CaraLeonVida, LeonVida } from "../vida/ui";
 
 type Vista = "landing" | "espacio" | "student" | "vida" | "sistema";
 type Ancho = "celular" | "computadora";
 
-const NUNITO = "Nunito, ui-rounded, system-ui, sans-serif";
-
-const ESTILOS = `
-.pp { --bg:#F7F8FC; --tinta:#141A4D; --gris:#5B6084; --linea:#DDE0EE; --blanco:#FFFFFF; --cobalto:#2430D9; --cobalto-hondo:#1A23A6; --lila:#E6E8FA; --teal:#0E5B57; --teal-hondo:#07403D; --menta:#F3FAF8; --menta-2:#DCF1EE; --turquesa:#5FE3DC; --oro:#F2B341; --oro-hondo:#C98A1C; --indigo:#4A4EDB;
-  font-family: Figtree, system-ui, sans-serif; color: var(--tinta); background: var(--bg); font-weight: 500; font-size: 16px; line-height: 24px; }
-.pp h1, .pp h2, .pp h3, .pp .disp { font-family: ${NUNITO}; letter-spacing: -0.01em; }
-.pp .h1 { font-size: 40px; line-height: 44px; font-weight: 900; }
-.pp .h2 { font-size: 30px; line-height: 36px; font-weight: 900; }
-.pp .h3 { font-size: 20px; line-height: 26px; font-weight: 800; }
-.pp .cuerpo-l { font-size: 18px; line-height: 28px; color: var(--gris); }
-.pp .chico { font-size: 14px; line-height: 20px; color: var(--gris); }
-.pp .num { font-variant-numeric: tabular-nums; }
-@container (min-width: 56rem) { .pp .h1 { font-size: 58px; line-height: 62px; } .pp .h2 { font-size: 40px; line-height: 46px; } }
-.pp .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:52px; padding:0 22px; border-radius:14px; font-family:${NUNITO}; font-weight:800; font-size:17px; cursor:pointer;
-  box-shadow: 0 4px 0 var(--sombra, transparent); transition: transform .06s ease-out, box-shadow .06s ease-out, background-color .15s; }
-.pp .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--sombra, transparent); }
-.pp .btn:focus-visible, .pp a:focus-visible, .pp button:focus-visible { outline: 3px solid var(--cobalto); outline-offset: 3px; }
-.pp .btn-p { background: var(--cobalto); color:#fff; --sombra: var(--cobalto-hondo); }
-.pp .btn-s { background: #fff; color: var(--cobalto); border: 2px solid var(--lila); --sombra: var(--lila); }
-.pp .btn-t { background: var(--teal); color:#fff; --sombra: var(--teal-hondo); }
-.pp .btn-oro { background: var(--oro); color: var(--tinta); --sombra: var(--oro-hondo); }
-.pp .btn-b { background:#fff; color: var(--cobalto); --sombra: #B9BEDD; }
-.pp .btn-bt { background:#fff; color: var(--teal); --sombra: #9CC9C3; }
-.pp .btn-f { background: transparent; color:#fff; border: 2px solid rgba(255,255,255,.6); }
-.pp .caja { background: var(--blanco); border: 1px solid var(--linea); border-radius: 20px; }
-.pp .captura { background: repeating-linear-gradient(135deg, #EEF0F8 0 10px, #E7EAF6 10px 20px); border: 1.5px dashed #B9BEDD; border-radius: 16px; color: var(--gris); font-size: 13px; line-height: 18px; display:grid; place-items:center; text-align:center; padding: 12px; }
-@media (prefers-reduced-motion: reduce) { .pp .btn { transition: none; } }
-`;
-
-/* ---------- Piezas con movimiento ---------- */
-
-/** Número que cuenta hacia su valor (nunca salta). Quieto si se reduce el movimiento. */
-function Contador({ valor, desde = 0, prefijo = "", retraso = 0 }: { valor: number; desde?: number; prefijo?: string; retraso?: number }) {
-  const quieto = !!useReducedMotion();
-  const [v, setV] = useState(quieto ? valor : desde);
-  useEffect(() => {
-    if (quieto) return setV(valor);
-    const c = animate(desde, valor, { duration: 0.9, delay: retraso, ease: "easeOut", onUpdate: (x) => setV(Math.round(x)) });
-    return () => c.stop();
-  }, [valor, desde, quieto, retraso]);
-  return (
-    <span className="num">
-      {prefijo}
-      {v}
-    </span>
-  );
-}
-
-/** Barra de avance que se llena con resorte al verse. */
-function Barra({ pct, color = "var(--cobalto)", fondo = "var(--lila)", alto = 10 }: { pct: number; color?: string; fondo?: string; alto?: number }) {
-  return (
-    <span className="block overflow-hidden rounded-full" style={{ height: alto, background: fondo }} aria-hidden="true">
-      <motion.span className="block h-full rounded-full" style={{ background: color }} initial={{ width: 0 }} whileInView={{ width: `${pct}%` }} viewport={{ once: true }} transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.2 }} />
-    </span>
-  );
-}
-
-/** Chip de premio que aparece una sola vez en el héroe (no queda flotando). */
-function Chip({ children, retraso, className }: { children: ReactNode; retraso: number; className: string }) {
-  const quieto = !!useReducedMotion();
-  return (
-    <motion.div
-      className={`absolute z-10 ${className}`}
-      initial={quieto ? { opacity: 0 } : { opacity: 0, scale: 0.4, y: 14 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={quieto ? { duration: 0.2, delay: retraso } : { type: "spring", stiffness: 500, damping: 16, delay: retraso }}
-    >
-      <div
-        className="flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[14px] leading-[18px] font-extrabold whitespace-nowrap text-[color:var(--tinta)] shadow-[0_5px_0_rgba(11,17,64,.28)] @4xl:text-[16px]"
-        style={{ fontFamily: NUNITO }}
-      >
-        {children}
-      </div>
-    </motion.div>
-  );
-}
-
-function Check({ color = "#2430D9", className = "size-5" }: { color?: string; className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" className={`shrink-0 ${className}`} aria-hidden="true">
-      <path d="M5 10.5l3 3 7-7" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function Candado({ className = "size-5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <rect x="5" y="10.5" width="14" height="10" rx="3" fill="currentColor" />
-      <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" strokeWidth="2.2" />
-    </svg>
-  );
-}
-
-/* ---------- Marca: la órbita de tres puntos (gira despacio solo en la landing) ---------- */
-function Marca({ chica = false, clara = false, gira = false }: { chica?: boolean; clara?: boolean; gira?: boolean }) {
-  const quieto = !!useReducedMotion();
-  const t = chica ? 30 : 38;
-  const [simbolo, setSimbolo] = useState(true);
-  return (
-    <span className={`flex items-center gap-2.5 ${clara ? "text-white" : ""}`}>
-      {simbolo ? (
-        <img src="/marca/simbolo.webp" alt="" width={t + 6} height={t + 6} onError={() => setSimbolo(false)} draggable={false} />
-      ) : (
-      <span className="relative" style={{ width: t, height: t }}>
-        <motion.svg viewBox="0 0 40 40" className="absolute inset-0 size-full" animate={gira && !quieto ? { rotate: 360 } : {}} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} aria-hidden="true">
-          <circle cx="20" cy="20" r="13" fill="none" stroke={clara ? "#fff" : "#2430D9"} strokeWidth="2.4" strokeDasharray="3 4" strokeLinecap="round" />
-          <circle cx="33" cy="20" r="3.6" fill="#2430D9" stroke="#fff" strokeWidth="1.2" />
-          <circle cx="13.5" cy="31.3" r="3.6" fill="#0E5B57" stroke="#fff" strokeWidth="1.2" />
-          <circle cx="13.5" cy="8.7" r="3.6" fill="#4A4EDB" stroke="#fff" strokeWidth="1.2" />
-        </motion.svg>
-        <svg viewBox="0 0 40 40" className="absolute inset-0 size-full" aria-hidden="true">
-          <circle cx="20" cy="20" r="5.5" fill="#F2B341" stroke="#C98A1C" strokeWidth="2" />
-        </svg>
-      </span>
-      )}
-      <span className="leading-none">
-        <span className="block text-[19px] font-black tracking-[-0.01em]" style={{ fontFamily: NUNITO }}>
-          Auxi Studio
-        </span>
-        {!chica && <span className={`mt-1 block text-[12px] font-semibold ${clara ? "text-white/80" : "text-[color:var(--gris)]"}`}>por Daniel Chong</span>}
-      </span>
-    </span>
-  );
-}
-
-/* ---------- 1. Landing v3: lo justo para decidir, sin relleno ---------- */
-
-const WHATSAPP = "https://wa.me/51960650372";
-
-/** Héroe: León entra una vez y aparecen tres premios. Nada se queda girando ni flotando. */
-function EscenaLeon({ celular }: { celular: boolean }) {
-  const t = celular ? 200 : 300;
-  return (
-    <div className="relative mx-auto" style={{ width: celular ? 330 : 440, height: t + 36 }}>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 ring-1 ring-white/20" style={{ width: t, height: t }} aria-hidden="true" />
-      <div className="absolute inset-0 grid place-items-center">
-        <Leon pose="saluda" alto={Math.round(t * 0.92)} rebote />
-      </div>
-      <Chip retraso={0.6} className="top-[6%] left-0">
-        <Moneda className="size-6" />
-        +15 monedas
-      </Chip>
-      <Chip retraso={0.8} className="top-[34%] right-0">
-        <Llama activa className="size-6" />
-        Racha de 4 días
-      </Chip>
-      <Chip retraso={1.0} className="bottom-[4%] left-[2%]">
-        <span className="grid size-6 place-items-center rounded-full bg-[color:var(--teal)] text-[11px] font-black text-white">S/</span>
-        <span className="num">31 para hoy</span>
-      </Chip>
-    </div>
-  );
-}
-
-/** Marco de celular para mostrar cómo se ve cada app (boceto hasta tener capturas reales). */
-function Telefono({ children, fondo }: { children: ReactNode; fondo: string }) {
-  return (
-    <div className="mx-auto w-[220px] rounded-[34px] bg-[#1E2340] p-[7px] shadow-[0_18px_40px_rgba(20,26,77,.22)]">
-      <div className="flex h-[430px] flex-col overflow-hidden rounded-[28px] text-[12px] leading-[16px]" style={{ background: fondo }}>
-        <div className="mx-auto mt-2 h-[5px] w-16 rounded-full bg-black/15" aria-hidden="true" />
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Recorridos animados: cada app se muestra en movimiento, en sus 3 momentos clave ---------- */
-
-const DURACION_ESCENA = 3800;
-const N = { fontFamily: NUNITO };
-
-/** Círculo que marca dónde «toca» el dedo. */
-function Toque({ retraso, className }: { retraso: number; className: string }) {
-  const quieto = !!useReducedMotion();
-  if (quieto) return null;
-  return (
-    <motion.span
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-10 size-9 rounded-full bg-[#141A4D]/25 ring-2 ring-white ${className}`}
-      initial={{ opacity: 0, scale: 0.4 }}
-      animate={{ opacity: [0, 1, 1, 0], scale: [0.4, 1, 1.2, 1.5] }}
-      transition={{ delay: retraso, duration: 0.7, times: [0, 0.3, 0.6, 1] }}
-    />
-  );
-}
-
-/** Texto que se escribe solo, letra por letra. */
-function Tecleo({ texto, retraso = 0, velocidad = 30 }: { texto: string; retraso?: number; velocidad?: number }) {
-  const quieto = !!useReducedMotion();
-  const [n, setN] = useState(quieto ? texto.length : 0);
-  useEffect(() => {
-    if (quieto) return setN(texto.length);
-    let intervalo = 0;
-    const inicio = window.setTimeout(() => {
-      let i = 0;
-      intervalo = window.setInterval(() => {
-        i += 1;
-        setN(i);
-        if (i >= texto.length) window.clearInterval(intervalo);
-      }, velocidad);
-    }, retraso * 1000);
-    return () => {
-      window.clearTimeout(inicio);
-      window.clearInterval(intervalo);
-    };
-  }, [texto, quieto, retraso, velocidad]);
-  return (
-    <>
-      {texto.slice(0, n)}
-      {n < texto.length && <span className="ml-px inline-block h-3 w-px translate-y-0.5 bg-current" />}
-    </>
-  );
-}
-
-/** Aparece desde abajo después de un momento. */
-function Entra({ retraso, children, className = "" }: { retraso: number; children: ReactNode; className?: string }) {
-  return (
-    <motion.div className={className} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: retraso, type: "spring", stiffness: 420, damping: 26 }}>
-      {children}
-    </motion.div>
-  );
-}
-
-function BotonFalso({ texto, color, sombra, toque, tinta = "#FFFFFF" }: { texto: string; color: string; sombra: string; toque?: number; tinta?: string }) {
-  return (
-    <div className="relative">
-      <motion.span
-        className="block rounded-[12px] py-2.5 text-center font-black"
-        style={{ ...N, background: color, color: tinta, boxShadow: `0 3px 0 ${sombra}` }}
-        animate={toque !== undefined ? { y: [0, 0, 2, 0], boxShadow: [`0 3px 0 ${sombra}`, `0 3px 0 ${sombra}`, `0 1px 0 ${sombra}`, `0 3px 0 ${sombra}`] } : {}}
-        transition={toque !== undefined ? { delay: toque, duration: 0.5, times: [0, 0.3, 0.5, 1] } : {}}
-      >
-        {texto}
-      </motion.span>
-      {toque !== undefined && <Toque retraso={toque} className="top-0 left-1/2 -translate-x-1/2" />}
-    </div>
-  );
-}
-
-type Escena = { titulo: string; detalle: string; pantalla: ReactNode };
-
-/** Teléfono que pasa solo por las escenas mientras se ve en pantalla. Se puede pausar o elegir una escena. */
-function Recorrido({ nombre, escenas, color, fondo }: { nombre: string; escenas: Escena[]; color: string; fondo: string }) {
-  const quieto = !!useReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
-  const visible = useInView(ref, { amount: 0.35 });
-  const [i, setI] = useState(0);
-  const [pausa, setPausa] = useState(false);
-  const corre = visible && !pausa && !quieto;
-  useEffect(() => {
-    if (!corre) return;
-    const t = window.setTimeout(() => setI((x) => (x + 1) % escenas.length), DURACION_ESCENA);
-    return () => window.clearTimeout(t);
-  }, [corre, i, escenas.length]);
-  return (
-    <div ref={ref} className="flex w-full flex-col items-center gap-4">
-      <Telefono fondo={fondo}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={i} className="relative flex flex-1 flex-col" initial={{ opacity: 0, x: 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -28 }} transition={{ duration: 0.22, ease: "easeOut" }}>
-            {escenas[i].pantalla}
-          </motion.div>
-        </AnimatePresence>
-      </Telefono>
-      <ol className="flex w-full max-w-[300px] flex-col gap-1" aria-label={`Recorrido por ${nombre}`}>
-        {escenas.map((e, k) => (
-          <li key={e.titulo}>
-            <button
-              type="button"
-              onClick={() => setI(k)}
-              aria-current={k === i ? "step" : undefined}
-              className={`relative flex min-h-11 w-full items-center gap-2.5 overflow-hidden rounded-[12px] px-3 text-left transition-colors ${k === i ? "bg-white shadow-[0_2px_0_rgba(20,26,77,.08)]" : "hover:bg-white/60"}`}
-            >
-              <span className="num grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-black text-white" style={{ ...N, background: k === i ? color : "#9AA0C0" }}>
-                {k + 1}
-              </span>
-              <span className="py-2">
-                <span className="block text-[14px] leading-[18px] font-bold">{e.titulo}</span>
-                {k === i && <span className="block text-[13px] leading-[17px] text-[color:var(--gris)]">{e.detalle}</span>}
-              </span>
-              {k === i && corre && (
-                <motion.span key={`avance-${i}`} className="absolute bottom-0 left-0 h-[3px]" style={{ background: color }} initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: DURACION_ESCENA / 1000, ease: "linear" }} aria-hidden="true" />
-              )}
-            </button>
-          </li>
-        ))}
-      </ol>
-      {!quieto && (
-        <button type="button" onClick={() => setPausa(!pausa)} className="-mt-2 min-h-11 px-2 text-[14px] font-semibold underline" style={{ color }}>
-          {pausa ? "Seguir el recorrido" : "Pausar el recorrido"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-/* --- Auxi Student --- */
-const ESCENAS_STUDENT: Escena[] = [
-  {
-    titulo: "Pega tus apuntes",
-    detalle: "Lo que te dio tu IA se vuelve una lección.",
-    pantalla: (
-      <div className="flex flex-1 flex-col px-3 pt-3">
-        <p className="text-[15px] font-black" style={N}>
-          Crear tema
-        </p>
-        <p className="text-[11px] text-[#5B6084]">Pega lo que te respondió tu IA</p>
-        <div className="mt-2 h-[150px] rounded-[12px] border-2 border-[#DDE0EE] bg-white p-2 text-[11px] leading-[15px]">
-          <Tecleo texto="1. ¿Qué fracción es igual a 1/2? a) 2/4  b) 2/3  c) 3/5 — 2. ¿Cuál es mayor, 3/4 o 2/3? …" retraso={0.3} velocidad={20} />
-        </div>
-        <Entra retraso={2.4} className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-[#ECEEFB] p-2 text-[11px] font-bold">
-          <Check className="size-4" />8 preguntas listas
-        </Entra>
-        <div className="mt-auto pb-4">
-          <BotonFalso texto="Crear lección" color="#2430D9" sombra="#1A23A6" toque={2.9} />
-        </div>
-      </div>
-    ),
-  },
-  {
-    titulo: "Responde jugando",
-    detalle: "Si fallas, León te da una pista.",
-    pantalla: (
-      <div className="flex flex-1 flex-col">
-        <div className="flex items-center gap-2 px-3 pt-3">
-          <span className="block h-2 flex-1 overflow-hidden rounded-full bg-[#E6E8FA]">
-            <motion.span className="block h-full rounded-full bg-[#5FE3DC]" initial={{ width: "40%" }} animate={{ width: "60%" }} transition={{ delay: 1.2, type: "spring", stiffness: 140, damping: 18 }} />
-          </span>
-          <span className="flex items-center gap-1 font-black" style={N}>
-            <Moneda className="size-4" />
-            120
-          </span>
-        </div>
-        <p className="mt-4 px-3 text-[11px] font-semibold text-[#5B6084]">Matemática · Fracciones</p>
-        <p className="px-3 text-[16px] leading-[20px] font-black" style={N}>
-          ¿Qué fracción es igual a 1/2?
-        </p>
-        <div className="mt-3 flex flex-col gap-2 px-3">
-          {["2/4", "2/3", "3/5"].map((o, k) => (
-            <div key={o} className="relative">
-              <motion.span
-                className="num block rounded-[12px] border-2 border-b-[4px] px-3 py-2 text-[15px] font-black"
-                style={N}
-                initial={{ backgroundColor: "#FFFFFF", borderColor: "#DDE0EE" }}
-                animate={k === 0 ? { backgroundColor: "#5FE3DC", borderColor: "#2FB7B0", scale: [1, 1.05, 1] } : {}}
-                transition={{ delay: 1.0, duration: 0.35 }}
-              >
-                {o}
-              </motion.span>
-              {k === 0 && <Toque retraso={0.7} className="top-0.5 left-4" />}
-            </div>
-          ))}
-        </div>
-        <motion.div className="mt-auto bg-[#DDF8F6] px-3 pt-3 pb-4" initial={{ y: 90 }} animate={{ y: 0 }} transition={{ delay: 1.3, type: "spring", stiffness: 380, damping: 30 }}>
-          <span className="flex items-center gap-2">
-            <CaraDeLeon cara="feliz" tamano={30} />
-            <span className="font-bold">¡Eso! Vas en racha.</span>
-          </span>
-          <span className="mt-2 block">
-            <BotonFalso texto="Continuar" color="#2430D9" sombra="#1A23A6" />
-          </span>
-        </motion.div>
-      </div>
-    ),
-  },
-  {
-    titulo: "Gana y vuelve mañana",
-    detalle: "Monedas, racha y repaso de lo que fallaste.",
-    pantalla: (
-      <div className="flex flex-1 flex-col items-center px-3 pt-4 text-center">
-        <Leon pose="celebra" alto={110} rebote />
-        <p className="mt-1 text-[17px] font-black" style={N}>
-          ¡Lección completa!
-        </p>
-        <div className="mt-3 grid w-full grid-cols-2 gap-2">
-          <Entra retraso={0.4} className="rounded-[12px] bg-[#FFF6E2] p-2">
-            <span className="flex items-center justify-center gap-1 text-[20px] font-black" style={N}>
-              <Moneda className="size-5" />+<Contador valor={10} retraso={0.5} />
-            </span>
-            <span className="text-[10px] text-[#6B4A0A]">monedas</span>
-          </Entra>
-          <Entra retraso={0.7} className="rounded-[12px] bg-[#FFF1E6] p-2">
-            <span className="flex items-center justify-center gap-1 text-[20px] font-black" style={N}>
-              <motion.span initial={{ scale: 0.6 }} animate={{ scale: [0.6, 1.3, 1] }} transition={{ delay: 1, duration: 0.5 }}>
-                <Llama activa className="size-5" />
-              </motion.span>
-              <Contador valor={5} desde={4} retraso={1} />
-            </span>
-            <span className="text-[10px] text-[#7A3A12]">días de racha</span>
-          </Entra>
-        </div>
-        <Entra retraso={1.6} className="mt-2 w-full rounded-[12px] bg-white p-2 text-left text-[11px] ring-1 ring-[#DDE0EE]">
-          <span className="font-bold">Mañana:</span> repasa las 2 preguntas que fallaste.
-        </Entra>
-        <div className="mt-auto w-full pb-4">
-          <BotonFalso texto="Abrir el cofre" color="#F2B341" sombra="#C98A1C" tinta="#141A4D" toque={2.6} />
-        </div>
-      </div>
-    ),
-  },
-];
-
-/* --- Auxi Vida --- */
-const ESCENAS_VIDA: Escena[] = [
-  {
-    titulo: "Anota en segundos",
-    detalle: "Monto, categoría y listo.",
-    pantalla: (
-      <div className="flex flex-1 flex-col px-3 pt-3">
-        <p className="text-[15px] font-black" style={N}>
-          Registrar gasto
-        </p>
-        <div className="mt-2 flex h-14 items-center gap-2 rounded-[14px] border-2 border-[#0E5B57] bg-white px-3">
-          <span className="text-[20px] font-black text-[#4E6470]" style={N}>
-            S/
-          </span>
-          <span className="num text-[24px] font-black" style={N}>
-            <Tecleo texto="12" retraso={0.4} velocidad={260} />
-          </span>
-        </div>
-        <p className="mt-3 text-[11px] font-bold text-[#4E6470]">Categoría</p>
-        <div className="mt-1 flex flex-wrap gap-1.5">
-          {["Comida", "Pasaje", "Casa", "Otros"].map((c, k) => (
-            <div key={c} className="relative">
-              <motion.span
-                className="block rounded-full border-2 px-2.5 py-1 font-bold"
-                initial={{ backgroundColor: "#FFFFFF", borderColor: "#DCF1EE", color: "#141A4D" }}
-                animate={k === 0 ? { backgroundColor: "#0E5B57", borderColor: "#0E5B57", color: "#FFFFFF" } : {}}
-                transition={{ delay: 1.4, duration: 0.2 }}
-              >
-                {c}
-              </motion.span>
-              {k === 0 && <Toque retraso={1.1} className="-top-1 left-2" />}
-            </div>
-          ))}
-        </div>
-        <p className="mt-3 text-[11px] font-bold text-[#4E6470]">Nota</p>
-        <div className="mt-1 rounded-[12px] border-2 border-[#DCF1EE] bg-white px-2 py-2">
-          <Tecleo texto="Menú" retraso={1.8} velocidad={90} />
-        </div>
-        <Entra retraso={3.0} className="mt-3 flex items-center gap-2 rounded-[12px] bg-[#DCF1EE] p-2 font-bold">
-          <Check color="#0E5B57" className="size-4" />
-          Guardado
-        </Entra>
-        <div className="mt-auto pb-4">
-          <BotonFalso texto="Guardar" color="#0E5B57" sombra="#07403D" toque={2.6} />
-        </div>
-      </div>
-    ),
-  },
-  {
-    titulo: "Mira tu día",
-    detalle: "Cuánto te queda para hoy, al instante.",
-    pantalla: (
-      <div className="flex flex-1 flex-col px-3 pt-3">
-        <p className="text-[15px] font-black" style={N}>
-          Hoy
-        </p>
-        <div className="mt-2 rounded-[16px] bg-[#0E5B57] p-3 text-white">
-          <p className="text-white/85">Disponible estimado</p>
-          <p className="text-[30px] leading-[34px] font-black" style={N}>
-            <Contador valor={31} desde={43} prefijo="S/ " retraso={0.6} />
-          </p>
-          <p className="text-[10px] text-white/75">No es tu saldo del banco</p>
-        </div>
-        <div className="mt-2 flex flex-col rounded-[12px] bg-white px-2">
-          <motion.span className="flex justify-between border-b border-[#DCF1EE] py-2" initial={{ opacity: 0, height: 0, backgroundColor: "#FFF6E2" }} animate={{ opacity: 1, height: "auto", backgroundColor: "#FFFFFF" }} transition={{ delay: 0.4, duration: 0.5, backgroundColor: { delay: 1.6, duration: 0.6 } }}>
-            <span>Menú</span>
-            <span className="num font-bold">− S/ 12</span>
-          </motion.span>
-          {[
-            ["Pasaje", "− S/ 3"],
-            ["Turno", "+ S/ 75"],
-          ].map(([a, b]) => (
-            <span key={a} className="flex justify-between border-b border-[#DCF1EE] py-2 last:border-0">
-              <span>{a}</span>
-              <span className="num font-bold">{b}</span>
-            </span>
-          ))}
-        </div>
-        <Entra retraso={1.8} className="mt-2 flex items-center gap-2 rounded-[12px] bg-white p-2 ring-1 ring-[#DCF1EE]">
-          <CaraLeonVida cara="feliz" tamano={26} />
-          <span>Vas bien. Ayer te sobraron S/ 4.</span>
-        </Entra>
-      </div>
-    ),
-  },
-  {
-    titulo: "Revisa antes de pagar",
-    detalle: "León te dice si un mensaje parece estafa.",
-    pantalla: (
-      <div className="flex flex-1 flex-col px-3 pt-3">
-        <p className="text-[15px] font-black" style={N}>
-          Protégete
-        </p>
-        <Entra retraso={0.2} className="mt-2 rounded-[14px] rounded-tl-[4px] bg-white p-2.5 ring-1 ring-[#DCF1EE]">
-          <span className="text-[10px] font-bold text-[#4E6470]">Mensaje que te llegó</span>
-          <span className="mt-0.5 block">Hola, te deposité S/ 200 por error. Devuélvelo hoy a este otro número, porfa.</span>
-        </Entra>
-        <Entra retraso={1.0} className="mt-3 flex items-center gap-2">
-          <CaraLeonVida cara="serio" tamano={30} />
-          <span className="font-bold">Esto parece estafa.</span>
-        </Entra>
-        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#F4E1DD]">
-          <motion.span className="block h-full rounded-full bg-[#C2412D]" initial={{ width: "0%" }} animate={{ width: "85%" }} transition={{ delay: 1.3, type: "spring", stiffness: 90, damping: 18 }} />
-        </div>
-        <ul className="mt-2 flex flex-col gap-1.5">
-          {["Te apura para que actúes hoy", "Pide devolver a otro número", "Revisa tu Yape antes de mover nada"].map((x, k) => (
-            <Entra key={x} retraso={1.8 + k * 0.35} className="flex items-start gap-1.5">
-              <span className="mt-1 size-2 shrink-0 rounded-full bg-[#C2412D]" />
-              <span>{x}</span>
-            </Entra>
-          ))}
-        </ul>
-      </div>
-    ),
-  },
-];
-
-function TarjetaApp({ nombre, color, panel, beneficio, capacidades, principal, pantalla, teal = false }: { nombre: string; color: string; panel: string; beneficio: string; capacidades: string[]; principal: string; pantalla: ReactNode; teal?: boolean }) {
-  return (
-    <article className="grid overflow-hidden rounded-[28px] border border-[color:var(--linea)] bg-white @4xl:grid-cols-[1fr_340px]">
-      <div className="p-6 @4xl:p-10">
-        <p className="flex items-center gap-2 text-[17px] font-black" style={{ fontFamily: NUNITO, color }}>
-          <span className="size-3 rounded-full" style={{ background: color }} aria-hidden="true" />
-          {nombre}
-        </p>
-        <h3 className="h3 mt-2 text-[24px] leading-[30px]">{beneficio}</h3>
-        <ul className="mt-5 flex flex-col gap-3">
-          {capacidades.map((c) => (
-            <li key={c} className="flex gap-2.5 text-[16px] leading-[23px]">
-              <Check color={color} className="mt-0.5 size-5" />
-              {c}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <a className={`btn ${teal ? "btn-t" : "btn-p"}`} href="#abrir">
-            {principal}
-          </a>
-        </div>
-      </div>
-      <div className="flex items-center justify-center px-6 pt-2 pb-8 @4xl:py-8" style={{ background: panel }}>
-        {pantalla}
-      </div>
-    </article>
-  );
-}
-
-/** Mini prueba de Auxi Student dentro de la landing: se siente el juego antes de crear la cuenta. */
-function PruebaPregunta() {
-  const quieto = !!useReducedMotion();
-  const opciones = ["2/4", "2/3", "3/5"];
-  const [elegida, setElegida] = useState<number | null>(null);
-  const [monedas, setMonedas] = useState(0);
-  const bien = elegida === 0;
-  const responder = (i: number) => {
-    if (bien) return;
-    setElegida(i);
-    if (i === 0) {
-      sonidos.acierto();
-      void lanzarConfeti();
-      setMonedas(10);
-    } else sonidos.error();
-  };
-  const cara: CaraLeon = elegida === null ? "lentes" : bien ? "feliz" : "tierno";
-  const mensaje = elegida === null ? "Toca una respuesta. Si fallas, te doy una pista." : bien ? "¡Eso! 1/2 y 2/4 son la misma parte del total." : "Casi. Pista: multiplica arriba y abajo por el mismo número.";
-  return (
-    <div className="rounded-[28px] border border-[color:var(--linea)] bg-white p-5 @4xl:p-7">
-      <div className="flex items-center gap-3">
-        <span className="flex-1">
-          <Barra pct={bien ? 100 : 60} color="var(--turquesa)" />
-        </span>
-        <span className="flex items-center gap-1.5 text-[16px] font-extrabold" style={{ fontFamily: NUNITO }}>
-          <Moneda className="size-6" />
-          <Contador key={monedas} valor={monedas} />
-        </span>
-      </div>
-      <p className="chico mt-5">Matemática · pregunta de ejemplo</p>
-      <p className="disp mt-1 text-[24px] leading-[30px] font-black">¿Qué fracción es igual a 1/2?</p>
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        {opciones.map((o, i) => {
-          const esta = elegida === i;
-          const estilo = esta ? (i === 0 ? "border-[#2FB7B0] bg-[color:var(--turquesa)]" : "border-[#C2412D] bg-[#FBEAE7]") : "border-[color:var(--linea)] bg-white hover:border-[color:var(--cobalto)]";
-          return (
-            <motion.button
-              key={o}
-              type="button"
-              onClick={() => responder(i)}
-              animate={esta && !quieto ? (i === 0 ? { scale: [1, 1.06, 1] } : { x: [0, -6, 6, -6, 6, 0] }) : {}}
-              transition={{ duration: 0.35 }}
-              whileTap={{ scale: 0.96 }}
-              className={`num min-h-16 rounded-[16px] border-2 border-b-[5px] text-[24px] font-black ${estilo}`}
-              style={{ fontFamily: NUNITO }}
-              aria-pressed={esta}
-            >
-              {o}
-            </motion.button>
-          );
-        })}
-      </div>
-      <div className="mt-5 flex items-center gap-3 rounded-[16px] bg-[color:var(--bg)] p-3" aria-live="polite">
-        <CaraDeLeon cara={cara} tamano={44} />
-        <p className="text-[15px] leading-[21px] font-semibold">{mensaje}</p>
-      </div>
-      {elegida !== null && (
-        <button type="button" onClick={() => (setElegida(null), setMonedas(0))} className="mt-3 inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
-          Probar otra vez
-        </button>
-      )}
-    </div>
-  );
-}
-
-/** Ícono simple para «Por qué Auxi». */
-function Icono({ tipo }: { tipo: "pista" | "ia" | "dado" | "nube" }) {
-  const trazo = { fill: "none", stroke: "#2430D9", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  return (
-    <span className="grid size-12 shrink-0 place-items-center rounded-[14px] bg-[color:var(--lila)]" aria-hidden="true">
-      <svg viewBox="0 0 24 24" className="size-6">
-        {tipo === "pista" && <path {...trazo} d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" />}
-        {tipo === "ia" && <path {...trazo} d="M8 9h8M8 13h5M5 4h14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-7l-4 3v-3H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />}
-        {tipo === "dado" && <path {...trazo} d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM8.5 8.5h.01M15.5 15.5h.01M12 12h.01" />}
-        {tipo === "nube" && <path {...trazo} d="M7 18a4 4 0 0 1-.6-8A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9H7zM10 14l1.5 1.5L15 12" />}
-      </svg>
-    </span>
-  );
-}
-
-function Pregunta({ q, children }: { q: string; children: ReactNode }) {
-  return (
-    <details className="group border-b border-[color:var(--linea)] py-1">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-bold [&::-webkit-details-marker]:hidden">
-        {q}
-        <svg viewBox="0 0 20 20" className="size-5 shrink-0 transition-transform group-open:rotate-45" aria-hidden="true">
-          <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </summary>
-      <p className="pb-4 text-[16px] leading-[24px] text-[color:var(--gris)]">{children}</p>
-    </details>
-  );
-}
-
-function Landing({ celular }: { celular: boolean }) {
-  const [menu, setMenu] = useState(false);
-  const secciones: [string, string][] = [
-    ["#apps", "Apps"],
-    ["#precios", "Precios"],
-    ["#preguntas", "Preguntas"],
-  ];
-  return (
-    <div>
-      {/* En el boceto va debajo de la barra de la propuesta; en la app real, pegado arriba. */}
-      <header className="sticky top-0 z-20 border-b border-[color:var(--linea)] bg-[color:var(--bg)]/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 @4xl:px-8">
-          <Marca />
-          <nav aria-label="Principal" className="hidden items-center gap-7 font-semibold @4xl:flex">
-            {secciones.map(([h, n]) => (
-              <a key={h} href={h} className="flex min-h-11 items-center hover:text-[color:var(--cobalto)]">
-                {n}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <a className="flex min-h-11 items-center px-2 font-bold text-[color:var(--cobalto)]" href="#entrar">
-              Entrar
-            </a>
-            {!celular && (
-              <a className="btn btn-p min-h-11 px-4 text-[15px]" href="#crear">
-                Crear cuenta gratis
-              </a>
-            )}
-            {celular && (
-              <button type="button" aria-expanded={menu} aria-label="Abrir menú" onClick={() => setMenu(!menu)} className="grid size-11 place-items-center rounded-[12px]">
-                <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
-                  <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-        {celular && menu && (
-          <nav aria-label="Principal" className="flex flex-col border-t border-[color:var(--linea)] px-4 py-2 font-semibold">
-            {secciones.map(([h, n]) => (
-              <a key={h} href={h} className="flex min-h-12 items-center">
-                {n}
-              </a>
-            ))}
-            <a className="btn btn-p my-2" href="#crear">
-              Crear cuenta gratis
-            </a>
-          </nav>
-        )}
-      </header>
-
-      {/* Héroe: qué es, para quién y qué ganas. */}
-      <section className="px-3 pt-4 @4xl:px-8 @4xl:pt-6">
-        <div className="mx-auto max-w-[1200px]">
-          <Banner key={celular ? "m" : "c"} nombre={celular ? "hero-movil" : "hero"} tono="hero" modo="contenido" velo="izquierda" parallax={false}>
-            <div className="grid items-center gap-2 px-5 pt-4 pb-8 text-white @4xl:grid-cols-12 @4xl:gap-0 @4xl:px-14 @4xl:py-12">
-              <div className="@4xl:order-2 @4xl:col-span-5">
-                <EscenaLeon celular={celular} />
-              </div>
-              <div className="@4xl:order-1 @4xl:col-span-7">
-                <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4, ease: "easeOut" }} className="h1 max-w-[16ch]">
-                  Estudia jugando y ordena tu plata, gratis.
-                </motion.h1>
-                <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }} className="mt-4 max-w-[48ch] text-[18px] leading-[28px] text-white/90">
-                  Auxi Student convierte tus apuntes en preguntas que se juegan. Auxi Vida te dice cuánto puedes gastar hoy. Las dos con una sola cuenta.
-                </motion.p>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <a className="btn btn-b" href="#crear">
-                    Crear mi cuenta gratis
-                  </a>
-                  <a className="btn btn-f" href="#apps">
-                    Ver cómo funciona
-                  </a>
-                </div>
-                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[15px] text-white/90">
-                  {["Lo básico siempre gratis", "Sin tarjeta", "En celular y computadora"].map((x) => (
-                    <li key={x} className="flex items-center gap-1.5">
-                      <Check color="#5FE3DC" className="size-5" />
-                      {x}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </Banner>
-        </div>
-      </section>
-
-      {/* Apps: qué hace cada una, con su pantalla. */}
-      <section id="apps" className="mx-auto max-w-[1200px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
-        <h2 className="h2">Dos apps, una cuenta</h2>
-        <p className="cuerpo-l mt-3 max-w-[54ch]">Entras una vez y usas la que necesites. Tu avance y tus datos se guardan en tu cuenta.</p>
-        <div className="mt-8 flex flex-col gap-6">
-          <TarjetaApp
-            nombre="Auxi Student"
-            color="#2430D9"
-            panel="#ECEEFB"
-            beneficio="Convierte tus apuntes en lecciones que se juegan."
-            capacidades={["Pegas tu PDF o apuntes en tu IA con el pedido de Auxi y salen preguntas", "Si fallas, León te da una pista antes que la respuesta", "Repasa lo que fallaste en los días siguientes", "Exámenes y entregas con avisos 7, 3 y 1 día antes"]}
-            principal="Empezar con Auxi Student"
-            pantalla={<Recorrido nombre="Auxi Student" escenas={ESCENAS_STUDENT} color="#2430D9" fondo="#F7F8FC" />}
-          />
-          <TarjetaApp
-            nombre="Auxi Vida"
-            color="#0E5B57"
-            panel="#E3F3F1"
-            beneficio="Sabe cuánto puedes gastar hoy sin pasarte."
-            capacidades={["Un disponible estimado para cada día, con el cálculo a la vista", "Importa movimientos de reportes, capturas o texto", "Metas de ahorro y pagos con aviso", "Protégete: revisa un mensaje o un vendedor antes de pagar"]}
-            principal="Probar con datos de ejemplo"
-            pantalla={<Recorrido nombre="Auxi Vida" escenas={ESCENAS_VIDA} color="#0E5B57" fondo="#F3FAF8" />}
-            teal
-          />
-        </div>
-        <p className="mt-6 text-[16px] text-[color:var(--gris)]">
-          ¿Tienes un negocio?{" "}
-          <a href="#vendoe" className="font-bold text-[color:var(--indigo)] underline">
-            Vendoe
-          </a>{" "}
-          es otra app de Daniel Chong, con su propia página.
-        </p>
-      </section>
-
-      {/* Prueba + cómo se empieza. */}
-      <section id="prueba" className="mx-auto mt-16 max-w-[1200px] px-4 @4xl:mt-24 @4xl:px-8">
-        <div className="grid items-center gap-8 rounded-[32px] bg-[color:var(--lila)] p-5 @4xl:grid-cols-12 @4xl:gap-12 @4xl:p-12">
-          <div className="@4xl:col-span-5">
-            <h2 className="h2">Pruébalo sin crear cuenta</h2>
-            <p className="cuerpo-l mt-3">Responde esta pregunta. Así se siente cada lección de Auxi Student.</p>
-            <ol className="mt-7 flex flex-col gap-4">
-              {[
-                ["Crea tu cuenta", "Con tu correo o con Google."],
-                ["Elige tu app", "Student, Vida o las dos."],
-                ["Vuelve cuando quieras", "Sigues donde te quedaste, en cualquier equipo."],
-              ].map(([t, d], i) => (
-                <li key={t} className="flex gap-4">
-                  <span className="num grid size-9 shrink-0 place-items-center rounded-full bg-[color:var(--cobalto)] text-[16px] font-black text-white" style={{ fontFamily: NUNITO }}>
-                    {i + 1}
-                  </span>
-                  <span>
-                    <span className="block font-bold">{t}</span>
-                    <span className="chico">{d}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="@4xl:col-span-7">
-            <PruebaPregunta />
-          </div>
-        </div>
-      </section>
-
-      {/* Por qué Auxi. */}
-      <section className="mx-auto max-w-[1200px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
-        <h2 className="h2">Lo que hace distinto a Auxi</h2>
-        <div className="mt-8 grid gap-x-10 gap-y-8 @2xl:grid-cols-2">
-          {(
-            [
-              ["pista", "Te pregunta en vez de copiarte", "Si te equivocas, León te da una pista. La respuesta solo si la pides."],
-              ["ia", "Usa tu propia IA, sin costo extra", "Creas lecciones con ChatGPT, Claude o Gemini y pegas el resultado aquí."],
-              ["dado", "Premios sin trampas", "Las probabilidades del cofre siempre se ven. Nada de cuentas regresivas falsas."],
-              ["nube", "Todo en tu cuenta", "Student y Vida se guardan en tu cuenta. Solo tú los ves y puedes borrarla cuando quieras."],
-            ] as ["pista" | "ia" | "dado" | "nube", string, string][]
-          ).map(([i, t, d]) => (
-            <div key={t} className="flex gap-4">
-              <Icono tipo={i} />
-              <div>
-                <p className="text-[18px] font-black" style={{ fontFamily: NUNITO }}>
-                  {t}
-                </p>
-                <p className="mt-1 text-[16px] leading-[24px] text-[color:var(--gris)]">{d}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Precios. */}
-      <section id="precios" className="mx-auto max-w-[1200px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
-        <h2 className="h2">Precios claros</h2>
-        <p className="cuerpo-l mt-3 max-w-[56ch]">No pagas nada para usar Auxi. Las monedas solo abren extras y se ganan usando la app.</p>
-        <div className="mt-8 grid gap-5 @4xl:grid-cols-2">
-          <div className="rounded-[24px] border border-[color:var(--linea)] bg-white p-6 @4xl:p-8">
-            <p className="text-[22px] font-black" style={{ fontFamily: NUNITO }}>
-              Gratis, siempre
-            </p>
-            <ul className="mt-4 flex flex-col gap-3">
-              {["Lecciones, repaso y camino de niveles", "Métodos: El tomate, Las 5 cajas y Explícaselo a León", "Exámenes y entregas con avisos", "Auxi Vida completa", "2 temas creados con tu IA"].map((x) => (
-                <li key={x} className="flex gap-2.5">
-                  <Check className="mt-0.5 size-5" />
-                  {x}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="rounded-[24px] bg-[#FFF6E2] p-6 ring-1 ring-[#F2D9A2] @4xl:p-8">
-            <p className="flex items-center gap-2 text-[22px] font-black" style={{ fontFamily: NUNITO }}>
-              <Moneda className="size-7" />
-              Lo extra, con monedas
-            </p>
-            <dl className="mt-4 flex flex-col divide-y divide-[#F2D9A2]">
-              {[
-                ["Un tema más creado con IA", "60 monedas"],
-                ["Pase libre de por vida para crear temas", "500 monedas"],
-              ].map(([a, b]) => (
-                <div key={a} className="flex items-center justify-between gap-4 py-3">
-                  <dt>{a}</dt>
-                  <dd className="num shrink-0 font-black" style={{ fontFamily: NUNITO }}>
-                    {b}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-3 text-[15px] leading-[22px] text-[#6B4A0A]">Ganas monedas terminando lecciones, con el cofre del día y con misiones opcionales. Lo que ya creaste nunca se bloquea.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Preguntas frecuentes. */}
-      <section id="preguntas" className="mx-auto max-w-[860px] px-4 pt-16 @4xl:px-8 @4xl:pt-24">
-        <h2 className="h2">Preguntas frecuentes</h2>
-        <div className="mt-6 border-t border-[color:var(--linea)]">
-          <Pregunta q="¿De verdad es gratis?">Sí. Lo básico de Auxi Student y toda Auxi Vida son gratis. Las monedas solo abren extras y se ganan usando la app.</Pregunta>
-          <Pregunta q="¿Necesito crear una cuenta?">Sí, con tu correo o con Google. Así tu avance y tus datos se guardan y puedes seguir en otro equipo. Auxi Vida tiene un modo de ejemplo para mirarla antes.</Pregunta>
-          <Pregunta q="¿Cómo se crean las lecciones?">Copias el pedido de Auxi, lo pegas en tu IA (ChatGPT, Claude o Gemini) junto con tu PDF o tus apuntes, y pegas aquí la respuesta. Revisas las preguntas y listo.</Pregunta>
-          <Pregunta q="¿Auxi Vida se conecta a mi banco?">No. No mueve dinero ni ve tu saldo. Tú anotas o importas tus movimientos y el disponible del día es un estimado.</Pregunta>
-          <Pregunta q="¿Quién ve mis datos?">Solo tú. Se guardan en tu cuenta, puedes descargarlos y puedes borrar tu cuenta desde tu perfil.</Pregunta>
-          <Pregunta q="¿Funciona en iPhone y Android?">Sí, desde el navegador. También puedes agregarla a tu pantalla de inicio y abrirla como una app.</Pregunta>
-        </div>
-      </section>
-
-      {/* Sobre mí, en corto. */}
-      <section id="sobre" className="mx-auto max-w-[860px] px-4 pt-16 @4xl:px-8 @4xl:pt-20">
-        <div className="flex flex-col gap-5 rounded-[24px] border border-[color:var(--linea)] bg-white p-6 @2xl:flex-row @2xl:items-center">
-          <span className="block size-24 shrink-0 overflow-hidden rounded-full bg-[#0B1140]">
-            <img src="/plataforma/presentacion.webp" alt="Daniel Chong" className="size-full scale-[2.1] object-cover" style={{ transformOrigin: "50% 62%" }} />
-          </span>
-          <div>
-            <p className="text-[20px] font-black" style={{ fontFamily: NUNITO }}>
-              Hola, soy Daniel Chong
-            </p>
-            <p className="mt-1 text-[16px] leading-[24px] text-[color:var(--gris)]">Me apasiona crear soluciones digitales para negocios y personas. Aquí comparto lo que aprendo, también mis errores. Te doy la bienvenida: sácale todo el provecho.</p>
-            <div className="mt-1 flex flex-wrap gap-x-5">
-              <a href="#instagram" className="inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
-                Sígueme en Instagram
-              </a>
-              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center font-semibold text-[color:var(--cobalto)] underline">
-                Contáctame por privado
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Cierre y contacto. */}
-      <section className="mx-auto max-w-[1200px] px-4 py-16 @4xl:px-8 @4xl:py-24">
-        <div className="flex flex-col items-center gap-6 rounded-[32px] bg-[color:var(--cobalto)] p-8 text-center text-white @4xl:flex-row @4xl:gap-10 @4xl:p-12 @4xl:text-left">
-          <Leon pose="anima" alto={celular ? 130 : 160} />
-          <div className="flex-1">
-            <h2 className="h2">Empieza hoy, es gratis.</h2>
-            <p className="mt-2 text-white/85">¿Tienes una duda? Escríbeme y te respondo.</p>
-          </div>
-          <div className="flex flex-col gap-3 @2xl:flex-row">
-            <a className="btn btn-b" href="#crear">
-              Crear mi cuenta gratis
-            </a>
-            <a className="btn btn-f" href={WHATSAPP} target="_blank" rel="noopener noreferrer">
-              Escribir por WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-[color:var(--linea)]">
-        <div className="mx-auto grid max-w-[1200px] gap-8 px-4 py-10 text-[15px] @4xl:grid-cols-4 @4xl:px-8">
-          <div>
-            <Marca />
-            <p className="chico mt-3">Apps gratis para estudiar y ordenar tu plata.</p>
-          </div>
-          {[
-            ["Apps", ["Auxi Student", "Auxi Vida", "Vendoe (sitio aparte)"]],
-            ["Ayuda", ["Preguntas frecuentes", "WhatsApp", "Instagram"]],
-            ["Legal", ["Privacidad", "Condiciones"]],
-          ].map(([t, items]) => (
-            <div key={t as string}>
-              <p className="font-bold">{t as string}</p>
-              <ul className="mt-2">
-                {(items as string[]).map((x) => (
-                  <li key={x}>
-                    <a href="#f" className="flex min-h-11 items-center text-[color:var(--gris)] hover:text-[color:var(--tinta)]">
-                      {x}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-
 /* ---------- AppShell compartido (Mi espacio, Student, Vida) ---------- */
-type Item = { nombre: string; activo?: boolean };
-function AppShell({ celular, producto, color, items, children, inferior, fondo = "var(--bg)", flotante = false }: { celular: boolean; producto: string; color: string; items: Item[]; children: ReactNode; inferior?: string[]; fondo?: string; flotante?: boolean }) {
+type Item = { nombre: string; activo?: boolean; app?: AppConIcono };
+/** Ícono del producto actual: el de la app o el símbolo de Auxi Studio (Mi espacio). */
+function IconoProducto({ app, tamano = 26 }: { app?: AppConIcono; tamano?: number }) {
+  return app ? <IconoApp app={app} tamano={tamano} decorativo /> : <img src="/marca/simbolo.webp" alt="" width={tamano} height={tamano} draggable={false} />;
+}
+
+function AppShell({ celular, producto, app, color, colorTexto, items, children, inferior, fondo = "var(--bg)", flotante = false }: { celular: boolean; producto: string; app?: AppConIcono; color: string; colorTexto?: string; items: Item[]; children: ReactNode; inferior?: string[]; fondo?: string; flotante?: boolean }) {
+  const tinta = colorTexto ?? color;
   if (celular)
     return (
       <div className="flex min-h-[844px] flex-col" style={{ background: fondo }}>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-[color:var(--linea)] px-4" style={{ background: fondo }}>
           <button type="button" className="flex min-h-11 items-center gap-2 rounded-[10px] px-1 font-black" style={{ fontFamily: NUNITO }} aria-label={`Cambiar de app. Ahora: ${producto}`}>
-            <span className="size-2.5 rounded-full" style={{ background: color }} aria-hidden="true" />
+            <IconoProducto app={app} />
             {producto}
             <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
               <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
-          <span className="grid size-10 place-items-center rounded-full bg-[color:var(--lila)] text-[14px] font-bold" aria-label="Tu cuenta">
-            DC
+          <span className="flex items-center gap-1">
+            <BotonTema />
+            <span className="grid size-10 place-items-center rounded-full bg-[color:var(--lila)] text-[14px] font-bold" aria-label="Tu cuenta">
+              DC
+            </span>
           </span>
         </header>
         <div className="flex-1 px-4 pt-5 pb-8">{children}</div>
@@ -1024,7 +87,7 @@ function AppShell({ celular, producto, color, items, children, inferior, fondo =
         </div>
         <button type="button" className="mb-3 flex min-h-11 items-center justify-between rounded-[12px] border border-[color:var(--linea)] px-3 font-black" style={{ fontFamily: NUNITO }}>
           <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-full" style={{ background: color }} aria-hidden="true" />
+            <IconoProducto app={app} />
             {producto}
           </span>
           <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
@@ -1032,12 +95,16 @@ function AppShell({ celular, producto, color, items, children, inferior, fondo =
           </svg>
         </button>
         {items.map((it) => (
-          <span key={it.nombre} className={`flex min-h-11 items-center rounded-[12px] px-3 font-bold ${it.activo ? "bg-[color:var(--lila)]" : "text-[color:var(--gris)]"}`} style={it.activo ? { color } : undefined}>
+          <span key={it.nombre} className={`flex min-h-11 items-center gap-2.5 rounded-[12px] px-3 font-bold ${it.activo ? "bg-[color:var(--lila)]" : "text-[color:var(--gris)]"}`} style={it.activo ? { color: tinta } : undefined}>
+            {it.app && <IconoApp app={it.app} tamano={22} decorativo />}
             {it.nombre}
           </span>
         ))}
         <div className="mt-auto flex flex-col gap-1 border-t border-[color:var(--linea)] pt-3 text-[color:var(--gris)]">
-          <span className="flex min-h-10 items-center px-3 font-semibold">Ajustes</span>
+          <span className="flex items-center justify-between pr-1">
+            <span className="flex min-h-10 items-center px-3 font-semibold">Ajustes</span>
+            <BotonTema />
+          </span>
           <span className="flex min-h-10 items-center px-3 font-semibold">Ayuda</span>
           <span className="flex min-h-12 items-center gap-2 px-3 font-semibold text-[color:var(--tinta)]">
             <span className="grid size-8 place-items-center rounded-full bg-[color:var(--lila)] text-[12px] font-bold">DC</span>
@@ -1061,7 +128,7 @@ function Stat({ children, etiqueta }: { children: ReactNode; etiqueta: string })
 /* ---------- 2. Mi espacio ---------- */
 function MiEspacio({ celular }: { celular: boolean }) {
   return (
-    <AppShell celular={celular} producto="Mi espacio" color="#141A4D" items={[{ nombre: "Mi espacio", activo: true }, { nombre: "Auxi Student" }, { nombre: "Auxi Vida" }, { nombre: "Vendoe (sitio aparte)" }]}>
+    <AppShell celular={celular} producto="Mi espacio" color="#141A4D" colorTexto="var(--tinta)" items={[{ nombre: "Mi espacio", activo: true }, { nombre: "Auxi Student", app: "student" }, { nombre: "Auxi Vida", app: "vida" }, { nombre: "Vendoe (sitio aparte)", app: "vendoe" }]}>
       <Banner key={celular ? "m" : "c"} nombre={celular ? "espacio-movil" : "espacio"} tono="hero" modo="contenido" velo={celular ? "izquierda" : "ninguno"} parallax={false}>
         <div className="flex items-center gap-2 p-5 text-white @4xl:py-7 @4xl:pr-10 @4xl:pl-[33%]">
           <div className="flex-1">
@@ -1088,9 +155,12 @@ function MiEspacio({ celular }: { celular: boolean }) {
         </h2>
         <div className="mt-4 grid gap-4 @4xl:grid-cols-2">
           <div className="caja flex gap-4 p-3">
-            <Banner nombre="student" tono="student" parallax={false} className="w-24 shrink-0 self-stretch @4xl:w-32" />
+            <Banner nombre="app-student" tono="student" velo="ninguno" parallax={false} className="w-24 shrink-0 self-stretch @4xl:w-32" />
             <div className="flex-1 py-1 pr-1">
-              <p className="text-[14px] font-bold text-[color:var(--cobalto)]">Auxi Student</p>
+              <p className="flex items-center gap-2 text-[14px] font-bold text-[color:var(--cobalto)]">
+                <IconoApp app="student" tamano={20} decorativo />
+                Auxi Student
+              </p>
               <p className="mt-0.5 text-[18px] leading-[24px] font-black" style={{ fontFamily: NUNITO }}>
                 Fracciones equivalentes
               </p>
@@ -1104,9 +174,12 @@ function MiEspacio({ celular }: { celular: boolean }) {
             </div>
           </div>
           <div className="caja flex gap-4 p-3">
-            <Banner nombre="vida" tono="vida" parallax={false} className="w-24 shrink-0 self-stretch @4xl:w-32" />
+            <Banner nombre="app-vida" tono="vida" velo="ninguno" parallax={false} className="w-24 shrink-0 self-stretch @4xl:w-32" />
             <div className="flex-1 py-1 pr-1">
-              <p className="text-[14px] font-bold text-[color:var(--teal)]">Auxi Vida</p>
+              <p className="flex items-center gap-2 text-[14px] font-bold text-[color:var(--teal-texto)]">
+                <IconoApp app="vida" tamano={20} decorativo />
+                Auxi Vida
+              </p>
               <p className="mt-0.5 text-[18px] leading-[24px] font-black" style={{ fontFamily: NUNITO }}>
                 Tu día en Vida
               </p>
@@ -1126,18 +199,21 @@ function MiEspacio({ celular }: { celular: boolean }) {
         <ul className="mt-4 grid grid-cols-2 gap-4 @4xl:grid-cols-4">
           {(
             [
-              ["student", "student", "Auxi Student", "Estudia jugando"],
-              ["vida", "vida", "Auxi Vida", "Tu plata del día"],
-              ["vendoe", "vendoe", "Vendoe", "Para negocios · sitio aparte"],
-            ] as [string, Tono, string, string][]
-          ).map(([img, tono, n, d]) => (
+              ["app-student", "student", "student", "Auxi Student", "Estudia jugando"],
+              ["app-vida", "vida", "vida", "Auxi Vida", "Tu plata del día"],
+              ["app-vendoe", "vendoe", "vendoe", "Vendoe", "Para negocios · sitio aparte"],
+            ] as [string, Tono, AppConIcono, string, string][]
+          ).map(([img, tono, app, n, d]) => (
             <motion.li key={n} whileHover={{ y: -5 }} whileTap={{ scale: 0.97 }} className="cursor-pointer">
               <Banner nombre={img} tono={tono} velo="fuerte" parallax={false} className="aspect-square">
-                <div className="flex h-full flex-col justify-end p-4 text-white">
+                <div className="flex h-full flex-col justify-between p-4 text-white">
+                  <IconoApp app={app} tamano={34} decorativo />
+                  <span>
                   <span className="text-[19px] leading-[22px] font-black" style={{ fontFamily: NUNITO }}>
                     {n}
                   </span>
-                  <span className="text-[13px] text-white/85">{d}</span>
+                  <span className="block text-[13px] text-white/85">{d}</span>
+                  </span>
                 </div>
               </Banner>
             </motion.li>
@@ -1197,7 +273,7 @@ function StudentInicio({ celular, nuevo }: { celular: boolean; nuevo: boolean })
       <ol className="mt-5 grid gap-3 @2xl:grid-cols-3">
         {["Copia el pedido de Auxi", "Pégalo en tu IA con tu PDF o apuntes", "Pega aquí la respuesta y revísala"].map((p, i) => (
           <li key={p} className="flex gap-3 rounded-[14px] bg-[color:var(--bg)] p-3 text-[15px] leading-[21px]">
-            <span className="num grid size-7 shrink-0 place-items-center rounded-full bg-[color:var(--cobalto)] text-[14px] font-black text-white" style={{ fontFamily: NUNITO }}>
+            <span className="num grid size-7 shrink-0 place-items-center rounded-full bg-[color:var(--boton)] text-[14px] font-black text-white" style={{ fontFamily: NUNITO }}>
               {i + 1}
             </span>
             {p}
@@ -1209,7 +285,7 @@ function StudentInicio({ celular, nuevo }: { celular: boolean; nuevo: boolean })
       </a>
     </div>
   ) : (
-    <div className="relative overflow-hidden rounded-[24px] bg-[color:var(--cobalto)] p-6 text-white shadow-[0_6px_0_#1A23A6]">
+    <div className="relative overflow-hidden rounded-[24px] bg-[color:var(--boton)] p-6 text-white shadow-[0_6px_0_#1A23A6]">
       <div className={celular ? "pr-[92px]" : "pr-[200px]"}>
         <p className="text-[14px] font-semibold text-white/80">Matemática · Fracciones</p>
         <h2 className="h3 mt-1 text-[24px] leading-[30px]">Fracciones equivalentes</h2>
@@ -1230,7 +306,7 @@ function StudentInicio({ celular, nuevo }: { celular: boolean; nuevo: boolean })
     </div>
   );
   return (
-    <AppShell celular={celular} producto="Auxi Student" color="#2430D9" items={items} inferior={["Inicio", "Cursos", "Camino", "Métodos", "Entregas"]}>
+    <AppShell celular={celular} producto="Auxi Student" app="student" color="#2430D9" colorTexto="var(--cobalto)" items={items} inferior={["Inicio", "Cursos", "Camino", "Métodos", "Entregas"]}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="h2">¿Qué estudiamos hoy?</h1>
@@ -1352,6 +428,8 @@ function VidaHoy({ celular }: { celular: boolean }) {
     <AppShell
       celular={celular}
       producto="Auxi Vida"
+      app="vida"
+      colorTexto="var(--teal-texto)"
       color="#0E5B57"
       fondo="var(--menta)"
       flotante
@@ -1466,9 +544,10 @@ function VidaHoy({ celular }: { celular: boolean }) {
 /* ---------- 5. Sistema ---------- */
 function Sistema() {
   const colores = [
-    ["Fondo", "#F7F8FC", "Casi blanco, nunca crema"],
-    ["Tinta", "#141A4D", "Texto principal · 15:1"],
-    ["Gris", "#5B6084", "Texto secundario · 5,7:1"],
+    ["Espacio", "#0A0E2A", "Escenario de marca: héroe, ecosistema y cierre (igual en ambos temas)"],
+    ["Fondo claro / oscuro", "#F5F6FB · #080B22", "Lienzo de las secciones de contenido"],
+    ["Tinta", "#141A4D · #EEF0FF", "Texto principal ≥ 14:1 en ambos temas"],
+    ["Gris", "#555B82 · #A6ACD8", "Texto secundario ≥ 6:1 en ambos temas"],
     ["Cobalto", "#2430D9", "Acciones y Auxi Student · blanco 8,4:1"],
     ["Teal", "#0E5B57", "Auxi Vida · blanco 7,9:1"],
     ["Turquesa", "#5FE3DC", "Aciertos y progreso, con texto oscuro"],
@@ -1477,7 +556,26 @@ function Sistema() {
   ];
   return (
     <div className="mx-auto max-w-[1000px] px-4 py-10 @4xl:px-8">
-      <h1 className="h2">Sistema v2: estructura adulta, alma de León</h1>
+      <h1 className="h2">Sistema v4: un ecosistema en órbita</h1>
+      <p className="cuerpo-l mt-3 max-w-[60ch]">Escenarios de «espacio» para la marca, una sección con color propio para cada app, el símbolo de la A con su órbita, íconos de cada app y León presente. Modo claro y oscuro.</p>
+      <h2 className="h3 mt-8">Íconos de las apps</h2>
+      <div className="mt-3 flex flex-wrap gap-6">
+        {(
+          [
+            ["student", "Auxi Student", "Libro abierto, visto bueno y chispa: aprender jugando"],
+            ["vida", "Auxi Vida", "Moneda con brote: tu plata que crece"],
+            ["vendoe", "Vendoe", "Toldo y bolsa: vender desde el celular"],
+          ] as [AppConIcono, string, string][]
+        ).map(([a, n, d]) => (
+          <div key={a} className="flex max-w-[260px] items-center gap-3">
+            <IconoApp app={a} tamano={64} />
+            <span>
+              <span className="block font-bold">{n}</span>
+              <span className="chico">{d}</span>
+            </span>
+          </div>
+        ))}
+      </div>
       <h2 className="h3 mt-8">Color</h2>
       <div className="mt-3 grid gap-3 @2xl:grid-cols-4">
         {colores.map(([n, h, d]) => (
@@ -1547,17 +645,34 @@ export default function Propuesta() {
   const [vista, setVista] = useState<Vista>("landing");
   const [ancho, setAncho] = useState<Ancho>("computadora");
   const [nuevo, setNuevo] = useState(false);
+  const [preferencia, setPreferencia] = useState<"sistema" | Tema>("sistema");
+  const [sistemaOscuro, setSistemaOscuro] = useState(() => typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   const zona = useRef<HTMLDivElement>(null);
+  const barra = useRef<HTMLDivElement>(null);
   const [escala, setEscala] = useState(1);
+  const [altoBarra, setAltoBarra] = useState(56);
   const px = ancho === "celular" ? 390 : 1280;
+  const tema: Tema = preferencia === "sistema" ? (sistemaOscuro ? "oscuro" : "claro") : preferencia;
 
   useEffect(() => {
-    document.title = "Propuesta visual v2 · Auxi Studio";
-    const medir = () => setEscala(Math.min(1, ((zona.current?.clientWidth ?? px) - 32) / px));
+    document.title = "Propuesta visual v4 · Auxi Studio";
+    const medir = () => {
+      setEscala(Math.min(1, ((zona.current?.clientWidth ?? px) - 32) / px));
+      setAltoBarra(barra.current?.offsetHeight ?? 56);
+    };
     medir();
     window.addEventListener("resize", medir);
     return () => window.removeEventListener("resize", medir);
   }, [px]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const cambio = () => setSistemaOscuro(mq.matches);
+    mq.addEventListener("change", cambio);
+    return () => mq.removeEventListener("change", cambio);
+  }, []);
+
+  const contexto = useMemo(() => ({ tema, alternar: () => setPreferencia(tema === "oscuro" ? "claro" : "oscuro") }), [tema]);
 
   const pestanas: [Vista, string][] = [
     ["landing", "Landing"],
@@ -1567,44 +682,57 @@ export default function Propuesta() {
     ["sistema", "Sistema"],
   ];
   const celular = ancho === "celular";
+  const boton = (activo: boolean) => `min-h-10 rounded-[8px] px-3 ${activo ? "bg-[#141A4D] text-white" : "hover:bg-[#ECEEFB]"}`;
 
   return (
-    <div className="min-h-dvh bg-[#E4E6EF]" style={{ fontFamily: "Figtree, system-ui, sans-serif" }}>
-      <style>{ESTILOS}</style>
-      <div className="sticky top-0 z-30 flex flex-wrap items-center gap-2 border-b border-[#C9CDE0] bg-white px-4 py-2 text-[14px] font-semibold text-[#141A4D]">
-        <span className="mr-2">Propuesta v2 · boceto</span>
-        <div role="tablist" className="flex flex-wrap gap-1">
-          {pestanas.map(([id, n]) => (
-            <button key={id} role="tab" aria-selected={vista === id} onClick={() => setVista(id)} className={`min-h-10 rounded-[8px] px-3 ${vista === id ? "bg-[#141A4D] text-white" : "hover:bg-[#ECEEFB]"}`}>
-              {n}
-            </button>
-          ))}
+    <TemaContexto.Provider value={contexto}>
+      <div className={`min-h-dvh ${tema === "oscuro" ? "bg-[#03051A]" : "bg-[#E4E6EF]"}`} style={{ fontFamily: "Figtree, system-ui, sans-serif" }}>
+        <style>{ESTILOS}</style>
+        <div ref={barra} className="sticky top-0 z-50 flex flex-wrap items-center gap-2 border-b border-[#C9CDE0] bg-white px-4 py-2 text-[14px] font-semibold text-[#141A4D]">
+          <span className="mr-2">Propuesta v4 · boceto</span>
+          <div role="tablist" className="flex flex-wrap gap-1">
+            {pestanas.map(([id, n]) => (
+              <button key={id} role="tab" aria-selected={vista === id} onClick={() => setVista(id)} className={boton(vista === id)}>
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto flex flex-wrap gap-1">
+            <div className="flex gap-1" role="radiogroup" aria-label="Tema">
+              {(["sistema", "claro", "oscuro"] as const).map((t) => (
+                <button key={t} role="radio" aria-checked={preferencia === t} onClick={() => setPreferencia(t)} className={boton(preferencia === t)}>
+                  {t === "sistema" ? "Sistema" : t === "claro" ? "Claro" : "Oscuro"}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1" role="radiogroup" aria-label="Tamaño">
+              {(["celular", "computadora"] as Ancho[]).map((a) => (
+                <button key={a} role="radio" aria-checked={ancho === a} onClick={() => setAncho(a)} className={`min-h-10 rounded-[8px] px-3 ${ancho === a ? "bg-[#2430D9] text-white" : "hover:bg-[#ECEEFB]"}`}>
+                  {a === "celular" ? "Celular 390" : "Computadora 1280"}
+                </button>
+              ))}
+            </div>
+          </div>
+          {vista === "student" && (
+            <label className="flex min-h-10 items-center gap-2 px-2">
+              <input type="checkbox" checked={nuevo} onChange={(e) => setNuevo(e.target.checked)} />
+              Cuenta nueva
+            </label>
+          )}
         </div>
-        <div className="ml-auto flex gap-1" role="radiogroup" aria-label="Tamaño">
-          {(["celular", "computadora"] as Ancho[]).map((a) => (
-            <button key={a} role="radio" aria-checked={ancho === a} onClick={() => setAncho(a)} className={`min-h-10 rounded-[8px] px-3 ${ancho === a ? "bg-[#2430D9] text-white" : "hover:bg-[#ECEEFB]"}`}>
-              {a === "celular" ? "Celular 390" : "Computadora 1280"}
-            </button>
-          ))}
-        </div>
-        {vista === "student" && (
-          <label className="flex min-h-10 items-center gap-2 px-2">
-            <input type="checkbox" checked={nuevo} onChange={(e) => setNuevo(e.target.checked)} />
-            Cuenta nueva
-          </label>
-        )}
-      </div>
-      <div ref={zona} className="overflow-x-hidden p-4">
-        <div className="mx-auto" style={{ width: px * escala }}>
-          <div key={`${vista}-${ancho}-${nuevo}`} className="pp @container overflow-clip rounded-[12px] shadow-[0_10px_30px_rgba(20,26,77,.15)]" style={{ width: px, zoom: escala }}>
-            {vista === "landing" && <Landing celular={celular} />}
-            {vista === "espacio" && <MiEspacio celular={celular} />}
-            {vista === "student" && <StudentInicio celular={celular} nuevo={nuevo} />}
-            {vista === "vida" && <VidaHoy celular={celular} />}
-            {vista === "sistema" && <Sistema />}
+        <div ref={zona} className="overflow-x-clip p-4">
+          <div className="mx-auto" style={{ width: px * escala }}>
+            {/* --tope: el encabezado fijo de la landing queda debajo de la barra de la propuesta (en la app real es 0). */}
+            <div key={`${vista}-${ancho}-${nuevo}`} data-tema={tema} className="pp @container overflow-clip rounded-[12px] shadow-[0_10px_30px_rgba(20,26,77,.15)]" style={{ width: px, zoom: escala, ["--tope" as string]: `${altoBarra / escala}px` }}>
+              {vista === "landing" && <Landing celular={celular} />}
+              {vista === "espacio" && <MiEspacio celular={celular} />}
+              {vista === "student" && <StudentInicio celular={celular} nuevo={nuevo} />}
+              {vista === "vida" && <VidaHoy celular={celular} />}
+              {vista === "sistema" && <Sistema />}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </TemaContexto.Provider>
   );
 }

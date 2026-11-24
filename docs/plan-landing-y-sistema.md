@@ -72,15 +72,17 @@ Daniel: el recorrido y la landing se sienten simples, «como hechos por un niño
 Imágenes entregadas (hay que guardarlas en `originales/plataforma/`): `hero.png`, `hero-movil.png`, `app-student.png`, `app-vida.png`, `app-vendoe.png`. Las anteriores de héroe pasaron a `originales/plataforma/anteriores/`.
 
 ### Fase A (esta): lenguaje visual v4 + landing
-1. ⬜ Referencias (patrones de landings de producto de primer nivel).
-2. ⬜ Código del boceto separado en `src/propuesta/` (piezas comunes y landing aparte).
-3. ⬜ Tokens v4 con modo claro y oscuro; íconos de app (Student, Vida, Vendoe).
-4. ⬜ Landing v4: encabezado de vidrio fijo; héroe a todo el ancho con la imagen nueva, León y órbitas que se dibujan; sección «Ecosistema» (mapa orbital de las apps + principios); por app: cabecera con su imagen, historia con celular fijo que cambia al hacer scroll (computadora) o escaparate automático (celular), y bento de funciones con micro-animaciones (incluida la pregunta de prueba); Vendoe; precios; preguntas + contacto; sobre mí; cierre; pie.
-5. ⬜ Mi espacio, Student y Vida del boceto con íconos, imágenes nuevas y modo oscuro.
-6. ⬜ Revisión en celular, computadora y oscuro; commit.
+1. ✅ Referencias (patrones de landings de producto de primer nivel).
+2. ✅ Código del boceto separado en `src/propuesta/` (piezas comunes y landing aparte).
+3. ✅ Tokens v4 con modo claro y oscuro; íconos de app (Student, Vida, Vendoe).
+4. ✅ Landing v4: encabezado de vidrio fijo; héroe a todo el ancho con la imagen nueva, León y órbitas que se dibujan; sección «Ecosistema» (mapa orbital de las apps + principios); por app: cabecera con su imagen, historia con celular fijo que cambia al hacer scroll (computadora) o escaparate automático (celular), y bento de funciones con micro-animaciones (incluida la pregunta de prueba); Vendoe; precios; preguntas + contacto; sobre mí; cierre; pie.
+5. ✅ Mi espacio, Student y Vida del boceto con íconos, imágenes nuevas y modo oscuro.
+6. ✅ Revisión en celular, computadora y oscuro; commit.
 
 ### Fases siguientes (después del visto bueno)
 - **B:** sistema de diseño v4 en el código real (tokens, `AppShell`, componentes) + landing real en `/` y `/mi-espacio`.
 - **C:** todas las pantallas de Auxi Student con el nuevo lenguaje (inicio, lección, camino, métodos, entregas, perfil…).
 - **D:** todas las pantallas de Auxi Vida (hoy, registrar, movimientos, metas, Protégete, importar, perfil…).
 - **E:** revisión completa x2 y capturas reales para la landing.
+
+Referencias usadas (patrones, no copias): historias con elemento fijo que cambia al hacer scroll, bento con demostraciones animadas dentro de cada tarjeta, encabezado fijo que se vuelve sólido, movimiento solo con transform/opacity. Fuentes: saasframe.io (tendencias 2026), vezadigital.com (scroll storytelling), ui.aceternity.com y motion.dev (bento).

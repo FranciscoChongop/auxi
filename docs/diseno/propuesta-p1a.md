@@ -1,4 +1,8 @@
-# Propuesta visual v2 + landing v3 (para aprobar antes del cambio grande)
+# Propuesta visual v4: ecosistema en órbita (para aprobar antes del cambio grande)
+
+> **v4 (24 nov):** lenguaje de «ecosistema»: escenarios de espacio (héroe, ecosistema, cierre), una sección con color propio por app, íconos de app (`src/components/IconoApp.tsx`), historia con celular fijo que cambia al hacer scroll, bento con micro-animaciones, precios con Vendoe como única app de pago, preguntas con contacto, modo claro y oscuro. Código del boceto en `src/propuesta/` (comun.tsx y Landing.tsx). Ruta completa y fases siguientes en `docs/plan-landing-y-sistema.md`.
+
+## Historial
 
 > **Landing v3 (24 nov):** la landing se rehízo más limpia: héroe con qué es y para quién, «Dos apps, una cuenta» con la pantalla de cada app, prueba, «Lo que hace distinto a Auxi», precios, preguntas frecuentes, «Sobre mí» corto y cierre con WhatsApp. Se quitaron la cinta, la órbita girando, los chips que flotan, la franja de privacidad y «Vienen más apps». Detalle y propuestas en `docs/plan-landing-y-sistema.md`; imágenes en `docs/plataforma/solicitud-imagenes-v3.md`. Lo de abajo sigue valiendo para Mi espacio, Student y Vida.
 

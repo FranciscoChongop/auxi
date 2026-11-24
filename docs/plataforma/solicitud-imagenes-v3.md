@@ -51,3 +51,19 @@ Guárdalas en `originales/plataforma/` con el nombre exacto y corre:
 ```
 npm run imagenes
 ```
+
+## Entregadas el 24 nov (falta guardarlas)
+Llegaron en el chat, pero hay que guardarlas en `originales/plataforma/` con estos nombres y correr `npm run imagenes`:
+`hero.png` (libro con vistos + billetera, ancho), `hero-movil.png` (vertical), `app-student.png` (tarjeta con visto + moneda), `app-vida.png` (frasco + calendario), `app-vendoe.png` (puesto con toldo). Mientras no estén, la landing muestra un fondo de respaldo.
+
+## Animaciones cortas opcionales (video de imagen a video)
+Para darle vida al héroe y a las cabeceras de cada app sin pesar mucho: clips de 5 a 6 s, en bucle perfecto, sin cortes de cámara, 1080p, que luego se convierten a WebM/MP4 livianos (menos de 1,5 MB) con la imagen fija como póster. En la app se reproducen sin sonido, solo si la persona no pidió «reducir movimiento», y se pausan fuera de pantalla.
+
+Usa cada imagen entregada como **primer cuadro** y este texto:
+
+- **Héroe (hero.png):** «Animación stop-motion de fieltro, cámara fija. Las tres tarjetas turquesa con visto bueno flotan suavemente sobre el libro abierto, subiendo y bajando unos milímetros a distinto ritmo; las páginas del libro se mueven apenas, como con una brisa; una de las monedas doradas de la billetera se asoma un poco y vuelve a su lugar; el halo de luz azul respira lento. Movimiento sutil y continuo, bucle perfecto, sin personas, sin texto, sin cambiar la composición ni el encuadre.»
+- **Auxi Student (app-student.png):** «Stop-motion de fieltro, cámara fija. La moneda dorada salta desde la tarjeta, gira media vuelta en el aire mostrando su borde cosido y cae de nuevo sobre la tarjeta; el botón turquesa con visto bueno se hunde y vuelve al tocarlo la moneda; la chispa blanca parpadea una vez. Bucle perfecto, sin texto.»
+- **Auxi Vida (app-vida.png):** «Stop-motion de fieltro, cámara fija. Dos monedas doradas caen dentro del frasco y el nivel sube un poco; la línea cosida del frasco se ilumina suave; el círculo turquesa del calendario se dibuja alrededor del día. Bucle perfecto, sin texto ni números.»
+- **Vendoe (app-vendoe.png):** «Stop-motion de fieltro, cámara fija. El toldo a rayas se mece levemente; la bolsa turquesa en la pantalla del celular rebota una vez; la moneda dorada rueda un poco hacia el celular y se detiene. Bucle perfecto, sin texto.»
+
+Revisa que el primer y el último cuadro coincidan (bucle sin salto) y que no aparezcan letras, manos ni objetos nuevos.
