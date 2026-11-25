@@ -15,10 +15,11 @@ import { Llama, Moneda } from "../components/Navegacion";
 import { sonidos } from "../lib/sonidos";
 import { Barra, BotonTema, Candado, Check, Contador, ESTILOS, Marca, NUNITO, TemaContexto, type Tema } from "../propuesta/comun";
 import { Landing } from "../propuesta/Landing";
+import { HeroV6 } from "../propuesta/v6/HeroV6";
 import { PanelMotion } from "../propuesta/motion/Motion";
 import { CaraLeonVida, LeonVida } from "../vida/ui";
 
-type Vista = "landing" | "motion" | "espacio" | "student" | "vida" | "sistema";
+type Vista = "v6" | "landing" | "motion" | "espacio" | "student" | "vida" | "sistema";
 type Ancho = "celular" | "computadora";
 
 /* ---------- AppShell compartido (Mi espacio, Student, Vida) ---------- */
@@ -643,7 +644,7 @@ function Sistema() {
 
 /* ---------- Marco de la propuesta ---------- */
 export default function Propuesta() {
-  const [vista, setVista] = useState<Vista>("landing");
+  const [vista, setVista] = useState<Vista>("v6");
   const [ancho, setAncho] = useState<Ancho>("computadora");
   const [nuevo, setNuevo] = useState(false);
   const [preferencia, setPreferencia] = useState<"sistema" | Tema>("sistema");
@@ -656,7 +657,7 @@ export default function Propuesta() {
   const tema: Tema = preferencia === "sistema" ? (sistemaOscuro ? "oscuro" : "claro") : preferencia;
 
   useEffect(() => {
-    document.title = "Propuesta visual v5 · Auxi Studio";
+    document.title = "Propuesta visual v6 · Auxi Studio";
     const medir = () => {
       setEscala(Math.min(1, ((zona.current?.clientWidth ?? px) - 32) / px));
       setAltoBarra(barra.current?.offsetHeight ?? 56);
@@ -676,7 +677,8 @@ export default function Propuesta() {
   const contexto = useMemo(() => ({ tema, alternar: () => setPreferencia(tema === "oscuro" ? "claro" : "oscuro") }), [tema]);
 
   const pestanas: [Vista, string][] = [
-    ["landing", "Landing"],
+    ["v6", "Héroe v6"],
+    ["landing", "Landing v5"],
     ["motion", "Motion"],
     ["espacio", "Mi espacio"],
     ["student", "Auxi Student"],
@@ -691,7 +693,7 @@ export default function Propuesta() {
       <div className={`min-h-dvh ${tema === "oscuro" ? "bg-[#03051A]" : "bg-[#E4E6EF]"}`} style={{ fontFamily: "Figtree, system-ui, sans-serif" }}>
         <style>{ESTILOS}</style>
         <div ref={barra} className="sticky top-0 z-50 flex flex-wrap items-center gap-2 border-b border-[#C9CDE0] bg-white px-4 py-2 text-[14px] font-semibold text-[#141A4D]">
-          <span className="mr-2">Propuesta v5 · boceto</span>
+          <span className="mr-2">Propuesta v6 · boceto</span>
           <div role="tablist" className="flex flex-wrap gap-1">
             {pestanas.map(([id, n]) => (
               <button key={id} role="tab" aria-selected={vista === id} onClick={() => setVista(id)} className={boton(vista === id)}>
@@ -726,6 +728,7 @@ export default function Propuesta() {
           <div className="mx-auto" style={{ width: px * escala }}>
             {/* --tope: el encabezado fijo de la landing queda debajo de la barra de la propuesta (en la app real es 0). */}
             <div key={`${vista}-${ancho}-${nuevo}`} data-tema={tema} className="pp @container overflow-clip rounded-[12px] shadow-[0_10px_30px_rgba(20,26,77,.15)]" style={{ width: px, zoom: escala, ["--tope" as string]: `${altoBarra / escala}px` }}>
+              {vista === "v6" && <HeroV6 celular={celular} />}
               {vista === "landing" && <Landing celular={celular} />}
               {vista === "motion" && <PanelMotion celular={celular} />}
               {vista === "espacio" && <MiEspacio celular={celular} />}
