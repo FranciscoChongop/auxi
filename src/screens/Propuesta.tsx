@@ -15,7 +15,7 @@ import { Llama, Moneda } from "../components/Navegacion";
 import { sonidos } from "../lib/sonidos";
 import { Barra, BotonTema, Candado, Check, Contador, ESTILOS, Marca, NUNITO, TemaContexto, type Tema } from "../propuesta/comun";
 import { Landing } from "../propuesta/Landing";
-import { HeroV6 } from "../propuesta/v6/HeroV6";
+import { HeroV6 } from "../landing/HeroV6";
 import { PanelMotion } from "../propuesta/motion/Motion";
 import { CaraLeonVida, LeonVida } from "../vida/ui";
 

@@ -8,7 +8,7 @@
  */
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, type CSSProperties } from "react";
-import { INSTAGRAM_URL, TIKTOK_URL } from "../../components/ApoyaAlCreador";
+import { INSTAGRAM_URL, TIKTOK_URL } from "../components/ApoyaAlCreador";
 import { IconoStudent, IconoVida } from "./iconos";
 import { geometria, NODOS, suave } from "./orbita";
 import type { Escena } from "./particulas";

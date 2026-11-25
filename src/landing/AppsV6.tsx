@@ -7,7 +7,7 @@
  */
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
-import { MotionApp } from "../motion/Motion";
+import { MotionApp } from "../propuesta/motion/Motion";
 import { IconoStudent, IconoVida } from "./iconos";
 
 const FIGTREE = "Figtree, system-ui, sans-serif";

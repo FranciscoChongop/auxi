@@ -1,12 +1,10 @@
-import { motion, useReducedMotion } from "motion/react";
-import { useEffect, type MouseEvent } from "react";
+import { motion } from "motion/react";
+import { lazy, Suspense, useEffect, type MouseEvent } from "react";
 import { INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { Banner, type Tono } from "../components/Banner";
-import { Boton } from "../components/Boton";
-import { Leon } from "../components/Leon";
 import { metricas, registrar } from "../lib/metricas";
 import { salir, useCuenta } from "../lib/nube";
-import { AUTOR, FRASE_PLATAFORMA, LANDING_URL, MINI_APPS, NOMBRE_PLATAFORMA, VENDOE_URL, type MiniAppInfo } from "../lib/plataforma";
+import { AUTOR, LANDING_URL, MINI_APPS, NOMBRE_PLATAFORMA, VENDOE_URL, type MiniAppInfo } from "../lib/plataforma";
 import { navegar, reemplazar, useRuta } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 import Entrada from "./Entrada";
@@ -61,67 +59,6 @@ const alVer = (retraso = 0) => ({
   transition: { duration: 0.5, ease: "easeOut" as const, delay: retraso },
 });
 
-/* ---------- Portada ---------- */
-
-/** La mascota aparece solo aquí, una vez: León dentro de la órbita, con los tres puntos girando alrededor. */
-function Heroe() {
-  const quieto = !!useReducedMotion();
-  return (
-    <Banner nombre="hero" nombreMovil="hero-movil" tono="hero" modo="contenido" parallax={false} className="rounded-t-none md:rounded-[32px]">
-      <div className="flex flex-col items-center px-5 pt-8 pb-10 text-center text-white md:py-14">
-        <div className="relative grid size-64 place-items-center">
-          <motion.div className="absolute inset-0" animate={quieto ? {} : { rotate: 360 }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} aria-hidden="true">
-            <svg viewBox="0 0 100 100" className="size-full">
-              <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="1" strokeDasharray="2 3" />
-              <circle cx="96" cy="50" r="4.4" fill="#2430D9" stroke="#fff" strokeWidth="1.4" />
-              <circle cx="27" cy="89.8" r="4.4" fill="#0E5B57" stroke="#fff" strokeWidth="1.4" />
-              <circle cx="27" cy="10.2" r="4.4" fill="#4A4EDB" stroke="#fff" strokeWidth="1.4" />
-            </svg>
-          </motion.div>
-          <motion.div
-            className="grid size-48 place-items-center rounded-full bg-white/12 ring-1 ring-white/25 backdrop-blur-[2px]"
-            animate={quieto ? {} : { y: [0, -8, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Leon pose="saluda" alto={170} rebote />
-          </motion.div>
-        </div>
-        <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.5 }} className="mt-5 text-[32px] leading-[36px] font-black md:text-[44px] md:leading-[48px]">
-          Tu mundo de mini apps
-        </motion.h1>
-        <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }} className="mt-2 max-w-sm text-[17px] text-white/90">
-          {FRASE_PLATAFORMA} Una sola cuenta para todas.
-        </motion.p>
-      </div>
-    </Banner>
-  );
-}
-
-/** Cinta con frases que se desplazan sin parar (quieta si se reduce el movimiento). */
-function Cinta() {
-  const quieto = !!useReducedMotion();
-  const frases = ["Estudia jugando", "Ordena tu plata", "Protégete de estafas", "Una sola cuenta", "Gratis", "Para tu negocio"];
-  const colores = ["#2430D9", "#0E5B57", "#F2B341", "#4A4EDB", "#5FE3DC", "#7B7FF0"];
-  const fila = (
-    <span className="flex shrink-0 items-center gap-6 pr-6">
-      {frases.map((f, i) => (
-        <span key={f} className="flex items-center gap-6">
-          <span>{f}</span>
-          <span className="size-2.5 rounded-full" style={{ background: colores[i % colores.length] }} aria-hidden="true" />
-        </span>
-      ))}
-    </span>
-  );
-  return (
-    <div className="overflow-hidden bg-[#141A4D] py-3 text-[15px] font-extrabold whitespace-nowrap text-white" aria-hidden="true">
-      <motion.div className="flex w-max" animate={quieto ? {} : { x: ["0%", "-50%"] }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }}>
-        {fila}
-        {fila}
-      </motion.div>
-    </div>
-  );
-}
-
 /** Tarjeta-banner de una mini app. */
 function TarjetaBanner({ m, indice, alAbrir, nota }: { m: MiniAppInfo; indice: number; alAbrir: (e: MouseEvent<HTMLAnchorElement>) => void; nota?: string }) {
   const { imagen, tono } = ARTE_DE[m.id];
@@ -152,19 +89,6 @@ function TarjetaBanner({ m, indice, alAbrir, nota }: { m: MiniAppInfo; indice: n
         </div>
       </Banner>
     </motion.a>
-  );
-}
-
-function BannerCuenta() {
-  return (
-    <motion.div {...alVer()}>
-      <Banner nombre="cuenta" tono="cuenta" velo="izquierda" className="aspect-[4/3] md:aspect-[21/8]">
-        <div className="flex h-full flex-col justify-end p-6 text-white md:max-w-[52%] md:justify-center">
-          <p className="text-[28px] leading-[32px] font-black drop-shadow-[0_2px_6px_rgba(0,0,0,.35)] md:text-[34px] md:leading-[38px]">Una sola cuenta, todas las mini apps</p>
-          <p className="mt-2 text-[16px] text-white/95 drop-shadow-[0_1px_4px_rgba(0,0,0,.4)]">Entras una vez y eliges a dónde ir. Vendoe es una app aparte, con su propia página.</p>
-        </div>
-      </Banner>
-    </motion.div>
   );
 }
 
@@ -211,49 +135,16 @@ function Pie() {
   );
 }
 
+/* ---------- Portada ---------- */
+
+/** Portada para quien no ha iniciado sesión: la landing del ecosistema (src/landing), en su propio archivo. */
+const LandingV6 = lazy(() => import("../landing"));
+
 function Portada() {
-  const abrir = (m: MiniAppInfo) => (e: MouseEvent<HTMLAnchorElement>) => {
-    sonidos.toque();
-    if (m.externa) return; // /negocio se abre como página normal y lleva a Vendoe
-    irA("/entrar")(e);
-  };
   return (
-    <main className="min-h-dvh">
-      <div className="mx-auto flex max-w-md items-center justify-between gap-3 px-5 pb-3 md:max-w-4xl md:px-8" style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}>
-        <MarcaPlataforma />
-        <button type="button" onClick={() => navegar("/entrar")} className="hidden min-h-11 cursor-pointer rounded-full border-2 border-surface bg-card px-4 text-ayuda font-extrabold text-brand md:block">
-          Iniciar sesión
-        </button>
-      </div>
-      <div className="mx-auto max-w-md md:max-w-4xl md:px-8">
-        <Heroe />
-      </div>
-      <div className="mt-6">
-        <Cinta />
-      </div>
-      <div className="mx-auto mt-8 max-w-md px-5 md:max-w-4xl md:px-8">
-        <motion.h2 {...alVer()} className="text-titulo font-black">
-          Elige tu mini app
-        </motion.h2>
-        <motion.p {...alVer(0.05)} className="mt-1 text-text-soft">
-          Inicia sesión una vez y entra a la que quieras.
-        </motion.p>
-        <div className="mt-5 grid gap-5 md:grid-cols-3">
-          {MINI_APPS.map((m, i) => (
-            <TarjetaBanner key={m.id} m={m} indice={i} alAbrir={abrir(m)} nota={m.externa ? m.etiqueta : `${m.etiqueta} · inicia sesión`} />
-          ))}
-        </div>
-        <div className="mt-8 flex flex-col gap-5">
-          <BannerCuenta />
-          <BannerAutor />
-        </div>
-      </div>
-      <div className="sticky bottom-0 z-10 mx-auto mt-8 max-w-md bg-gradient-to-t from-bg from-60% to-transparent px-5 pt-8 md:static md:max-w-sm md:bg-none md:pt-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}>
-        <Boton onClick={() => navegar("/entrar")}>Iniciar sesión o crear cuenta</Boton>
-        <p className="mt-2 text-center text-ayuda text-text-soft">Gratis. Sin tarjeta.</p>
-      </div>
-      <Pie />
-    </main>
+    <Suspense fallback={<div className="min-h-dvh" style={{ background: "#080E25" }} />}>
+      <LandingV6 />
+    </Suspense>
   );
 }
 
@@ -341,5 +232,7 @@ export default function Plataforma() {
   if (ruta === "/privacidad" || ruta === "/terminos") return <Legal />;
   if (cuenta.modo === "cargando") return <div className="min-h-dvh bg-bg" />;
   if (ruta === "/entrar") return conSesion || libre ? <div className="min-h-dvh bg-bg" /> : <Entrada titulo={NOMBRE_PLATAFORMA} cabecera={<Orbita tamano={56} />} />;
-  return conSesion || libre ? <Inicio conSesion={conSesion} /> : <Portada />;
+  // En desarrollo sin nube no hay sesión que pedir: /?portada muestra la portada para revisarla.
+  const verPortada = import.meta.env.DEV && new URLSearchParams(window.location.search).has("portada");
+  return (conSesion || libre) && !verPortada ? <Inicio conSesion={conSesion} /> : <Portada />;
 }

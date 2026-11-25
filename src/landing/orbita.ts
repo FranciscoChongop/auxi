@@ -13,7 +13,7 @@ export function geometria(W: number, H: number, celular: boolean, aspectoMano: n
     const k = Math.min(1, H / 760);
     const mw = W * 0.64 * k;
     const mh = mw / aspectoMano;
-    const punta: [number, number] = [W * 0.335, H * 0.79];
+    const punta: [number, number] = [W * 0.335, H * 0.75];
     const hw = W * 0.78 * k;
     const g: Geometria = {
       mano: { x: punta[0] - PUNTA_DIGITAL[0] * mw, y: punta[1] - PUNTA_DIGITAL[1] * mh, w: mw, h: mh },

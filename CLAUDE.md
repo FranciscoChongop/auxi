@@ -6,7 +6,7 @@ Para cualquier tarea de **Auxi Vida** (`/vida`), lee también `docs/vida/vida.md
 
 ## Qué es Auxi
 
-**Auxi Studio por Daniel Chong** es la plataforma (dominio auxistudio.com): un mundo de mini apps gratuitas con una sola cuenta. La portada y el inicio (`/`) viven en `src/screens/Plataforma.tsx`; nombres y mini apps se cambian solo en `src/lib/plataforma.ts`. Las mini apps de hoy:
+**Auxi Studio por Daniel Chong** es la plataforma (dominio auxistudio.com): un mundo de mini apps gratuitas con una sola cuenta. La portada y el inicio (`/`) viven en `src/screens/Plataforma.tsx` (la landing de la portada, con partículas y escenas en scroll, está en `src/landing/`; se revisa en desarrollo con `/?portada`); nombres y mini apps se cambian solo en `src/lib/plataforma.ts`. Las mini apps de hoy:
 
 - **Auxi Student** (estudiantes, `/student`): la primera que se construyó. Antes se llamaba Auxi Studio; `/studio/...` redirige a `/student/...`.
 - **Auxi Vida** (personas, `/vida`).

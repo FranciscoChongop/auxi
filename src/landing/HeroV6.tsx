@@ -34,6 +34,13 @@ const ESTILOS_V6 = `
 .v6 .v6-nav a:hover { color: #fff; }
 .v6 .v6-entrar { display:inline-flex; align-items:center; min-height:44px; padding:0 18px; border-radius:12px; border:1.5px solid rgba(255,255,255,.45); font-weight:600; }
 .v6 .v6-entrar:hover { border-color:#fff; background: rgba(255,255,255,.06); }
+.v6 .v6-barra { position: sticky; top: var(--tope); z-index: 40; pointer-events: none; opacity: 0; transform: translateY(-100%);
+  transition: opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1); background: rgba(8,14,37,.72); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,.08); }
+.v6 .v6-barra[data-visible="si"] { opacity: 1; transform: none; pointer-events: auto; }
+.v6 .v6-barra a { color: var(--texto); text-decoration: none; }
+.v6 .v6-barra-enlace { display:flex; align-items:center; min-height:44px; }
+.v6 .v6-barra-enlace:hover { color:#fff; }
 .v6 .v6-nodo { position:absolute; left:0; top:0; display:grid; place-items:center; border-radius:18px; will-change: transform;
   background: linear-gradient(150deg, rgba(120,150,255,.38), rgba(36,48,217,.28) 55%, rgba(8,14,37,.55));
   border: 1px solid rgba(160,185,255,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 10px 30px rgba(36,48,217,.45), 0 0 0 1px rgba(36,48,217,.2); }
@@ -280,7 +287,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
   }, [celular, fijo, conMovimiento]);
 
   const enlaces: [string, string][] = [
-    ["#apps", "Herramientas"],
+    ["#student", "Herramientas"],
     ["#preguntas", "Preguntas"],
     ["#sobre-mi", "Sobre mí"],
   ];
@@ -443,7 +450,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
         <p style={{ marginTop: celular ? 14 : 20, fontSize: celular ? 16 : 19, lineHeight: 1.5, color: "var(--texto-2)", maxWidth: celular ? 340 : 640 }}>
           Estudia jugando y ordena tu plata, con una sola cuenta.
         </p>
-        <a href="#apps" className="v6-cta" style={{ marginTop: celular ? 20 : 28 }}>
+        <a href="#student" className="v6-cta" style={{ marginTop: celular ? 20 : 28 }}>
           Explorar herramientas
         </a>
         <p style={{ marginTop: 10, fontSize: 14, color: "var(--texto-2)" }}>Student y Vida: gratis por ahora</p>
@@ -456,6 +463,61 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
         </h2>
         <p style={{ marginTop: 14, fontSize: celular ? 16 : 19, color: "var(--texto-2)" }}>Student y Vida, conectadas a tu cuenta de AUXI.</p>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Barra superior que aparece cuando termina la pantalla principal (que tiene su propia cabecera), para que
+ * «Entrar» siga a la mano en toda la página. Pegada arriba y sin ocupar espacio.
+ */
+function BarraSuperior({ celular }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const barra = ref.current;
+    if (!barra) return;
+    let raf = 0;
+    const revisar = () => {
+      raf = 0;
+      const pista = document.getElementById("v6-pista");
+      const visible = pista ? pista.getBoundingClientRect().bottom < window.innerHeight * 1.02 : window.scrollY > window.innerHeight * 0.8;
+      barra.dataset.visible = visible ? "si" : "no";
+    };
+    const alScroll = () => {
+      if (!raf) raf = requestAnimationFrame(revisar);
+    };
+    revisar();
+    window.addEventListener("scroll", alScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", alScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+  const alto = celular ? 60 : 68;
+  return (
+    <div ref={ref} className="v6-barra" data-visible="no" style={{ height: alto, marginBottom: -alto }}>
+      <nav aria-label="Atajos" className="mx-auto flex h-full items-center justify-between" style={{ maxWidth: 1200, padding: celular ? "0 16px" : "0 40px" }}>
+        <a href="#" className="flex min-h-11 items-center gap-2 font-semibold text-white no-underline" style={{ letterSpacing: ".16em", fontSize: celular ? 14 : 15 }}>
+          <img src="/marca/simbolo.webp" alt="" width={24} height={24} />
+          AUXI STUDIO
+        </a>
+        {!celular && (
+          <span className="flex items-center gap-8 text-[15px]">
+            <a href="#student" className="v6-barra-enlace">
+              Herramientas
+            </a>
+            <a href="#preguntas" className="v6-barra-enlace">
+              Preguntas
+            </a>
+            <a href="#sobre-mi" className="v6-barra-enlace">
+              Sobre mí
+            </a>
+          </span>
+        )}
+        <a href="/entrar" className="v6-entrar" style={{ minHeight: 40 }}>
+          Entrar
+        </a>
+      </nav>
     </div>
   );
 }
@@ -480,6 +542,7 @@ export function HeroV6({ celular }: Props) {
       <style>{ESTILOS_V6}</style>
       {/* Puntos de luz que caen sin parar detrás de toda la página. */}
       <CapaEstrellas celular={celular} />
+      <BarraSuperior celular={celular} />
       {reducir ? (
         // Movimiento reducido: dos cuadros quietos, sin scroll animado.
         <>
@@ -487,7 +550,7 @@ export function HeroV6({ celular }: Props) {
           <Escenario celular={celular} modo={{ tipo: "fijo", p: 1 }} conMovimiento={false} />
         </>
       ) : (
-        <div className="relative z-[2]" style={{ height: `calc((100dvh - var(--tope)) * ${celular ? 3.1 : 3.4})`, minHeight: celular ? 2000 : 2040 }}>
+        <div id="v6-pista" className="relative z-[2]" style={{ height: `calc((100dvh - var(--tope)) * ${celular ? 3.1 : 3.4})`, minHeight: celular ? 2000 : 2040 }}>
           <Escenario celular={celular} modo={{ tipo: "scroll" }} conMovimiento />
         </div>
       )}

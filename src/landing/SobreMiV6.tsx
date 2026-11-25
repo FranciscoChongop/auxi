@@ -7,7 +7,7 @@
  */
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
-import { INSTAGRAM_URL, TIKTOK_URL } from "../../components/ApoyaAlCreador";
+import { INSTAGRAM_URL, TIKTOK_URL } from "../components/ApoyaAlCreador";
 
 const WHATSAPP = "https://wa.me/51960650372";
 const WHATSAPP_NEGOCIO = `${WHATSAPP}?text=${encodeURIComponent("Hola Daniel, tengo una idea para mi negocio.")}`;
