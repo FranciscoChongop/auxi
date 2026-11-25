@@ -157,7 +157,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
       // no hay corte ni raya al seguir bajando.
       if (fijo === null) {
         el.style.opacity = String(1 - suave(0.8, 1, z));
-        el.style.pointerEvents = z > 0.97 ? "none" : "";
+        el.style.pointerEvents = z > 0.97 ? "none" : "auto";
       }
       const salida = suave(0.03, 0.32, pa);
       if (textoHeroe.current) {
@@ -293,7 +293,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
   ];
   const estiloEscenario: CSSProperties =
     modo.tipo === "scroll"
-      ? { position: "sticky", top: "var(--tope)", height: "calc(100dvh - var(--tope))", minHeight: celular ? 640 : 600, maxHeight: celular ? 900 : 980, background: "#080E25" }
+      ? { position: "sticky", top: "var(--tope)", height: "calc(100dvh - var(--tope))", minHeight: celular ? 640 : 600, maxHeight: celular ? 900 : 980, background: "#080E25", pointerEvents: "auto" }
       : { position: "relative", height: celular ? 760 : 800 };
 
   return (
@@ -550,7 +550,7 @@ export function HeroV6({ celular }: Props) {
           <Escenario celular={celular} modo={{ tipo: "fijo", p: 1 }} conMovimiento={false} />
         </>
       ) : (
-        <div id="v6-pista" className="relative z-[2]" style={{ height: `calc((100dvh - var(--tope)) * ${celular ? 3.1 : 3.4})`, minHeight: celular ? 2000 : 2040 }}>
+        <div id="v6-pista" className="pointer-events-none relative z-[2]" style={{ height: `calc((100dvh - var(--tope)) * ${celular ? 3.1 : 3.4})`, minHeight: celular ? 2000 : 2040 }}>
           <Escenario celular={celular} modo={{ tipo: "scroll" }} conMovimiento />
         </div>
       )}
