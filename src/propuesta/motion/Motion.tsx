@@ -76,17 +76,27 @@ function Cabecera({ app, derecha }: { app: AppMotion; derecha?: ReactNode }) {
   );
 }
 
-/** Dedo que toca: un círculo que aparece, se hunde y se va. */
+/**
+ * Dedo que toca: la yema se acerca desde abajo con su sombra, se hunde y suelta una onda.
+ * Se ve como un toque real, no como un círculo que parpadea.
+ */
 function Toque({ x, y, retraso }: { x: number; y: number; retraso: number }) {
   return (
-    <motion.span
-      aria-hidden="true"
-      className="pointer-events-none absolute z-20 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#141A4D]/20 ring-2 ring-white"
-      style={{ left: x, top: y }}
-      initial={{ opacity: 0, scale: 0.4 }}
-      animate={{ opacity: [0, 1, 1, 0], scale: [0.4, 1, 0.85, 1.5] }}
-      transition={{ delay: retraso, duration: 0.75, times: [0, 0.3, 0.55, 1] }}
-    />
+    <span aria-hidden="true" className="pointer-events-none absolute z-20" style={{ left: x, top: y }}>
+      <motion.span
+        className="absolute block size-11 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{ background: "radial-gradient(circle at 45% 40%, rgba(255,255,255,.95), rgba(255,255,255,.55) 45%, rgba(255,255,255,.12) 70%)", boxShadow: "0 10px 18px rgba(20,26,77,.28)" }}
+        initial={{ opacity: 0, x: 14, y: 34, scale: 1.15 }}
+        animate={{ opacity: [0, 0.95, 0.95, 0], x: [14, 0, 0, 6], y: [34, 0, 0, 18], scale: [1.15, 1, 0.86, 1] }}
+        transition={{ delay: retraso - 0.25, duration: 1.05, times: [0, 0.32, 0.55, 1], ease: [0.22, 1, 0.36, 1] }}
+      />
+      <motion.span
+        className="absolute block size-11 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: [0, 0.9, 0], scale: [0.6, 1, 1.9] }}
+        transition={{ delay: retraso + 0.12, duration: 0.6, ease: "easeOut" }}
+      />
+    </span>
   );
 }
 
@@ -677,7 +687,43 @@ function useVideo(app: AppMotion) {
  * Celular con el motion graphic y, debajo, los pasos (barras tipo historias) con el nombre del paso actual.
  * Pensado para ir sobre un escenario oscuro o de color (textos en blanco).
  */
-export function MotionApp({ app, ancho, grande = false }: { app: AppMotion; ancho: number; grande?: boolean }) {
+/**
+ * Celular con cuerpo en 3D (bordes laterales y tapa reales con preserve-3d) y un reflejo que recorre el vidrio
+ * en cada cambio de paso. La inclinación la decide quien lo usa con las variables CSS --rx, --ry y --brillo
+ * (la landing v6 las cambia con el scroll). Sin variables queda de frente.
+ */
+function Telefono3D({ ancho, paso, children }: { ancho: number; paso: number; children: ReactNode }) {
+  const grosor = Math.round(ancho * 0.045);
+  const borde = { background: "linear-gradient(180deg,#4A5290 0%,#1A1F48 18%,#0B0E26 50%,#1A1F48 82%,#4A5290 100%)" };
+  return (
+    <div style={{ perspective: 1100 }}>
+      <div
+        className="relative"
+        style={{ transformStyle: "preserve-3d", transform: "rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))", transition: "transform .35s cubic-bezier(.22,1,.36,1)", willChange: "transform" }}
+      >
+        <span className="absolute top-[4%] bottom-[4%] left-0 block" style={{ ...borde, width: grosor, transformOrigin: "left center", transform: "rotateY(90deg)" }} />
+        <span className="absolute top-[4%] right-0 bottom-[4%] block" style={{ ...borde, width: grosor, transformOrigin: "right center", transform: "rotateY(-90deg)" }} />
+        <span className="absolute inset-0 block rounded-[17%/7.9%]" style={{ background: "linear-gradient(145deg,#2C3266,#0A0D24)", transform: `translateZ(-${grosor}px)`, boxShadow: "0 50px 90px -30px rgba(0,0,0,.8)" }} />
+        <TelefonoPro ancho={ancho}>{children}</TelefonoPro>
+        {/* Reflejo que acompaña la inclinación y barre el vidrio al cambiar de paso. */}
+        <span
+          className="pointer-events-none absolute inset-0 block rounded-[17%/7.9%]"
+          style={{ background: "linear-gradient(112deg, transparent 32%, rgba(255,255,255,.16) 44%, rgba(255,255,255,.05) 52%, transparent 62%)", backgroundSize: "260% 100%", backgroundPosition: "calc(var(--brillo, 50) * 1%) 0", mixBlendMode: "screen", transform: "translateZ(1px)" }}
+        />
+        <motion.span
+          key={paso}
+          className="pointer-events-none absolute inset-0 block rounded-[17%/7.9%]"
+          style={{ background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,.28) 50%, transparent 60%)", backgroundSize: "300% 100%", mixBlendMode: "screen", transform: "translateZ(1px)" }}
+          initial={{ backgroundPosition: "110% 0", opacity: 1 }}
+          animate={{ backgroundPosition: "-10% 0", opacity: 0 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function MotionApp({ app, ancho, grande = false, tresD = false }: { app: AppMotion; ancho: number; grande?: boolean; tresD?: boolean }) {
   const escenas = ESCENAS[app];
   const quieto = !!useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
@@ -706,17 +752,32 @@ export function MotionApp({ app, ancho, grande = false }: { app: AppMotion; anch
     <MotionConfig reducedMotion="user">
       <div ref={ref} className="flex flex-col items-center">
         <div aria-hidden="true">
-          <TelefonoPro ancho={ancho}>
-            {video ? (
+          {(() => {
+            const contenido = video ? (
               <video src={video} className="absolute inset-0 size-full object-cover" autoPlay muted loop playsInline />
             ) : (
+              // Cambio de paso como una app de verdad: la pantalla nueva entra desde la derecha y la anterior se va hacia atrás.
               <AnimatePresence mode="popLayout" initial={false}>
-                <motion.div key={`${vuelta}-${i}`} className="absolute inset-0" initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.3, ease: "easeOut" }}>
+                <motion.div
+                  key={`${vuelta}-${i}`}
+                  className="absolute inset-0 bg-[#F7F8FC]"
+                  initial={{ opacity: 0, x: 46, scale: 1 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -30, scale: 0.95 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <Pantalla />
                 </motion.div>
               </AnimatePresence>
-            )}
-          </TelefonoPro>
+            );
+            return tresD ? (
+              <Telefono3D ancho={ancho} paso={vuelta * 10 + i}>
+                {contenido}
+              </Telefono3D>
+            ) : (
+              <TelefonoPro ancho={ancho}>{contenido}</TelefonoPro>
+            );
+          })()}
         </div>
         {!video && (
           <div className={`mt-10 w-full ${grande ? "max-w-[360px]" : "max-w-[300px]"}`}>

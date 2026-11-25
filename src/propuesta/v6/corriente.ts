@@ -1,10 +1,12 @@
 /**
  * Corriente de partículas por sección (boceto v6): los puntos entran por arriba, como si vinieran
- * de la sección anterior, y forman una órbita alrededor del celular de la app. Al seguir bajando,
- * la órbita gira un poco (ligada al scroll, no a un reloj).
+ * de la sección anterior, y forman una órbita alrededor del celular de la app. Alrededor hay polvo
+ * de estrellas que deriva y titila.
  *
- * Igual que el héroe: WebGL 1 sin librerías y se dibuja SOLO cuando cambia el scroll.
+ * Igual que el héroe: WebGL 1 sin librerías. El movimiento continuo corre solo mientras la sección
+ * se ve y con tope de fps (30 en celular); con «reducir movimiento» se dibuja solo al hacer scroll.
  */
+import { crearBucle } from "./bucle";
 
 export type Colores = { a: [number, number, number]; b: [number, number, number] };
 export type Forma = {
@@ -17,33 +19,51 @@ export type Forma = {
 
 const VERT = `
 attribute float aAng;
-attribute vec4 aAzar;   // retraso, tamaño, desvío, azar
+attribute vec4 aAzar;   // retraso, tamaño, desvío (9 = polvo), azar
 uniform vec2 uRes;
 uniform vec2 uIni;
 uniform vec2 uCentro;
 uniform vec4 uOrb;      // rx, ry, cos, sin
 uniform float uLlegada;
 uniform float uGiro;
+uniform float uT;
 uniform float uDpr;
 uniform vec3 uColA;
 uniform vec3 uColB;
 varying vec3 vColor;
 varying float vAlfa;
 void main() {
-  float th = aAng + uGiro * (0.6 + aAzar.w * 0.8);
-  vec2 l = vec2(uOrb.x * cos(th), uOrb.y * sin(th)) * (1.0 + aAzar.z);
+  float r = aAzar.w;
+  float tit = 0.5 + 0.5 * sin(uT * (0.8 + r * 1.7) + r * 37.0);
+
+  if (aAzar.z > 5.0) {
+    // Polvo de estrellas: toda la sección, deriva lenta; aparece cuando llega la corriente.
+    vec2 base = vec2(fract(r * 7.13), fract(aAng * 3.71)) * uRes;
+    vec2 deriva = vec2(sin(uT * 0.08 * (0.5 + r) + r * 9.0), cos(uT * 0.06 * (0.5 + r) + r * 4.0)) * 24.0 - vec2(0.0, uGiro * 60.0 * (0.3 + aAzar.y));
+    vec2 pos = mod(base + deriva + 40.0, uRes + 80.0) - 40.0;
+    vec2 clip = pos / uRes * 2.0 - 1.0;
+    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
+    gl_PointSize = (0.9 + aAzar.y * 1.5) * uDpr;
+    vColor = mix(uColA, vec3(0.95, 0.97, 1.0), 0.5 + aAzar.y * 0.5);
+    vAlfa = (0.16 + 0.6 * tit * aAzar.y) * smoothstep(0.0, 0.6, uLlegada);
+    return;
+  }
+
+  // Órbita: gira sola despacio y además avanza con el scroll.
+  float th = aAng + uGiro * (0.6 + r * 0.8) + uT * 0.16 * (0.7 + r * 0.6);
+  vec2 l = vec2(uOrb.x * cos(th), uOrb.y * sin(th)) * (1.0 + aAzar.z + sin(uT * 0.9 + r * 20.0) * 0.012);
   vec2 destino = uCentro + vec2(l.x * uOrb.z - l.y * uOrb.w, l.x * uOrb.w + l.y * uOrb.z);
-  vec2 ini = uIni + vec2((fract(aAzar.w * 53.1) - 0.5) * min(uRes.x * 0.14, 60.0), -fract(aAzar.w * 17.7) * 80.0);
+  vec2 ini = uIni + vec2((fract(r * 53.1) - 0.5) * min(uRes.x * 0.14, 60.0), -fract(r * 17.7) * 80.0);
   float t = clamp(uLlegada * 1.6 - aAzar.x * 0.6, 0.0, 1.0);
   float e = t * t * (3.0 - 2.0 * t);
-  vec2 control = vec2(mix(ini.x, destino.x, 0.12), mix(ini.y, destino.y, 0.85)) + vec2((aAzar.w - 0.5) * min(120.0, uRes.x * 0.1), 0.0);
+  vec2 control = vec2(mix(ini.x, destino.x, 0.12), mix(ini.y, destino.y, 0.85)) + vec2((r - 0.5) * min(120.0, uRes.x * 0.1), 0.0);
   vec2 pos = (1.0 - e) * (1.0 - e) * ini + 2.0 * (1.0 - e) * e * control + e * e * destino;
   vec2 clip = pos / uRes * 2.0 - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
-  gl_PointSize = (1.2 + aAzar.y * 1.8) * (1.0 + sin(e * 3.14159) * 0.4) * uDpr;
+  gl_PointSize = (1.2 + aAzar.y * 1.9) * (1.0 + sin(e * 3.14159) * 0.4) * uDpr;
   vColor = mix(uColA, uColB, aAzar.y);
   // Llega desde la nada (sin «lluvia» visible en la parte de arriba antes de tiempo).
-  vAlfa = smoothstep(0.0, 0.15, t) * (0.45 + aAzar.y * 0.55);
+  vAlfa = smoothstep(0.0, 0.15, t) * (0.45 + aAzar.y * 0.55) * (0.65 + 0.35 * tit);
 }
 `;
 
@@ -58,20 +78,21 @@ void main() {
 }
 `;
 
-export function crearCorriente(canvas: HTMLCanvasElement, n: number, colores: Colores, dprMax: number) {
+export function crearCorriente(canvas: HTMLCanvasElement, n: number, polvo: number, colores: Colores, opciones: { dprMax: number; vivo: boolean; fps: number }) {
   const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true, powerPreference: "low-power" });
   if (!gl) return null; // sin WebGL: la sección se ve igual, solo sin partículas
-  const dpr = Math.min(window.devicePixelRatio || 1, dprMax);
+  const dpr = Math.min(window.devicePixelRatio || 1, opciones.dprMax);
+  const total = n + polvo;
 
   let semilla = 11;
   const azar = () => ((semilla = (semilla * 16807) % 2147483647) - 1) / 2147483646;
-  const ang = new Float32Array(n);
-  const rnd = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) {
+  const ang = new Float32Array(total);
+  const rnd = new Float32Array(total * 4);
+  for (let i = 0; i < total; i++) {
     ang[i] = azar() * Math.PI * 2;
     rnd[i * 4] = azar();
     rnd[i * 4 + 1] = azar();
-    rnd[i * 4 + 2] = (azar() - 0.5) * 0.09;
+    rnd[i * 4 + 2] = i >= n ? 9 : (azar() - 0.5) * 0.1;
     rnd[i * 4 + 3] = azar();
   }
 
@@ -98,7 +119,7 @@ export function crearCorriente(canvas: HTMLCanvasElement, n: number, colores: Co
   };
   const buffers = [buf("aAng", ang, 1), buf("aAzar", rnd, 4)];
   const u = (x: string) => gl.getUniformLocation(prog, x);
-  const U = { res: u("uRes"), ini: u("uIni"), centro: u("uCentro"), orb: u("uOrb"), llegada: u("uLlegada"), giro: u("uGiro"), dpr: u("uDpr"), a: u("uColA"), b: u("uColB") };
+  const U = { res: u("uRes"), ini: u("uIni"), centro: u("uCentro"), orb: u("uOrb"), llegada: u("uLlegada"), giro: u("uGiro"), t: u("uT"), dpr: u("uDpr"), a: u("uColA"), b: u("uColB") };
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE);
   gl.clearColor(0, 0, 0, 0);
@@ -108,6 +129,7 @@ export function crearCorriente(canvas: HTMLCanvasElement, n: number, colores: Co
   let forma: Forma | null = null;
   let llegada = -1;
   let giro = 0;
+  let tiempo = 0;
   let cuadro = 0;
 
   const pintar = () => {
@@ -121,16 +143,25 @@ export function crearCorriente(canvas: HTMLCanvasElement, n: number, colores: Co
     gl.uniform4f(U.orb, forma.rx, forma.ry, Math.cos(forma.giro), Math.sin(forma.giro));
     gl.uniform1f(U.llegada, Math.max(0, llegada));
     gl.uniform1f(U.giro, giro);
+    gl.uniform1f(U.t, tiempo);
     gl.uniform1f(U.dpr, dpr);
     gl.uniform3f(U.a, ...colores.a);
     gl.uniform3f(U.b, ...colores.b);
-    gl.drawArrays(gl.POINTS, 0, n);
+    gl.drawArrays(gl.POINTS, 0, total);
   };
+  const t0 = performance.now() / 1000;
+  const bucle = opciones.vivo
+    ? crearBucle((t) => {
+        tiempo = t - t0;
+        pintar();
+      }, opciones.fps)
+    : null;
   const pedir = () => {
-    if (!cuadro) cuadro = requestAnimationFrame(pintar);
+    if (!cuadro && !bucle?.activo) cuadro = requestAnimationFrame(pintar);
   };
 
   return {
+    bucle,
     medir(w: number, h: number, f: Forma) {
       ancho = w;
       alto = h;
@@ -147,6 +178,7 @@ export function crearCorriente(canvas: HTMLCanvasElement, n: number, colores: Co
       pedir();
     },
     destruir() {
+      bucle?.apagar();
       cancelAnimationFrame(cuadro);
       buffers.forEach((b) => gl.deleteBuffer(b));
       gl.deleteProgram(prog);

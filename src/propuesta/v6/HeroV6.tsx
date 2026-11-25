@@ -221,21 +221,31 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
 
     // Las partículas cargan después del texto: el héroe se entiende aunque esto falle.
     const pocos = celular || (navigator.hardwareConcurrency ?? 8) <= 4;
-    import("./particulas").then(async ({ muestrearMano, crearEscena }) => {
-      const datos = await muestrearMano("/plataforma/v6/mano-puntos.webp", celular ? 2200 : pocos ? 4200 : 6500);
+    let soltarVigia = () => {};
+    Promise.all([import("./particulas"), import("./bucle")]).then(async ([{ muestrearMano, crearEscena }, { vigilar }]) => {
+      const datos = await muestrearMano("/plataforma/v6/mano-puntos.webp", celular ? 2600 : pocos ? 5000 : 7500);
       if (!vivo) return;
       aspectoMano = datos.aspecto;
       try {
-        escena = crearEscena(canvas, datos, { entrada: conMovimiento && fijo === null, dprMax: celular ? 1.5 : 2 });
+        escena = crearEscena(canvas, datos, {
+          entrada: conMovimiento && fijo === null,
+          dprMax: celular ? 1.5 : 2,
+          polvo: celular ? 500 : pocos ? 900 : 1400,
+          vivo: conMovimiento,
+          fps: celular || pocos ? 30 : 60,
+        });
       } catch {
         return; // sin WebGL ni Canvas: queda el héroe sin partículas, que igual se entiende
       }
       medir();
       escena.dibujar(p);
+      // Movimiento continuo solo mientras el héroe está a la vista.
+      if (escena.bucle) soltarVigia = vigilar(el, escena.bucle);
     });
 
     return () => {
       vivo = false;
+      soltarVigia();
       ro.disconnect();
       window.removeEventListener("scroll", alScroll);
       cancelAnimationFrame(raf);

@@ -4,9 +4,11 @@
  * Un solo grupo de puntos: forma la mano digital y, al bajar, se suelta (primero las puntas de los dedos)
  * y viaja en corriente hasta las dos órbitas del ecosistema. Pensado para celulares modestos:
  * - WebGL 1 sin librerías (este archivo es todo el motor).
- * - Dibuja SOLO cuando cambia algo (scroll o la entrada inicial de 1,4 s). Nunca hay un bucle corriendo sin motivo.
+ * - Movimiento suave continuo (la mano respira, las órbitas giran, el polvo titila) SOLO mientras se ve,
+ *   con tope de cuadros por segundo (30 en celular). Con «reducir movimiento» se dibuja solo al hacer scroll.
  * - Si no hay WebGL, dibuja los puntos una vez con Canvas 2D y se queda quieto.
  */
+import { crearBucle } from "./bucle";
 
 export type Anillo = { rx: number; ry: number; giro: number };
 export type Geometria = {
@@ -25,6 +27,7 @@ export type Escena = {
   medir: (w: number, h: number, g: Geometria) => void;
   destruir: () => void;
   webgl: boolean;
+  bucle: ReturnType<typeof crearBucle> | null;
 };
 
 const suave = (a: number, b: number, x: number) => {
@@ -96,13 +99,14 @@ export async function muestrearMano(url: string, n: number) {
 }
 
 const VERT = `
-attribute vec2 aMano;     // u, v dentro de la caja de la mano (0..1)
-attribute vec3 aAnillo;   // ángulo, anillo (0 / 1), desvío radial
+attribute vec2 aMano;     // u, v dentro de la caja de la mano (0..1); en el polvo: posición en pantalla (0..1)
+attribute vec3 aAnillo;   // ángulo, anillo (0 / 1; 2 = polvo de fondo), desvío radial
 attribute vec4 aAzar;     // retraso, tamaño, brillo, azar
 uniform vec2 uRes;
 uniform vec4 uCaja;       // x, y, w, h de la mano
 uniform float uP;
 uniform float uEntrada;
+uniform float uT;         // segundos (movimiento suave continuo)
 uniform vec2 uCentro;
 uniform float uEscala;
 uniform vec4 uA;          // rx, ry, cos, sin
@@ -117,18 +121,39 @@ vec2 enAnillo(vec4 r, float th, float d) {
 }
 
 void main() {
-  vec2 mano = uCaja.xy + aMano * uCaja.zw;
+  float r = aAzar.w;
+  // Titileo propio de cada punto.
+  float tit = 0.5 + 0.5 * sin(uT * (0.7 + r * 1.6) + r * 40.0);
+
+  if (aAnillo.y > 1.5) {
+    // Polvo de estrellas de fondo: deriva lenta y, al bajar, sube con distinta profundidad (paralaje).
+    vec2 base = aMano * uRes;
+    vec2 deriva = vec2(sin(uT * 0.07 * (0.5 + r) + r * 6.28), cos(uT * 0.05 * (0.5 + r) + r * 12.0)) * 22.0;
+    vec2 pos = base + deriva - vec2(0.0, uP * uRes.y * 0.25 * (0.3 + aAzar.y));
+    pos = mod(pos + 40.0, uRes + 80.0) - 40.0;
+    vec2 clip = pos / uRes * 2.0 - 1.0;
+    gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
+    gl_PointSize = (0.9 + aAzar.y * 1.6) * uDpr;
+    vColor = mix(vec3(0.45, 0.6, 1.0), vec3(0.95, 0.97, 1.0), aAzar.z);
+    vAlfa = (0.16 + 0.6 * tit * aAzar.z) * clamp(uEntrada * 2.0, 0.0, 1.0);
+    return;
+  }
+
+  // La mano «respira»: cada punto se mece apenas (1–2 px).
+  vec2 mano = uCaja.xy + aMano * uCaja.zw + vec2(sin(uT * 0.9 + r * 30.0), cos(uT * 0.8 + r * 20.0)) * 1.4;
   // Entrada: los puntos llegan desde una nube suelta y forman la mano.
-  vec2 suelto = mano + (vec2(fract(aAzar.w * 91.7), fract(aAzar.w * 37.3)) - 0.5) * vec2(uRes.x * 0.5, uRes.y * 0.6);
+  vec2 suelto = mano + (vec2(fract(r * 91.7), fract(r * 37.3)) - 0.5) * vec2(uRes.x * 0.5, uRes.y * 0.6);
   float ent = smoothstep(0.0, 1.0, clamp(uEntrada * 1.35 - aAzar.x * 0.35, 0.0, 1.0));
   vec2 inicio = mix(suelto, mano, ent);
 
-  vec2 destino = aAnillo.y < 0.5 ? enAnillo(uA, aAnillo.x, aAnillo.z) : enAnillo(uB, aAnillo.x, aAnillo.z);
+  // Las órbitas giran despacio, cada una en un sentido.
+  float giro = uT * (aAnillo.y < 0.5 ? 0.09 : -0.07) * (0.8 + r * 0.4);
+  vec2 destino = aAnillo.y < 0.5 ? enAnillo(uA, aAnillo.x + giro, aAnillo.z) : enAnillo(uB, aAnillo.x + giro, aAnillo.z);
   // Primero se sueltan las puntas de los dedos (retraso bajo), al final la muñeca.
   float t = clamp(uP * 1.9 - aAzar.x * 0.9, 0.0, 1.0);
   float e = t * t * (3.0 - 2.0 * t);
   // Corriente: curva que baja y luego sube hacia la órbita.
-  vec2 control = mix(inicio, destino, 0.5) + vec2((aAzar.w - 0.5) * uRes.x * 0.18, uRes.y * 0.16);
+  vec2 control = mix(inicio, destino, 0.5) + vec2((r - 0.5) * uRes.x * 0.18, uRes.y * 0.16);
   vec2 pos = (1.0 - e) * (1.0 - e) * inicio + 2.0 * (1.0 - e) * e * control + e * e * destino;
 
   vec2 clip = pos / uRes * 2.0 - 1.0;
@@ -143,7 +168,7 @@ void main() {
   vec3 cManos = mix(mix(cobalto, celeste, b), turquesa, smoothstep(0.82, 1.0, b) * 0.6);
   vec3 cOrbita = mix(turquesa, vec3(0.92, 0.96, 1.0), aAzar.y * 0.6);
   vColor = mix(cManos, cOrbita, e);
-  vAlfa = (0.45 + b * 0.55) * mix(0.25, 1.0, ent) * mix(1.0, 0.8, e);
+  vAlfa = (0.45 + b * 0.55) * mix(0.25, 1.0, ent) * mix(1.0, 0.8, e) * (0.72 + 0.28 * tit);
 }
 `;
 
@@ -160,35 +185,44 @@ void main() {
 
 type Datos = Awaited<ReturnType<typeof muestrearMano>>;
 
-export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: { entrada: boolean; dprMax: number }): Escena {
+/**
+ * opciones.polvo: estrellas de fondo extra (no forman la mano).
+ * opciones.vivo: movimiento suave continuo mientras se ve (bucle con tope de fps); si es false, solo se dibuja al hacer scroll.
+ */
+export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: { entrada: boolean; dprMax: number; polvo: number; vivo: boolean; fps: number }): Escena {
   const n = datos.u.length;
+  const total = n + opciones.polvo;
   const dpr = Math.min(window.devicePixelRatio || 1, opciones.dprMax);
   let ancho = 1;
   let alto = 1;
   let geo: Geometria | null = null;
   let p = 0;
   let entrada = opciones.entrada ? 0 : 1;
+  let tiempo = 0;
   let cuadro = 0;
 
-  // Datos por punto (iguales en WebGL y en el respaldo 2D).
-  const anillo = new Float32Array(n * 3);
-  const azar = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) {
-    const r = datos.azar();
-    anillo[i * 3] = r * Math.PI * 2;
-    anillo[i * 3 + 1] = datos.azar() < 0.58 ? 0 : 1;
+  // Datos por punto (iguales en WebGL y en el respaldo 2D; el 2D solo usa los n de la mano).
+  const mano = new Float32Array(total * 2);
+  const anillo = new Float32Array(total * 3);
+  const azar = new Float32Array(total * 4);
+  for (let i = 0; i < total; i++) {
+    const esPolvo = i >= n;
+    mano[i * 2] = esPolvo ? datos.azar() : datos.u[i];
+    mano[i * 2 + 1] = esPolvo ? datos.azar() : datos.v[i];
+    anillo[i * 3] = datos.azar() * Math.PI * 2;
+    anillo[i * 3 + 1] = esPolvo ? 2 : datos.azar() < 0.58 ? 0 : 1;
     anillo[i * 3 + 2] = (datos.azar() - 0.5) * 0.07;
     // Retraso: 1 - u (la punta del índice está a la derecha de la plantilla).
-    azar[i * 4] = Math.min(1, Math.max(0, 1 - datos.u[i] + (datos.azar() - 0.5) * 0.15));
+    azar[i * 4] = esPolvo ? 0 : Math.min(1, Math.max(0, 1 - datos.u[i] + (datos.azar() - 0.5) * 0.15));
     azar[i * 4 + 1] = datos.azar();
-    azar[i * 4 + 2] = datos.brillo[i];
+    azar[i * 4 + 2] = esPolvo ? datos.azar() : datos.brillo[i];
     azar[i * 4 + 3] = datos.azar();
   }
 
   const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true, powerPreference: "low-power" });
 
   if (!gl) {
-    // Respaldo: Canvas 2D, un solo dibujo quieto de la mano (o de la órbita si p = 1).
+    // Respaldo: Canvas 2D, un solo dibujo quieto de la mano (o de la órbita si p ≥ 0,5).
     const ctx = canvas.getContext("2d")!;
     const dibujar2d = (pp: number) => {
       if (!geo) return;
@@ -215,6 +249,7 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
     };
     return {
       webgl: false,
+      bucle: null,
       medir(w, h, g) {
         ancho = w;
         alto = h;
@@ -224,8 +259,7 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
         dibujar2d(p);
       },
       dibujar(pp) {
-        // Quieto: solo cambia entre la mano y la órbita a mitad de camino.
-        if ((pp < 0.5) !== (p < 0.5)) dibujar2d(pp);
+        if (pp < 0.5 !== p < 0.5) dibujar2d(pp);
         p = pp;
       },
       destruir() {},
@@ -245,11 +279,6 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
   gl.linkProgram(prog);
   gl.useProgram(prog);
 
-  const mano = new Float32Array(n * 2);
-  for (let i = 0; i < n; i++) {
-    mano[i * 2] = datos.u[i];
-    mano[i * 2 + 1] = datos.v[i];
-  }
   const atributo = (nombre: string, arr: Float32Array, tam: number) => {
     const b = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, b);
@@ -261,7 +290,7 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
   };
   const buffers = [atributo("aMano", mano, 2), atributo("aAnillo", anillo, 3), atributo("aAzar", azar, 4)];
   const u = (nombre: string) => gl.getUniformLocation(prog, nombre);
-  const U = { res: u("uRes"), caja: u("uCaja"), p: u("uP"), entrada: u("uEntrada"), centro: u("uCentro"), escala: u("uEscala"), a: u("uA"), b: u("uB"), dpr: u("uDpr") };
+  const U = { res: u("uRes"), caja: u("uCaja"), p: u("uP"), entrada: u("uEntrada"), t: u("uT"), centro: u("uCentro"), escala: u("uEscala"), a: u("uA"), b: u("uB"), dpr: u("uDpr") };
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE); // suma de luz: los puntos que se cruzan brillan más
@@ -277,25 +306,35 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
     gl.uniform4f(U.caja, geo.mano.x, geo.mano.y, geo.mano.w, geo.mano.h);
     gl.uniform1f(U.p, p);
     gl.uniform1f(U.entrada, entrada);
+    gl.uniform1f(U.t, tiempo);
     gl.uniform2f(U.centro, o.cx, o.cy);
     gl.uniform1f(U.escala, o.s);
     const [A, B] = geo.anillos;
     gl.uniform4f(U.a, A.rx, A.ry, Math.cos(A.giro), Math.sin(A.giro));
     gl.uniform4f(U.b, B.rx, B.ry, Math.cos(B.giro), Math.sin(B.giro));
     gl.uniform1f(U.dpr, dpr);
-    gl.drawArrays(gl.POINTS, 0, n);
-  };
-  const pedir = () => {
-    if (!cuadro) cuadro = requestAnimationFrame(pintar);
+    gl.drawArrays(gl.POINTS, 0, total);
   };
 
-  // Entrada inicial: 1,4 s y se detiene.
+  // Movimiento continuo (solo si se permite): el reloj avanza y se pinta a fps limitados.
+  const t0 = performance.now() / 1000;
+  const bucle = opciones.vivo
+    ? crearBucle((t) => {
+        tiempo = t - t0;
+        pintar();
+      }, opciones.fps)
+    : null;
+  const pedir = () => {
+    if (!cuadro && !bucle?.activo) cuadro = requestAnimationFrame(pintar);
+  };
+
+  // Entrada inicial: 1,4 s.
   let rafEntrada = 0;
   if (entrada < 1) {
-    const t0 = performance.now();
+    const inicio = performance.now();
     const paso = (t: number) => {
-      entrada = Math.min(1, (t - t0) / 1400);
-      pintar();
+      entrada = Math.min(1, (t - inicio) / 1400);
+      if (!bucle?.activo) pintar();
       if (entrada < 1) rafEntrada = requestAnimationFrame(paso);
     };
     rafEntrada = requestAnimationFrame(paso);
@@ -311,6 +350,7 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
 
   return {
     webgl: true,
+    bucle,
     medir(w, h, g) {
       ancho = w;
       alto = h;
@@ -325,6 +365,7 @@ export function crearEscena(canvas: HTMLCanvasElement, datos: Datos, opciones: {
       pedir();
     },
     destruir() {
+      bucle?.apagar();
       cancelAnimationFrame(cuadro);
       cancelAnimationFrame(rafEntrada);
       buffers.forEach((b) => gl.deleteBuffer(b));

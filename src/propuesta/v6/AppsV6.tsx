@@ -104,36 +104,75 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
       avance();
     };
 
+    // Inclinación del celular 3D: de costado al entrar y de frente cuando la sección está al centro;
+    // en computadora, además sigue un poco al mouse.
+    const lado = invertida ? 1 : -1;
+    let mouse = [0, 0];
+    const inclinar = (t: number) => {
+      const centro = Math.min(1, Math.abs(t - 0.5) * 2); // 0 en el centro de la pantalla, 1 en los bordes
+      const ry = lado * ((celular ? 9 : 12) + (celular ? 10 : 14) * centro) + mouse[0] * 7;
+      const rx = (t < 0.5 ? 8 : -5) * centro + 3 - mouse[1] * 5;
+      el.style.setProperty("--ry", `${ry.toFixed(2)}deg`);
+      el.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
+      el.style.setProperty("--brillo", `${(20 + t * 60).toFixed(1)}`);
+    };
+
+    let ultimoT = 0.5;
     const avance = () => {
       raf = 0;
-      if (!corriente) return;
-      if (quieto) return corriente.dibujar(1, 0);
+      if (quieto) {
+        inclinar(0.5);
+        corriente?.dibujar(1, 0);
+        return;
+      }
       const re = el.getBoundingClientRect();
       const vh = window.innerHeight;
       if (re.bottom < -50 || re.top > vh + 50) return; // fuera de pantalla: no se dibuja nada
       const t = (vh - re.top) / (vh + re.height);
-      corriente.dibujar(suave(0.04, 0.42, t), t * 1.4);
+      ultimoT = t;
+      inclinar(t);
+      corriente?.dibujar(suave(0.04, 0.42, t), t * 1.4);
     };
     const alScroll = () => {
       if (!raf) raf = requestAnimationFrame(avance);
     };
+    const alMouse = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      const r = tel.getBoundingClientRect();
+      mouse = [Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width * 2))), Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / r.height))];
+      inclinar(ultimoT);
+    };
+    const alSalir = () => {
+      mouse = [0, 0];
+      inclinar(ultimoT);
+    };
 
-    import("./corriente").then(({ crearCorriente }) => {
+    let soltarVigia = () => {};
+    Promise.all([import("./corriente"), import("./bucle")]).then(([{ crearCorriente }, { vigilar }]) => {
       if (!vivo) return;
       try {
-        corriente = crearCorriente(canvas, celular ? 900 : 1800, app.colores, celular ? 1.5 : 2);
+        corriente = crearCorriente(canvas, celular ? 1500 : 3000, celular ? 260 : 600, app.colores, { dprMax: celular ? 1.5 : 2, vivo: !quieto, fps: celular ? 30 : 60 });
       } catch {
         corriente = null;
       }
       medir();
+      if (corriente?.bucle) soltarVigia = vigilar(el, corriente.bucle);
     });
     const ro = new ResizeObserver(medir);
     ro.observe(el);
+    avance();
     window.addEventListener("scroll", alScroll, { passive: true });
+    if (!celular && !quieto) {
+      el.addEventListener("pointermove", alMouse);
+      el.addEventListener("pointerleave", alSalir);
+    }
     return () => {
       vivo = false;
+      soltarVigia();
       ro.disconnect();
       window.removeEventListener("scroll", alScroll);
+      el.removeEventListener("pointermove", alMouse);
+      el.removeEventListener("pointerleave", alSalir);
       cancelAnimationFrame(raf);
       corriente?.destruir();
     };
@@ -173,7 +212,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
 
   const demo = (
     <div ref={telefono} className="relative z-10 flex justify-center">
-      <MotionApp app={app.id} ancho={ANCHO_TEL(celular)} />
+      <MotionApp app={app.id} ancho={ANCHO_TEL(celular)} tresD />
     </div>
   );
 
