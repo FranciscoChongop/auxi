@@ -2,8 +2,8 @@
  * Pieza 3 de la landing v6: «Sobre mí» como escena editorial dentro del mismo universo.
  *
  * El retrato original (public/plataforma/presentacion.webp) aparece una sola vez, con una máscara suave hacia el fondo.
- * La luz del tragaluz se vuelve partículas que caen y forman un arco abierto alrededor de Daniel: la persona como
- * origen de lo que construye. El arco nunca cruza el nombre ni los enlaces (se queda dentro del retrato).
+ * El haz de luz que baja del tragaluz hacia Daniel está lleno de partículas que flotan, y algunas caen como lluvia
+ * a su alrededor hasta el suelo (ver luz.ts). Todo queda dentro del retrato: nunca cruza el nombre ni los enlaces.
  */
 import { useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
@@ -12,8 +12,8 @@ import { INSTAGRAM_URL, TIKTOK_URL } from "../../components/ApoyaAlCreador";
 const WHATSAPP = "https://wa.me/51960650372";
 const WHATSAPP_NEGOCIO = `${WHATSAPP}?text=${encodeURIComponent("Hola Daniel, tengo una idea para mi negocio.")}`;
 
-/** Dónde está cada cosa dentro de la foto (fracciones del ancho y alto). */
-const FOTO = { tragaluz: [0.5, 0.12], persona: [0.49, 0.62], arco: [0.2, 0.38] } as const;
+/** El cono de luz dentro de la foto (fracciones): del tragaluz (ancho) a los hombros de Daniel (angosto), y el suelo. */
+const HAZ = { arriba: 0.16, abajo: 0.44, ancho0: 0.5, ancho1: 0.2, centro: 0.5, suelo: 0.96 };
 
 const suave = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -56,54 +56,42 @@ export function SobreMiV6({ celular }: { celular: boolean }) {
     const canvas = lienzo.current;
     const img = foto.current;
     if (!el || !canvas || !img) return;
-    let corriente: ReturnType<typeof import("./corriente").crearCorriente> = null;
+    let luz: ReturnType<typeof import("./luz").crearLuz> = null;
     let raf = 0;
     let vivo = true;
     let soltarVigia = () => {};
 
     const medir = () => {
-      if (!corriente) return;
+      if (!luz) return;
       const re = el.getBoundingClientRect();
       const ri = img.getBoundingClientRect();
       const k = el.offsetWidth / (re.width || 1);
-      const x = (ri.left - re.left) * k;
-      const y = (ri.top - re.top) * k;
-      const w = ri.width * k;
-      const h = ri.height * k;
-      corriente.medir(el.clientWidth, el.clientHeight, {
-        inicio: [x + w * FOTO.tragaluz[0], y + h * FOTO.tragaluz[1]],
-        centro: [x + w * FOTO.persona[0], y + h * FOTO.persona[1]],
-        rx: w * FOTO.arco[0],
-        ry: h * FOTO.arco[1],
-        giro: -0.08,
-        // Abierto hacia el texto (derecha): de abajo a la derecha, pasando por la izquierda, hasta arriba a la derecha.
-        arco: [Math.PI * 0.32, Math.PI * 1.36],
-      });
+      luz.medir(el.clientWidth, el.clientHeight, [(ri.left - re.left) * k, (ri.top - re.top) * k, ri.width * k, ri.height * k], HAZ);
       avance();
     };
     const avance = () => {
       raf = 0;
-      if (!corriente) return;
-      if (quieto) return corriente.dibujar(1, 0);
+      if (!luz) return;
+      if (quieto) return luz.dibujar(1);
       const re = el.getBoundingClientRect();
       const vh = window.innerHeight;
       if (re.bottom < -50 || re.top > vh + 50) return;
-      const t = (vh - re.top) / (vh + re.height);
-      corriente.dibujar(suave(0.08, 0.45, t), t * 1.2);
+      // El haz se llena mientras la sección entra.
+      luz.dibujar(suave(0.05, 0.4, (vh - re.top) / (vh + re.height)));
     };
     const alScroll = () => {
       if (!raf) raf = requestAnimationFrame(avance);
     };
 
-    Promise.all([import("./corriente"), import("./bucle")]).then(([{ crearCorriente }, { vigilar }]) => {
+    Promise.all([import("./luz"), import("./bucle")]).then(([{ crearLuz }, { vigilar }]) => {
       if (!vivo) return;
       try {
-        corriente = crearCorriente(canvas, celular ? 1100 : 2400, celular ? 160 : 380, { a: [0.45, 0.62, 1.0], b: [1.0, 0.86, 0.6] }, { dprMax: celular ? 1.5 : 2, vivo: !quieto, fps: celular ? 30 : 60 });
+        luz = crearLuz(canvas, celular ? 1300 : 3200, celular ? 260 : 650, { dprMax: celular ? 1.5 : 2, vivo: !quieto, fps: celular ? 30 : 60 });
       } catch {
-        corriente = null;
+        luz = null;
       }
       medir();
-      if (corriente?.bucle) soltarVigia = vigilar(el, corriente.bucle);
+      if (luz?.bucle) soltarVigia = vigilar(el, luz.bucle);
     });
     const ro = new ResizeObserver(medir);
     ro.observe(el);
@@ -116,7 +104,7 @@ export function SobreMiV6({ celular }: { celular: boolean }) {
       img.removeEventListener("load", medir);
       window.removeEventListener("scroll", alScroll);
       cancelAnimationFrame(raf);
-      corriente?.destruir();
+      luz?.destruir();
     };
   }, [celular, quieto]);
 

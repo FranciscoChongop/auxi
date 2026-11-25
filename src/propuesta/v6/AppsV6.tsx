@@ -1,7 +1,7 @@
 /**
  * Pieza 2 de la landing v6: Auxi Student, Auxi Vida y la franja de Vendoe.
  *
- * Las partículas siguen el relato: bajan como corriente desde la sección anterior y forman una órbita
+ * Las partículas siguen el relato: bajan como corriente desde la sección anterior y forman una constelación 3D
  * alrededor del celular (cobalto en Student, turquesa en Vida). El recorrido del celular es el mismo de la v5
  * (MotionApp), solo cambia su marco. Textos: solo lo que la app permite hoy.
  */
@@ -18,7 +18,7 @@ type App = {
   nombre: string;
   titulo: string;
   apoyo: string;
-  puntos: string[];
+  puntos: { icono: keyof typeof ICONOS; titulo: string; texto: string }[];
   enlace: string;
   href: string;
   /** Colores de partículas (0..1) y de la luz de fondo. */
@@ -33,7 +33,11 @@ const APPS: App[] = [
     nombre: "Auxi Student",
     titulo: "Tus apuntes, listos para jugar.",
     apoyo: "Prepara preguntas con tu IA y practica en Auxi.",
-    puntos: ["Pegas lo que preparó tu IA y se vuelve un camino de niveles.", "Repasas lo que fallaste en los días siguientes.", "Te avisa tus entregas 7, 3 y 1 día antes."],
+    puntos: [
+      { icono: "pegar", titulo: "Pega lo que preparó tu IA", texto: "Se vuelve un camino de niveles para jugar." },
+      { icono: "repaso", titulo: "Repasa lo que fallaste", texto: "Vuelve a preguntarte en los días siguientes." },
+      { icono: "aviso", titulo: "Avisos de tus entregas", texto: "7, 3 y 1 día antes de cada fecha." },
+    ],
     enlace: "Abrir Auxi Student",
     href: "/student",
     colores: { a: [0.14, 0.28, 1.0], b: [0.62, 0.72, 1.0] },
@@ -45,7 +49,11 @@ const APPS: App[] = [
     nombre: "Auxi Vida",
     titulo: "Dale claridad a tu plata.",
     apoyo: "Registra tus gastos y consulta tu disponible estimado.",
-    puntos: ["Anotas un gasto en segundos, escribiendo o con una captura.", "Ves cuánto puedes gastar hoy según lo que registraste.", "Lo que sobra puede ir a tu colchón."],
+    puntos: [
+      { icono: "anotar", titulo: "Anota en segundos", texto: "Escribiendo o con una captura de Yape o Plin." },
+      { icono: "hoy", titulo: "Tu disponible de hoy", texto: "Estimado con lo que registraste." },
+      { icono: "colchon", titulo: "Arma tu colchón", texto: "Lo que sobra puede ir ahí." },
+    ],
     enlace: "Abrir Auxi Vida",
     href: "/vida",
     colores: { a: [0.37, 0.89, 0.86], b: [0.75, 1.0, 0.96] },
@@ -58,6 +66,36 @@ const suave = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
+
+/** Íconos de trazo para los puntos de cada app (propios, 24 × 24). */
+const ICONOS = {
+  pegar: "M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1zM8 5H6.5A1.5 1.5 0 0 0 5 6.5v12A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 17.5 5H16M9 12l2 2 4-4",
+  repaso: "M4 12a8 8 0 0 1 13.7-5.6L20 8.7M20 4v4.7h-4.7M20 12a8 8 0 0 1-13.7 5.6L4 15.3M4 20v-4.7h4.7",
+  aviso: "M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0",
+  anotar: "M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 8l3 3",
+  hoy: "M12 3a9 9 0 1 0 9 9M12 3v9l6-6M16 3.8A9 9 0 0 1 20.2 8",
+  colchon: "M8 3h8M9 3v3.2c-2.4 1-4 3.4-4 6.1V18a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-5.7c0-2.7-1.6-5.1-4-6.1V3M5 14h14",
+} as const;
+
+function Puntos({ app, celular }: { app: App; celular: boolean }) {
+  return (
+    <ul className="v6-puntos" style={{ marginTop: celular ? 20 : 30, maxWidth: celular ? 350 : 440 }}>
+      {app.puntos.map((p) => (
+        <li key={p.titulo}>
+          <span className={`v6-punto-icono ${app.id}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={app.acento} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d={ICONOS[p.icono]} />
+            </svg>
+          </span>
+          <span>
+            <b>{p.titulo}</b>
+            <small>{p.texto}</small>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function Flecha() {
   return (
@@ -78,7 +116,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
     const canvas = lienzo.current;
     const tel = telefono.current;
     if (!el || !canvas || !tel) return;
-    let corriente: ReturnType<typeof import("./corriente").crearCorriente> = null;
+    let corriente: ReturnType<typeof import("./constelacion").crearConstelacion> = null;
     let raf = 0;
     let vivo = true;
 
@@ -94,13 +132,8 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
       const tw = ANCHO_TEL(celular);
       const cx = (rt.left - re.left + rt.width / 2) * k;
       const cy = (rt.top - re.top) * k + tw * 2.05 * 0.5;
-      corriente.medir(W, H, {
-        inicio: [W * entraDesde, 0],
-        centro: [cx, cy],
-        rx: tw * (celular ? 0.78 : 0.98),
-        ry: tw * 0.34,
-        giro: invertida ? 0.32 : -0.3,
-      });
+      // Nube más ancha que alta: se ve alrededor del celular, que tapa su centro.
+      corriente.medir(W, H, { inicio: [W * entraDesde, 0], centro: [cx, cy], radio: celular ? [tw * 0.78, tw * 1.25] : [tw * 1.25, tw * 1.3] });
       avance();
     };
 
@@ -148,10 +181,10 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
     };
 
     let soltarVigia = () => {};
-    Promise.all([import("./corriente"), import("./bucle")]).then(([{ crearCorriente }, { vigilar }]) => {
+    Promise.all([import("./constelacion"), import("./bucle")]).then(([{ crearConstelacion }, { vigilar }]) => {
       if (!vivo) return;
       try {
-        corriente = crearCorriente(canvas, celular ? 1500 : 3000, celular ? 260 : 600, app.colores, { dprMax: celular ? 1.5 : 2, vivo: !quieto, fps: celular ? 30 : 60 });
+        corriente = crearConstelacion(canvas, celular ? 900 : 1700, celular ? 350 : 800, app.colores, { dprMax: celular ? 1.5 : 2, vivo: !quieto, fps: celular ? 30 : 60, vecinas: 2 });
       } catch {
         corriente = null;
       }
@@ -191,16 +224,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
         {app.titulo}
       </h2>
       <p style={{ marginTop: 16, fontSize: celular ? 17 : 19, lineHeight: 1.55, color: "var(--texto-2)" }}>{app.apoyo}</p>
-      {!celular && (
-        <ul className="v6-puntos" style={{ marginTop: 28 }}>
-          {app.puntos.map((p) => (
-            <li key={p}>
-              <i style={{ background: app.acento }} />
-              {p}
-            </li>
-          ))}
-        </ul>
-      )}
+      {!celular && <Puntos app={app} celular={false} />}
       {!celular && (
         <a href={app.href} className="v6-cta" style={{ marginTop: 32 }}>
           {app.enlace}
@@ -238,14 +262,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
         <div className="flex flex-col items-center">
           {texto}
           <div style={{ marginTop: 40 }}>{demo}</div>
-          <ul className="v6-puntos" style={{ marginTop: 8, maxWidth: 350 }}>
-            {app.puntos.map((p) => (
-              <li key={p}>
-                <i style={{ background: app.acento }} />
-                {p}
-              </li>
-            ))}
-          </ul>
+          <Puntos app={app} celular />
           <a href={app.href} className="v6-cta" style={{ marginTop: 28, width: "100%", maxWidth: 350 }}>
             {app.enlace}
             <Flecha />
@@ -303,9 +320,13 @@ export const ESTILOS_APPS = `
 .v6 .v6-nodo-chico { display:grid; place-items:center; width:40px; height:40px; border-radius:12px;
   background: linear-gradient(150deg, rgba(120,150,255,.38), rgba(36,48,217,.3) 55%, rgba(8,14,37,.55)); border:1px solid rgba(160,185,255,.5); }
 .v6 .v6-nodo-chico.vida { background: linear-gradient(150deg, rgba(95,227,220,.35), rgba(14,91,87,.45) 55%, rgba(8,14,37,.55)); border-color: rgba(95,227,220,.55); }
-.v6 .v6-puntos { list-style:none; padding:0; margin-bottom:0; display:flex; flex-direction:column; gap:14px; text-align:left; }
-.v6 .v6-puntos li { display:flex; gap:12px; align-items:flex-start; font-size:17px; line-height:1.5; color:#DCE2F2; }
-.v6 .v6-puntos i { flex:none; width:7px; height:7px; border-radius:50%; margin-top:10px; box-shadow: 0 0 10px currentColor; }
+.v6 .v6-puntos { list-style:none; padding:0; margin-bottom:0; width:100%; text-align:left; border-top:1px solid rgba(255,255,255,.1); }
+.v6 .v6-puntos li { display:flex; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.1); }
+.v6 .v6-puntos b { display:block; font-weight:600; font-size:17px; line-height:1.3; color:#fff; }
+.v6 .v6-puntos small { display:block; margin-top:2px; font-size:15px; line-height:1.4; color: var(--texto-2); }
+.v6 .v6-punto-icono { flex:none; display:grid; place-items:center; width:42px; height:42px; border-radius:12px;
+  background: linear-gradient(150deg, rgba(120,150,255,.22), rgba(36,48,217,.14)); border:1px solid rgba(160,185,255,.28); }
+.v6 .v6-punto-icono.vida { background: linear-gradient(150deg, rgba(95,227,220,.2), rgba(14,91,87,.22)); border-color: rgba(95,227,220,.3); }
 .v6 .v6-cta { gap:10px; }
 .v6 .v6-enlace-ext { display:inline-flex; align-items:center; gap:10px; min-height:48px; padding:0 4px; color:#fff; font-weight:600; font-size:17px;
   text-decoration: underline; text-decoration-color: rgba(255,255,255,.35); text-underline-offset: 6px; }
