@@ -15,6 +15,7 @@ import { vibrar } from "../lib/vibrar";
 import { Boton } from "./Boton";
 import { COLORES_CURSO } from "./Formulario";
 import { CaraDeLeon, Leon } from "./Leon";
+import { CambiarApp } from "./CambiarApp";
 import { Escudo, Llama, Marcadores } from "./Navegacion";
 
 /* ---------- Saludo ---------- */
@@ -26,9 +27,13 @@ export function Saludo() {
     <header className="flex items-center justify-between gap-3">
       <div>
         <p className="text-ayuda font-bold text-text-soft">{saludo}</p>
-        <h1 className="text-[24px] leading-7 font-black">¿Qué estudiamos hoy?</h1>
+        <h1 className="text-[24px] leading-7 font-black md:text-[30px] md:leading-9">¿Qué estudiamos hoy?</h1>
       </div>
-      <Marcadores />
+      {/* En computadora la racha, las monedas y el selector de apps están en el menú lateral. */}
+      <div className="flex items-center gap-1 md:hidden">
+        <Marcadores />
+        <CambiarApp actual="student" />
+      </div>
     </header>
   );
 }

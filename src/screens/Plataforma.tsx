@@ -6,7 +6,7 @@ import { PonEnInicio } from "../components/PonEnInicio";
 import { metricas, registrar } from "../lib/metricas";
 import { salir, useCuenta } from "../lib/nube";
 import { AUTOR, LANDING_URL, MINI_APPS, NOMBRE_PLATAFORMA, VENDOE_URL, type MiniAppInfo } from "../lib/plataforma";
-import { navegar, reemplazar, useRuta } from "../lib/rutas";
+import { navegar, reemplazar, useRuta, useRutaCompleta } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 import Entrada from "./Entrada";
 import Legal from "./Legal";
@@ -217,6 +217,7 @@ function IrAVendoe() {
 /** La plataforma: portada, inicio de sesión único, elección de mini app y páginas legales. */
 export default function Plataforma() {
   const ruta = useRuta().replace(/\/+$/, "") || "/";
+  const rutaCompleta = useRutaCompleta();
   const cuenta = useCuenta();
   const conSesion = cuenta.modo === "conectado";
   // Sin la nube configurada (por ejemplo, en desarrollo) se puede elegir sin iniciar sesión.
@@ -236,7 +237,7 @@ export default function Plataforma() {
   if (ruta === "/privacidad" || ruta === "/terminos") return <Legal />;
   if (cuenta.modo === "cargando") return <div className="min-h-dvh bg-bg" />;
   if (ruta === "/entrar") return conSesion || libre ? <div className="min-h-dvh bg-bg" /> : <Entrada titulo={NOMBRE_PLATAFORMA} cabecera={<Orbita tamano={56} />} />;
-  // En desarrollo sin nube no hay sesión que pedir: /?portada muestra la portada para revisarla.
-  const verPortada = import.meta.env.DEV && new URLSearchParams(window.location.search).has("portada");
+  // /?portada muestra la presentación aunque haya sesión (desde el selector de apps, o para revisarla en desarrollo).
+  const verPortada = rutaCompleta.includes("?") && new URLSearchParams(rutaCompleta.split("?")[1]).has("portada");
   return (conSesion || libre) && !verPortada ? <Inicio conSesion={conSesion} /> : <Portada />;
 }

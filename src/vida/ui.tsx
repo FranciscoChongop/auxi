@@ -1,4 +1,5 @@
 import { animate, AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { CambiarApp } from "../components/CambiarApp";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ContadorAnimado } from "../components/ContadorAnimado";
 import { Llama, Moneda } from "../components/Navegacion";
@@ -192,6 +193,10 @@ export function Cabecera({ children }: { children: ReactNode }) {
       <div className="min-w-0">{children}</div>
       <div className="flex shrink-0 items-center gap-3">
         <MarcadoresVida />
+        {/* En computadora el selector de apps está en la marca del menú lateral. */}
+        <span className="-mx-1 md:hidden">
+          <CambiarApp actual="vida" />
+        </span>
         <BotonPerfil />
       </div>
     </div>
@@ -367,8 +372,8 @@ function MenuLateral() {
   const ruta = useRuta();
   return (
     <nav className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col gap-2 border-r-2 border-surface bg-card px-4 py-6 md:flex" aria-label="Secciones de Vida">
-      <div className="px-2 pb-4">
-        <MarcaVida />
+      <div className="pb-4">
+        <CambiarApp actual="vida" variante="marca" marca={<MarcaVida />} />
       </div>
       <motion.button
         type="button"

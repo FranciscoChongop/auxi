@@ -4,6 +4,7 @@ import { rachaEnPausa, rachaVigente, useEstado } from "../lib/estado";
 import { navegar, useRuta, volver } from "../lib/rutas";
 import { sonidos } from "../lib/sonidos";
 import { vibrar } from "../lib/vibrar";
+import { CambiarApp } from "./CambiarApp";
 import { ContadorAnimado } from "./ContadorAnimado";
 
 /* ---------- Íconos simples (trazo redondeado, sin emojis) ---------- */
@@ -123,7 +124,7 @@ export function BarraInferior() {
   const ruta = useRuta();
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 border-t-2 border-surface bg-bg"
+      className="fixed inset-x-0 bottom-0 z-20 border-t-2 border-surface bg-bg md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Secciones"
     >
@@ -157,25 +158,88 @@ export function BarraInferior() {
   );
 }
 
+/** Marca de Auxi Student (ícono de León + nombre). */
+export function MarcaStudent() {
+  return (
+    <span className="flex items-center gap-2.5">
+      <img src="/icons/student-192.png" alt="" width={36} height={36} className="size-9 rounded-[10px]" />
+      <span className="text-[19px] font-black tracking-tight">
+        Auxi <span className="text-brand">Student</span>
+      </span>
+    </span>
+  );
+}
+
+/**
+ * En computadora: menú lateral fijo con la marca (abre el selector de apps), el botón para subir material,
+ * las secciones y, abajo, la racha y las monedas.
+ */
+function MenuLateral() {
+  const ruta = useRuta();
+  return (
+    <nav className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col gap-1.5 border-r-2 border-surface bg-card px-4 py-6 md:flex" aria-label="Secciones de Auxi Student">
+      <div className="pb-4">
+        <CambiarApp actual="student" variante="marca" marca={<MarcaStudent />} />
+      </div>
+      <motion.button
+        type="button"
+        onPointerDown={() => sonidos.toque()}
+        onClick={() => navegar("/student/material")}
+        whileTap={{ y: 3, boxShadow: "0 1px 0 var(--brand-dark)" }}
+        style={{ boxShadow: "0 4px 0 var(--brand-dark)" }}
+        className="mb-3 flex h-14 cursor-pointer items-center justify-center gap-2 rounded-[16px] bg-brand font-extrabold text-white"
+      >
+        <Icono nombre="mas" />
+        Subir material
+      </motion.button>
+      {PESTANAS.map((p) => {
+        const activa = ruta.startsWith(p.ruta);
+        return (
+          <button
+            key={p.ruta}
+            type="button"
+            onPointerDown={() => sonidos.toque()}
+            onClick={() => navegar(p.ruta)}
+            aria-current={activa ? "page" : undefined}
+            className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-[14px] px-3 font-extrabold ${activa ? "bg-surface text-brand" : "text-text-soft hover:bg-bg"}`}
+          >
+            <Icono nombre={p.icono} />
+            {p.nombre}
+          </button>
+        );
+      })}
+      <div className="mt-auto rounded-[16px] bg-bg px-3 py-3">
+        <Marcadores />
+      </div>
+    </nav>
+  );
+}
+
 /* ---------- Estructura de pantalla ---------- */
 
+/**
+ * Marco de pantalla. Celular: columna angosta y barra abajo. Computadora (desde 768 px): menú lateral y
+ * contenido más ancho; «amplio» deja usar dos columnas (por ejemplo, el inicio).
+ */
 export function Pantalla({
   titulo,
   children,
   conBarra = true,
   atras,
   derecha,
+  amplio = false,
 }: {
   titulo?: string;
   children: ReactNode;
   conBarra?: boolean;
   atras?: string;
   derecha?: ReactNode;
+  amplio?: boolean;
 }) {
   return (
-    <>
+    <div className={conBarra ? "md:pl-64" : ""}>
       <main
-        className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-5"
+        className={`mx-auto flex min-h-dvh w-full max-w-md flex-col gap-4 px-5 md:px-8 ${amplio ? "md:max-w-5xl" : "md:max-w-2xl"}`}
         style={{
           paddingTop: "calc(env(safe-area-inset-top) + 16px)",
           paddingBottom: conBarra ? "calc(env(safe-area-inset-bottom) + 96px)" : "calc(env(safe-area-inset-bottom) + 20px)",
@@ -199,7 +263,12 @@ export function Pantalla({
         )}
         {children}
       </main>
-      {conBarra && <BarraInferior />}
-    </>
+      {conBarra && (
+        <>
+          <BarraInferior />
+          <MenuLateral />
+        </>
+      )}
+    </div>
   );
 }
