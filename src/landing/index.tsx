@@ -9,6 +9,7 @@ import "@fontsource/figtree/latin-500.css";
 import "@fontsource/figtree/latin-600.css";
 import "@fontsource/figtree/latin-700.css";
 import { useEffect, useState, type MouseEvent } from "react";
+import { ponerColorDeBarra } from "../lib/instalar";
 import { navegar } from "../lib/rutas";
 import { HeroV6 } from "./HeroV6";
 
@@ -35,8 +36,10 @@ export default function Landing() {
     // La landing es oscura: así la barra del navegador y el rebote del scroll no se ven blancos.
     const anterior = document.body.style.backgroundColor;
     document.body.style.backgroundColor = "#080E25";
+    const barra = ponerColorDeBarra("#080E25");
     return () => {
       document.body.style.backgroundColor = anterior;
+      ponerColorDeBarra(barra || "#F7F8FC");
     };
   }, []);
 

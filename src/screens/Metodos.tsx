@@ -143,7 +143,7 @@ export default function Metodos() {
 
   const orden = recomendado ? [...METODOS].sort((a) => (a.id === recomendado ? -1 : 1)) : METODOS;
   const estadistica = (id: IdMetodo) =>
-    id === "tomate" ? `Hoy: ${tomatesHoy} de 3 tomates` : id === "cajas" ? `${enCaja5} de ${tarjetas.length} tarjetas en la caja 5` : `Con «${curso.titulo}»`;
+    id === "tomate" ? `Hoy: ${tomatesHoy} de 3 tomates` : id === "cajas" ? `${enCaja5} de ${tarjetas.length} tarjetas en la caja 5` : curso.titulo ? `Con «${curso.titulo}»` : "Agrega un tema para jugar";
 
   return (
     <Pantalla titulo="Métodos">

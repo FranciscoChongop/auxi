@@ -1,0 +1,18 @@
+{
+  "id": "/student",
+  "name": "Auxi Student",
+  "short_name": "Auxi Student",
+  "description": "Estudia jugando con León: tus apuntes se vuelven juego, repasas lo que fallaste y no se te pasan las entregas.",
+  "lang": "es-PE",
+  "start_url": "/student",
+  "scope": "/student",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7F8FC",
+  "theme_color": "#F7F8FC",
+  "icons": [
+    { "src": "/icons/student-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/student-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/student-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -10,6 +10,7 @@ import { Escudo, Llama, Moneda, Pantalla } from "../components/Navegacion";
 import { ApoyaAlCreador, INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { useEsAdministrador } from "../lib/apoyo";
 import { metricas } from "../lib/metricas";
+import { PonEnInicio } from "../components/PonEnInicio";
 import { Ventana } from "../components/Ventana";
 import { actualizar, rachaVigente, reiniciarTodo, useEstado } from "../lib/estado";
 import { hoy } from "../lib/fechas";
@@ -244,6 +245,7 @@ export default function Perfil() {
           Ver la guía de Auxi otra vez
           <span className="text-ayuda font-extrabold text-brand">Ver</span>
         </button>
+        <PonEnInicio nombre="Auxi Student" />
         <ApoyaAlCreador />
         {cuenta.modo === "conectado" && (
           <button type="button" onClick={() => setClaveAbierta(true)} className="flex min-h-11 w-full cursor-pointer items-center justify-between font-bold text-left">

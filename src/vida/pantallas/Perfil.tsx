@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { BorrarCuenta } from "../../components/BorrarCuenta";
+import { PonEnInicio } from "../../components/PonEnInicio";
 import { ApoyaAlCreador } from "../../components/ApoyaAlCreador";
 import { useAviso } from "../../components/Aviso";
 import { Boton } from "../../components/Boton";
@@ -172,6 +173,7 @@ export default function Perfil() {
               activo={e.sugerencias.activas}
               alCambiar={activarSugerencias}
             />
+            <PonEnInicio nombre="Auxi Vida" />
           </div>
           <ApoyaAlCreador />
         </Bloque>

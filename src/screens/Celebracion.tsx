@@ -72,13 +72,13 @@ export default function Celebracion() {
         const r = await fetch("/marketing/logro.jpg");
         const archivo = new File([await r.blob()], "mi-logro-auxi.jpg", { type: "image/jpeg" });
         if (navigator.canShare?.({ files: [archivo] })) {
-          await navigator.share({ files: [archivo], title: "Mi logro en Auxi", text: `${texto} https://auxi-three.vercel.app/student` });
+          await navigator.share({ files: [archivo], title: "Mi logro en Auxi", text: `${texto} ${window.location.origin}/student` });
           return;
         }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
       }
-      if (navigator.share) await navigator.share({ title: "Mi logro en Auxi", text: texto, url: "https://auxi-three.vercel.app/student" });
+      if (navigator.share) await navigator.share({ title: "Mi logro en Auxi", text: texto, url: `${window.location.origin}/student` });
       else {
         await navigator.clipboard.writeText(texto);
         aviso("Copiado. Pégalo en tus estados.", "exito");

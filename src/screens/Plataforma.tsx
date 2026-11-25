@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { lazy, Suspense, useEffect, type MouseEvent } from "react";
 import { INSTAGRAM_URL } from "../components/ApoyaAlCreador";
 import { Banner, type Tono } from "../components/Banner";
+import { PonEnInicio } from "../components/PonEnInicio";
 import { metricas, registrar } from "../lib/metricas";
 import { salir, useCuenta } from "../lib/nube";
 import { AUTOR, LANDING_URL, MINI_APPS, NOMBRE_PLATAFORMA, VENDOE_URL, type MiniAppInfo } from "../lib/plataforma";
@@ -181,6 +182,9 @@ function Inicio({ conSesion }: { conSesion: boolean }) {
           {MINI_APPS.map((m, i) => (
             <TarjetaBanner key={m.id} m={m} indice={i} alAbrir={abrir(m)} />
           ))}
+        </div>
+        <div className="mt-5">
+          <PonEnInicio nombre="Auxi Studio" variante="tarjeta" />
         </div>
         <div className="mt-8">
           <BannerAutor />

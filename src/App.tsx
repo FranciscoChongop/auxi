@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { ApoyaAlCreador } from "./components/ApoyaAlCreador";
 import { ProveedorAvisos, useAviso } from "./components/Aviso";
 import { actualizar, obtener, useEstado } from "./lib/estado";
+import { aplicarIdentidad, appDeRuta } from "./lib/instalar";
 import { useCuenta } from "./lib/nube";
 import { reemplazar, useRuta } from "./lib/rutas";
 
@@ -94,6 +95,8 @@ function SinConexion() {
 export function App() {
   const ruta = useRuta();
   const limpia = ruta.replace(/\/+$/, "") || "/";
+  // Nombre, ícono y manifiesto de la app que se ve: así «Agregar a inicio» instala Auxi Student, Auxi Vida o Auxi Studio.
+  useEffect(() => aplicarIdentidad(appDeRuta(limpia)), [limpia]);
   // Propuesta visual P1A: solo en desarrollo.
   if (limpia === "/propuesta" && import.meta.env.DEV)
     return (

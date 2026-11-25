@@ -1,0 +1,18 @@
+{
+  "id": "/vida",
+  "name": "Auxi Vida",
+  "short_name": "Auxi Vida",
+  "description": "Tu plata día a día con León: cuánto puedes gastar hoy, tus metas y revisar antes de pagar.",
+  "lang": "es-PE",
+  "start_url": "/vida",
+  "scope": "/vida",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3FAF8",
+  "theme_color": "#F3FAF8",
+  "icons": [
+    { "src": "/icons/vida-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/vida-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/vida-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
