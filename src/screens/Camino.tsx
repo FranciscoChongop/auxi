@@ -126,7 +126,7 @@ export default function Camino() {
 
   if (esVacio(curso)) {
     return (
-      <Pantalla titulo="Tu camino" atras="/student/inicio">
+      <Pantalla titulo="Tu camino">
         <SinTema texto="Cuando agregues un tema, aquí verás tu camino de lecciones." />
       </Pantalla>
     );
@@ -136,7 +136,6 @@ export default function Camino() {
   return (
     <Pantalla
       titulo="Tu camino"
-      atras="/student/inicio"
       derecha={
         <button type="button" onClick={() => navegar("/student/cursos")} className="h-11 cursor-pointer px-1 font-extrabold text-brand">
           Mis cursos

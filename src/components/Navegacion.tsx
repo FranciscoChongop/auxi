@@ -12,6 +12,14 @@ const trazo = { fill: "none", stroke: "currentColor", strokeWidth: 2.4, strokeLi
 
 export const Iconos = {
   inicio: <path {...trazo} d="M4 11l8-6.5 8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z" />,
+  // Camino: dos paradas unidas por una ruta que zigzaguea.
+  camino: (
+    <g {...trazo}>
+      <circle cx="6" cy="19" r="2.6" />
+      <circle cx="18" cy="5" r="2.6" />
+      <path d="M8.6 19h8.4a3.5 3.5 0 0 0 0-7H7a3.5 3.5 0 0 1 0-7h8.4" />
+    </g>
+  ),
   cursos: <path {...trazo} d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3zM5 16.5a3 3 0 0 1 3-3h11" />,
   metodos: (
     <g {...trazo}>
@@ -104,6 +112,7 @@ export function Marcadores() {
 
 const PESTANAS = [
   { ruta: "/student/inicio", nombre: "Inicio", icono: "inicio" },
+  { ruta: "/student/camino", nombre: "Camino", icono: "camino" },
   { ruta: "/student/cursos", nombre: "Cursos", icono: "cursos" },
   { ruta: "/student/metodos", nombre: "Métodos", icono: "metodos" },
   { ruta: "/student/entregas", nombre: "Entregas", icono: "entregas" },
@@ -131,10 +140,10 @@ export function BarraInferior() {
                 vibrar("toque");
               }}
               onClick={() => navegar(p.ruta)}
-              className={`flex h-16 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 text-[12px] font-extrabold ${activa ? "text-brand" : "text-text-soft"}`}
+              className={`flex h-16 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 text-[12px] font-extrabold ${activa ? "text-brand" : "text-text-soft"}`}
             >
               <motion.span
-                className={`grid h-8 w-12 place-items-center rounded-full ${activa ? "bg-surface" : ""}`}
+                className={`grid h-8 w-11 place-items-center rounded-full ${activa ? "bg-surface" : ""}`}
                 whileTap={{ scale: 0.88 }}
               >
                 <Icono nombre={p.icono} />
