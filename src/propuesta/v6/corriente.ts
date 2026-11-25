@@ -15,6 +15,8 @@ export type Forma = {
   rx: number;
   ry: number;
   giro: number;
+  /** Arco abierto: ángulo de inicio y largo (radianes). Sin esto, órbita completa. Los puntos fluyen a lo largo. */
+  arco?: [number, number];
 };
 
 const VERT = `
@@ -24,6 +26,7 @@ uniform vec2 uRes;
 uniform vec2 uIni;
 uniform vec2 uCentro;
 uniform vec4 uOrb;      // rx, ry, cos, sin
+uniform vec2 uArco;     // inicio y largo del arco (2π = órbita completa)
 uniform float uLlegada;
 uniform float uGiro;
 uniform float uT;
@@ -50,7 +53,10 @@ void main() {
   }
 
   // Órbita: gira sola despacio y además avanza con el scroll.
-  float th = aAng + uGiro * (0.6 + r * 0.8) + uT * 0.16 * (0.7 + r * 0.6);
+  float avance = fract((aAng + uGiro * (0.6 + r * 0.8) + uT * 0.16 * (0.7 + r * 0.6)) / 6.28318);
+  float th = uArco.x + avance * uArco.y;
+  // En un arco abierto, los extremos se desvanecen (la energía entra y sale, no se corta).
+  float bordes = uArco.y < 6.2 ? smoothstep(0.0, 0.14, avance) * smoothstep(1.0, 0.82, avance) : 1.0;
   vec2 l = vec2(uOrb.x * cos(th), uOrb.y * sin(th)) * (1.0 + aAzar.z + sin(uT * 0.9 + r * 20.0) * 0.012);
   vec2 destino = uCentro + vec2(l.x * uOrb.z - l.y * uOrb.w, l.x * uOrb.w + l.y * uOrb.z);
   vec2 ini = uIni + vec2((fract(r * 53.1) - 0.5) * min(uRes.x * 0.14, 60.0), -fract(r * 17.7) * 80.0);
@@ -63,7 +69,7 @@ void main() {
   gl_PointSize = (1.2 + aAzar.y * 1.9) * (1.0 + sin(e * 3.14159) * 0.4) * uDpr;
   vColor = mix(uColA, uColB, aAzar.y);
   // Llega desde la nada (sin «lluvia» visible en la parte de arriba antes de tiempo).
-  vAlfa = smoothstep(0.0, 0.15, t) * (0.45 + aAzar.y * 0.55) * (0.65 + 0.35 * tit);
+  vAlfa = smoothstep(0.0, 0.15, t) * (0.45 + aAzar.y * 0.55) * (0.65 + 0.35 * tit) * mix(1.0, bordes, e);
 }
 `;
 
@@ -119,7 +125,7 @@ export function crearCorriente(canvas: HTMLCanvasElement, n: number, polvo: numb
   };
   const buffers = [buf("aAng", ang, 1), buf("aAzar", rnd, 4)];
   const u = (x: string) => gl.getUniformLocation(prog, x);
-  const U = { res: u("uRes"), ini: u("uIni"), centro: u("uCentro"), orb: u("uOrb"), llegada: u("uLlegada"), giro: u("uGiro"), t: u("uT"), dpr: u("uDpr"), a: u("uColA"), b: u("uColB") };
+  const U = { res: u("uRes"), ini: u("uIni"), centro: u("uCentro"), orb: u("uOrb"), arco: u("uArco"), llegada: u("uLlegada"), giro: u("uGiro"), t: u("uT"), dpr: u("uDpr"), a: u("uColA"), b: u("uColB") };
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE);
   gl.clearColor(0, 0, 0, 0);
@@ -141,6 +147,7 @@ export function crearCorriente(canvas: HTMLCanvasElement, n: number, polvo: numb
     gl.uniform2f(U.ini, forma.inicio[0], forma.inicio[1]);
     gl.uniform2f(U.centro, forma.centro[0], forma.centro[1]);
     gl.uniform4f(U.orb, forma.rx, forma.ry, Math.cos(forma.giro), Math.sin(forma.giro));
+    gl.uniform2f(U.arco, forma.arco?.[0] ?? 0, forma.arco?.[1] ?? Math.PI * 2);
     gl.uniform1f(U.llegada, Math.max(0, llegada));
     gl.uniform1f(U.giro, giro);
     gl.uniform1f(U.t, tiempo);

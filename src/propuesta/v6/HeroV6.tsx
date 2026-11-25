@@ -11,6 +11,7 @@ import { useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { AppsV6 } from "./AppsV6";
 import { IconoStudent, IconoVida } from "./iconos";
+import { SobreMiV6 } from "./SobreMiV6";
 import type { Escena, Geometria } from "./particulas";
 
 const FIGTREE = "Figtree, system-ui, sans-serif";
@@ -454,8 +455,9 @@ export function HeroV6({ celular }: Props) {
         </div>
       )}
       <AppsV6 celular={celular} />
+      <SobreMiV6 celular={celular} />
       <Seccion id="siguiente">
-        <p className="text-[15px]">Boceto v6 · aquí sigue «Sobre mí» (próxima entrega, cuando apruebes esta parte).</p>
+        <p className="text-[15px]">Boceto v6 · aquí siguen Opinión y Preguntas frecuentes (próxima entrega, cuando apruebes esta parte).</p>
       </Seccion>
     </div>
   );
