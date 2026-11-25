@@ -105,10 +105,17 @@ function Flecha() {
   );
 }
 
-function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular: boolean; invertida: boolean; entraDesde: number }) {
+/**
+ * entrada «zoom»: el contenido aparece creciendo (sigue al zoom del héroe hacia el cuadrito de Auxi Student).
+ * entrada «lado»: el contenido entra deslizándose desde la derecha. salida: se va hacia la izquierda.
+ */
+type Transicion = { entrada: "zoom" | "lado"; salida: boolean };
+
+function SeccionApp({ app, celular, invertida, entraDesde, transicion }: { app: App; celular: boolean; invertida: boolean; entraDesde: number; transicion: Transicion }) {
   const seccion = useRef<HTMLElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const telefono = useRef<HTMLDivElement>(null);
+  const contenido = useRef<HTMLDivElement>(null);
   const quieto = !!useReducedMotion();
 
   useEffect(() => {
@@ -120,21 +127,62 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
     let raf = 0;
     let vivo = true;
 
+    // Posición sin transformaciones (offset*): así la entrada con escala o desplazamiento no mueve la medida.
+    const posicion = (nodo: HTMLElement) => {
+      let x = 0;
+      let y = 0;
+      let n: HTMLElement | null = nodo;
+      while (n && n !== el) {
+        x += n.offsetLeft;
+        y += n.offsetTop;
+        n = n.offsetParent as HTMLElement | null;
+      }
+      return [x, y];
+    };
+    let centro: [number, number] = [0, 0];
+    let origenContenido: [number, number] = [0, 0];
     const medir = () => {
-      if (!corriente) return;
       const W = el.clientWidth;
       const H = el.clientHeight;
-      // Posición del celular dentro de la sección, en px de diseño (sirve también con el «zoom» de la propuesta).
-      const re = el.getBoundingClientRect();
-      const rt = tel.getBoundingClientRect();
-      const k = el.offsetWidth / (re.width || 1);
       // El contenedor incluye la barra de pasos: el celular mide ANCHO_TEL y su alto es ~2,05 veces eso.
       const tw = ANCHO_TEL(celular);
-      const cx = (rt.left - re.left + rt.width / 2) * k;
-      const cy = (rt.top - re.top) * k + tw * 2.05 * 0.5;
+      const [tx, ty] = posicion(tel);
+      centro = [tx + tel.offsetWidth / 2, ty + tw * 2.05 * 0.5];
+      if (contenido.current) {
+        const [ox, oy] = posicion(contenido.current);
+        origenContenido = [centro[0] - ox, centro[1] - oy];
+      }
       // Nube más ancha que alta: se ve alrededor del celular, que tapa su centro.
-      corriente.medir(W, H, { inicio: [W * entraDesde, 0], centro: [cx, cy], radio: celular ? [tw * 0.78, tw * 1.25] : [tw * 1.25, tw * 1.3] });
+      corriente?.medir(W, H, { inicio: [W * entraDesde, 0], centro, radio: celular ? [tw * 0.78, tw * 1.25] : [tw * 1.25, tw * 1.3] });
       avance();
+    };
+
+    // Transición ligada al scroll (reversible): entrada con zoom o desde la derecha, salida hacia la izquierda.
+    const transformar = (t: number) => {
+      const c = contenido.current;
+      if (!c) return;
+      const paso = celular ? 90 : 170;
+      let x = 0;
+      let escala = 1;
+      let opacidad = 1;
+      if (transicion.entrada === "zoom") {
+        const ent = suave(0, 0.3, t);
+        escala = 0.8 + 0.2 * ent;
+        opacidad = ent;
+      } else {
+        const ent = suave(0.02, 0.3, t);
+        x = (1 - ent) * paso;
+        opacidad = ent;
+      }
+      const sal = transicion.salida ? suave(0.64, 0.92, t) : 0;
+      x -= sal * paso;
+      opacidad *= 1 - 0.85 * sal;
+      c.style.transformOrigin = `${origenContenido[0]}px ${origenContenido[1]}px`;
+      c.style.transform = `translate3d(${x.toFixed(1)}px,0,0) scale(${escala.toFixed(4)})`;
+      c.style.opacity = opacidad.toFixed(3);
+      canvas.style.transformOrigin = `${centro[0]}px ${centro[1]}px`;
+      canvas.style.transform = `translate3d(${x.toFixed(1)}px,0,0) scale(${escala.toFixed(4)})`;
+      canvas.style.opacity = (1 - 0.85 * sal).toFixed(3);
     };
 
     // Inclinación del celular 3D: de costado al entrar y de frente cuando la sección está al centro;
@@ -164,6 +212,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
       const t = (vh - re.top) / (vh + re.height);
       ultimoT = t;
       inclinar(t);
+      transformar(t);
       corriente?.dibujar(suave(0.04, 0.42, t), t * 1.4);
     };
     const alScroll = () => {
@@ -259,7 +308,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
       />
       <canvas ref={lienzo} aria-hidden className="pointer-events-none absolute inset-0 -z-10 h-full w-full" />
       {celular ? (
-        <div className="flex flex-col items-center">
+        <div ref={contenido} className="relative flex flex-col items-center" style={{ willChange: "transform, opacity" }}>
           {texto}
           <div style={{ marginTop: 40 }}>{demo}</div>
           <Puntos app={app} celular />
@@ -269,7 +318,7 @@ function SeccionApp({ app, celular, invertida, entraDesde }: { app: App; celular
           </a>
         </div>
       ) : (
-        <div className="mx-auto grid items-center" style={{ maxWidth: 1100, gridTemplateColumns: "1fr 1fr", gap: 64 }}>
+        <div ref={contenido} className="relative mx-auto grid items-center" style={{ maxWidth: 1100, gridTemplateColumns: "1fr 1fr", gap: 64, willChange: "transform, opacity" }}>
           {invertida ? (
             <>
               {demo}
@@ -338,8 +387,8 @@ export function AppsV6({ celular }: { celular: boolean }) {
     <div style={{ fontFamily: FIGTREE }}>
       <style>{ESTILOS_APPS}</style>
       {/* En celular la corriente entra por los bordes para no cruzar los títulos. */}
-      <SeccionApp app={APPS[0]} celular={celular} invertida={false} entraDesde={celular ? 0.03 : 0.5} />
-      <SeccionApp app={APPS[1]} celular={celular} invertida entraDesde={celular ? 0.97 : 0.75} />
+      <SeccionApp app={APPS[0]} celular={celular} invertida={false} entraDesde={celular ? 0.03 : 0.5} transicion={{ entrada: "zoom", salida: true }} />
+      <SeccionApp app={APPS[1]} celular={celular} invertida entraDesde={celular ? 0.97 : 0.75} transicion={{ entrada: "lado", salida: false }} />
       <FranjaVendoe celular={celular} />
     </div>
   );

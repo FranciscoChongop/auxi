@@ -36,7 +36,14 @@ const ESTILOS_V6 = `
   border: 1px solid rgba(160,185,255,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 10px 30px rgba(36,48,217,.45), 0 0 0 1px rgba(36,48,217,.2); }
 .v6 .v6-nodo.vida { background: linear-gradient(150deg, rgba(95,227,220,.35), rgba(14,91,87,.4) 55%, rgba(8,14,37,.55));
   border-color: rgba(95,227,220,.6); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 10px 30px rgba(14,91,87,.55); }
-.v6 .v6-nodo.futuro { filter: blur(3px); opacity:.45; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.18); box-shadow:none; }
+.v6 .v6-nodo.futuro { background:none; border:0; box-shadow:none; }
+.v6 .v6-futuro-vidrio { position:absolute; inset:0; border-radius:16px; filter: blur(3.5px); opacity:.55;
+  background: linear-gradient(150deg, rgba(160,180,255,.3), rgba(255,255,255,.06)); border:1px solid rgba(255,255,255,.25); }
+.v6 .v6-etiqueta.v6-etiqueta-chica { top:calc(100% + 4px); font-size:11px; font-weight:500; letter-spacing:.02em; padding:0; color:#A3AECB; background:none; border:0; pointer-events:none; }
+.v6 .v6-nucleo { display:grid; place-items:center; border-radius:50%;
+  background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.55) 0, rgba(190,205,255,.18) 22%, rgba(36,48,217,.22) 58%, rgba(10,16,60,.55) 100%);
+  border: 1px solid rgba(170,190,255,.45); box-shadow: inset 0 -10px 24px rgba(36,48,217,.45), inset 0 6px 14px rgba(255,255,255,.18), 0 0 70px 16px rgba(36,48,217,.35); }
+.v6 .v6-nucleo img { filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); }
 .v6 .v6-etiqueta { position:absolute; left:50%; top:calc(100% + 8px); transform:translateX(-50%); white-space:nowrap; font-size:14px; font-weight:600;
   color:#fff; text-decoration:none; padding:4px 10px; border-radius:999px; background: rgba(8,14,37,.7); border:1px solid rgba(255,255,255,.16); }
 .v6 .v6-etiqueta:hover { border-color: rgba(255,255,255,.5); }
@@ -88,12 +95,14 @@ function geometria(W: number, H: number, celular: boolean, aspectoMano: number) 
   return { g, humana: { left: W * 0.63 - PUNTA_HUMANA[0] * hw, top: punta[1] - PUNTA_HUMANA[1] * (hw / ASP_HUMANA), width: hw }, nodo: 64 };
 }
 
-/** Nodos de la órbita: anillo (0 = A, 1 = B) y ángulo. */
-const NODOS: { id: "student" | "vida" | "f1" | "f2"; anillo: 0 | 1; theta: number }[] = [
+/** Nodos de la órbita: anillo (0 = A, 1 = B) y ángulo. Los «f» son herramientas en exploración (borrosas, sin nombre). */
+const NODOS: { id: "student" | "vida" | "f1" | "f2" | "f3" | "f4"; anillo: 0 | 1; theta: number }[] = [
   { id: "student", anillo: 0, theta: -2.25 },
-  { id: "vida", anillo: 1, theta: -0.95 },
-  { id: "f1", anillo: 0, theta: 0.95 },
-  { id: "f2", anillo: 1, theta: 2.3 },
+  { id: "vida", anillo: 1, theta: -1.12 },
+  { id: "f1", anillo: 1, theta: -1.85 },
+  { id: "f2", anillo: 1, theta: 1.72 },
+  { id: "f3", anillo: 0, theta: 2.5 },
+  { id: "f4", anillo: 0, theta: 1.25 },
 ];
 
 const suave = (a: number, b: number, x: number) => {
@@ -114,6 +123,8 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
   const nucleo = useRef<HTMLDivElement>(null);
   const nodos = useRef<Record<string, HTMLDivElement | null>>({});
   const leyenda = useRef<HTMLDivElement>(null);
+  const mundo = useRef<HTMLDivElement>(null);
+  const velo = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState(false);
   const fijo = modo.tipo === "fijo" ? modo.p : null;
 
@@ -128,21 +139,27 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
     let raf = 0;
     let vivo = true;
 
+    // Fases del recorrido: A (la mano se vuelve órbita) y Z (zoom hacia Auxi Student).
+    // En los cuadros fijos (movimiento reducido) no hay zoom.
+    const fases = () => (fijo !== null ? { pa: p, z: 0 } : { pa: Math.min(1, p / 0.58), z: suave(0.64, 1, p) });
+
     const aplicarDom = () => {
       if (!geo) return;
       const { g } = geo;
-      const e = suave(0.25, 0.95, p);
+      const { pa, z } = fases();
+      const e = suave(0.25, 0.95, pa);
       const cx = g.centro0[0] + (g.centro1[0] - g.centro0[0]) * e;
       const cy = g.centro0[1] + (g.centro1[1] - g.centro0[1]) * e;
       const s = g.escala0 + (g.escala1 - g.escala0) * e;
       if (orbitas.current) {
         orbitas.current.setAttribute("transform", `translate(${cx} ${cy}) scale(${s})`);
-        orbitas.current.style.opacity = String(0.55 + 0.45 * suave(0.5, 0.95, p));
+        orbitas.current.style.opacity = String((0.55 + 0.45 * suave(0.5, 0.95, pa)) * (1 - suave(0, 0.35, z)));
       }
       if (nucleo.current) {
         const t = 1 + 0.35 * e;
         nucleo.current.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%) scale(${t})`;
       }
+      let foco: [number, number] = [cx, cy];
       for (const n of NODOS) {
         const nodo = nodos.current[n.id];
         if (!nodo) continue;
@@ -151,28 +168,45 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
         const y = a.ry * Math.sin(n.theta);
         const px = cx + (x * Math.cos(a.giro) - y * Math.sin(a.giro)) * s;
         const py = cy + (x * Math.sin(a.giro) + y * Math.cos(a.giro)) * s;
-        const tam = geo.nodo * (n.id.startsWith("f") ? 0.85 : 1) * (1 + 0.15 * e);
+        const futuro = n.id.startsWith("f");
+        const tam = geo.nodo * (futuro ? 0.78 : 1) * (1 + 0.15 * e);
         nodo.style.width = nodo.style.height = `${tam}px`;
         nodo.style.transform = `translate(${px - tam / 2}px, ${py - tam / 2}px)`;
+        if (n.id === "student") {
+          foco = [px, py];
+          const icono = nodo.querySelector<SVGElement>("svg");
+          if (icono) icono.style.opacity = String(1 - suave(0.2, 0.5, z));
+        } else {
+          nodo.style.opacity = String(1 - suave(0, 0.35, z));
+        }
       }
-      const salida = suave(0.03, 0.32, p);
+      // Zoom: la «cámara» entra al cuadrito de Auxi Student hasta que llena la pantalla.
+      if (mundo.current) {
+        mundo.current.style.transformOrigin = `${foco[0]}px ${foco[1]}px`;
+        mundo.current.style.transform = z > 0 ? `scale(${(1 + 26 * z * z * z).toFixed(3)})` : "";
+      }
+      canvas.style.opacity = String(1 - suave(0.15, 0.6, z));
+      if (nucleo.current) nucleo.current.style.opacity = String(1 - suave(0.1, 0.45, z));
+      if (velo.current) velo.current.style.opacity = String(suave(0.72, 1, z));
+      const salida = suave(0.03, 0.32, pa);
       if (textoHeroe.current) {
         textoHeroe.current.style.opacity = String(1 - salida);
         textoHeroe.current.style.transform = `translateY(${-36 * salida}px)`;
         textoHeroe.current.style.visibility = salida > 0.99 ? "hidden" : "visible";
       }
-      const llegada = suave(0.6, 0.88, p);
+      const llegada = suave(0.6, 0.88, pa) * (1 - suave(0, 0.22, z));
       if (textoCuenta.current) {
         textoCuenta.current.style.opacity = String(llegada);
         textoCuenta.current.style.transform = `translateY(${24 * (1 - llegada)}px)`;
         textoCuenta.current.style.visibility = llegada < 0.01 ? "hidden" : "visible";
       }
       if (leyenda.current) leyenda.current.style.opacity = String(llegada);
+      // Los nombres se ven desde el inicio; se van al empezar el zoom.
       el.querySelectorAll<HTMLElement>(".v6-etiqueta").forEach((et) => {
-        et.style.opacity = String(suave(0.55, 0.85, p));
+        et.style.opacity = String(1 - suave(0, 0.18, z));
       });
       if (humana.current) {
-        const h = suave(0.08, 0.55, p);
+        const h = suave(0.08, 0.55, pa);
         humana.current.style.transform = `translateX(${h * 22}%)`;
         humana.current.style.opacity = String(1 - h);
       }
@@ -206,7 +240,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
       const nuevo = Math.min(1, Math.max(0, (tope - rp.top) / recorrido));
       if (Math.abs(nuevo - p) < 0.0005) return;
       p = nuevo;
-      escena?.dibujar(p);
+      escena?.dibujar(fases().pa);
       aplicarDom();
     };
     const alScroll = () => {
@@ -240,7 +274,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
         return; // sin WebGL ni Canvas: queda el héroe sin partículas, que igual se entiende
       }
       medir();
-      escena.dibujar(p);
+      escena.dibujar(fases().pa);
       // Movimiento continuo solo mientras el héroe está a la vista.
       if (escena.bucle) soltarVigia = vigilar(el, escena.bucle);
     });
@@ -276,6 +310,7 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
             "radial-gradient(60% 45% at 50% 72%, rgba(36,48,217,.28), transparent 70%), radial-gradient(35% 30% at 18% 80%, rgba(95,227,220,.08), transparent 70%), radial-gradient(40% 30% at 85% 75%, rgba(242,179,65,.06), transparent 70%)",
         }}
       />
+      <div ref={mundo} className="absolute inset-0" style={{ willChange: "transform" }}>
       <canvas ref={lienzo} aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" />
 
       {/* Órbitas (líneas finas) y núcleo de luz: acompañan a las partículas. */}
@@ -292,17 +327,10 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
           <ellipse fill="none" stroke="url(#v6-linea)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
         </g>
       </svg>
-      <div
-        ref={nucleo}
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-0 rounded-full"
-        style={{
-          width: celular ? 40 : 58,
-          height: celular ? 40 : 58,
-          background: "radial-gradient(circle at 38% 32%, #fff 0, #A9C2FF 14%, #2E4BFF 46%, rgba(36,48,217,.0) 72%)",
-          boxShadow: "0 0 60px 18px rgba(36,48,217,.35)",
-        }}
-      />
+      {/* Núcleo: esfera de vidrio con el isotipo de AUXI dentro. */}
+      <div ref={nucleo} aria-hidden className="v6-nucleo pointer-events-none absolute left-0 top-0" style={{ width: celular ? 66 : 96, height: celular ? 66 : 96 }}>
+        <img src="/marca/simbolo.webp" alt="" width={celular ? 40 : 58} height={celular ? 40 : 58} draggable={false} />
+      </div>
 
       {/* Nodos: Student y Vida nítidos (enlaces reales); los futuros, borrosos y sin nombre. */}
       {NODOS.map((n) => (
@@ -314,20 +342,30 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
           className={`v6-nodo ${n.id === "vida" ? "vida" : ""} ${n.id.startsWith("f") ? "futuro" : ""}`}
           aria-hidden={n.id.startsWith("f") ? true : undefined}
         >
+          {n.id.startsWith("f") && (
+            <>
+              <span className="v6-futuro-vidrio" />
+              {/* En celular la órbita es chica: sin rótulos (la leyenda «En exploración» aparece al bajar). */}
+              {!celular && <span className="v6-etiqueta v6-etiqueta-chica">En exploración</span>}
+            </>
+          )}
           {n.id === "student" && <IconoStudent s={celular ? 24 : 32} />}
           {n.id === "vida" && <IconoVida s={celular ? 24 : 32} />}
           {n.id === "student" && (
-            <a href="#student" className="v6-etiqueta" style={{ opacity: 0 }}>
+            <a href="#student" className="v6-etiqueta">
               Auxi Student
             </a>
           )}
           {n.id === "vida" && (
-            <a href="#vida" className="v6-etiqueta" style={{ opacity: 0 }}>
+            <a href="#vida" className="v6-etiqueta" style={celular ? { top: "auto", bottom: "calc(100% + 8px)" } : undefined}>
               Auxi Vida
             </a>
           )}
         </div>
       ))}
+      </div>
+      {/* Velo final del zoom: el mismo azul con el que empieza la sección de Auxi Student. */}
+      <div ref={velo} aria-hidden className="pointer-events-none absolute inset-0 z-[15]" style={{ opacity: 0, background: "linear-gradient(180deg, #17208A 0%, #0F1660 55%, #080E25 100%)" }} />
 
       {/* Mano humana (foto de Daniel, sin fondo). */}
       <img
@@ -395,12 +433,12 @@ function Escenario({ celular, modo, conMovimiento }: Props & { modo: ModoEscenar
       {/* Texto del héroe. */}
       <div ref={textoHeroe} className="absolute inset-x-0 z-10 flex flex-col items-center px-5 text-center" style={{ top: celular ? 92 : 112 }}>
         <h1 className="v6-h1" style={{ fontSize: celular ? 34 : 76, lineHeight: celular ? "39px" : "78px", maxWidth: celular ? 350 : 900 }}>
-          Hecho con IA.
+          Estudia jugando.
           <br />
-          Pensado para tu vida.
+          Ordena tu plata.
         </h1>
         <p style={{ marginTop: celular ? 14 : 20, fontSize: celular ? 16 : 19, lineHeight: 1.5, color: "var(--texto-2)", maxWidth: celular ? 340 : 640 }}>
-          Herramientas para estudiar y organizar tu día, creadas por Daniel Chong.
+          Herramientas con IA para tu día a día, en una sola cuenta.
         </p>
         <a href="#apps" className="v6-cta" style={{ marginTop: celular ? 20 : 28 }}>
           Explorar herramientas
@@ -451,7 +489,7 @@ export function HeroV6({ celular }: Props) {
           <Escenario celular={celular} modo={{ tipo: "fijo", p: 1 }} conMovimiento={false} />
         </>
       ) : (
-        <div className="relative" style={{ height: `calc((100dvh - var(--tope)) * ${celular ? 2.2 : 2.4})`, minHeight: celular ? 1400 : 1440 }}>
+        <div className="relative" style={{ height: `calc((100dvh - var(--tope)) * ${celular ? 3.1 : 3.4})`, minHeight: celular ? 2000 : 2040 }}>
           <Escenario celular={celular} modo={{ tipo: "scroll" }} conMovimiento />
         </div>
       )}
