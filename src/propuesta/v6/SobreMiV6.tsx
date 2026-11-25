@@ -49,6 +49,7 @@ export function SobreMiV6({ celular }: { celular: boolean }) {
   const seccion = useRef<HTMLElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const foto = useRef<HTMLImageElement>(null);
+  const escena = useRef<HTMLDivElement>(null);
   const quieto = !!useReducedMotion();
 
   useEffect(() => {
@@ -63,21 +64,27 @@ export function SobreMiV6({ celular }: { celular: boolean }) {
 
     const medir = () => {
       if (!luz) return;
-      const re = el.getBoundingClientRect();
       const ri = img.getBoundingClientRect();
-      const k = el.offsetWidth / (re.width || 1);
-      luz.medir(el.clientWidth, el.clientHeight, [(ri.left - re.left) * k, (ri.top - re.top) * k, ri.width * k, ri.height * k], HAZ);
+      const rc = canvas.getBoundingClientRect();
+      const k = canvas.offsetWidth / (rc.width || 1);
+      luz.medir(canvas.offsetWidth, canvas.offsetHeight, [(ri.left - rc.left) * k, (ri.top - rc.top) * k, ri.width * k, ri.height * k], HAZ);
       avance();
     };
     const avance = () => {
       raf = 0;
-      if (!luz) return;
-      if (quieto) return luz.dibujar(1);
+      if (quieto) return luz?.dibujar(1);
       const re = el.getBoundingClientRect();
       const vh = window.innerHeight;
       if (re.bottom < -50 || re.top > vh + 50) return;
+      const t = (vh - re.top) / (vh + re.height);
       // El haz se llena mientras la sección entra.
-      luz.dibujar(suave(0.05, 0.4, (vh - re.top) / (vh + re.height)));
+      luz?.dibujar(suave(0.05, 0.4, t));
+      // Daniel aparece desde el fondo, como si la cámara llegara a él (sigue al «hacia adelante» de Vida).
+      const ent = suave(0.02, 0.36, t);
+      if (escena.current) {
+        escena.current.style.transform = `scale(${(0.84 + 0.16 * ent).toFixed(4)})`;
+        escena.current.style.opacity = ent.toFixed(3);
+      }
     };
     const alScroll = () => {
       if (!raf) raf = requestAnimationFrame(avance);
@@ -165,7 +172,9 @@ export function SobreMiV6({ celular }: { celular: boolean }) {
         .v6 .v6-redes b { font-weight:600; font-size:15px; }
         .v6 .v6-redes small { font-size:12px; color: var(--texto-2); }
       `}</style>
-      <canvas ref={lienzo} aria-hidden className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
+      <div ref={escena} className="relative" style={{ transformOrigin: "50% 45%", willChange: "transform, opacity" }}>
+      {/* El lienzo cubre toda la sección (compensa el padding) y se escala junto con la foto. */}
+      <canvas ref={lienzo} aria-hidden className="pointer-events-none absolute z-10" style={{ inset: celular ? "-72px -20px -80px" : "-40px -64px", width: celular ? "calc(100% + 40px)" : "calc(100% + 128px)", height: celular ? "calc(100% + 152px)" : "calc(100% + 80px)" }} />
       {celular ? (
         <div className="flex flex-col items-center">
           <div className="relative z-20">{texto}</div>
@@ -201,6 +210,7 @@ export function SobreMiV6({ celular }: { celular: boolean }) {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

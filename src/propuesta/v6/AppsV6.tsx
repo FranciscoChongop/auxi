@@ -106,12 +106,13 @@ function Flecha() {
 }
 
 /**
- * entrada «zoom»: el contenido aparece creciendo (sigue al zoom del héroe hacia el cuadrito de Auxi Student).
- * entrada «lado»: el contenido entra deslizándose desde la derecha. salida: se va hacia la izquierda.
+ * entrada «heroe»: la sección está debajo del héroe y aparece creciendo mientras el héroe se desvanece.
+ * entrada «zoom»: aparece creciendo al entrar (las estrellas llegan desde más cerca).
+ * salida «acercar»: la cámara sigue hacia adelante: el contenido crece y se desvanece, y las estrellas pasan de largo.
  */
-type Transicion = { entrada: "zoom" | "lado"; salida: boolean };
+type Transicion = { entrada: "heroe" | "zoom"; salida: "acercar" | null };
 
-function SeccionApp({ app, celular, invertida, entraDesde, transicion }: { app: App; celular: boolean; invertida: boolean; entraDesde: number; transicion: Transicion }) {
+function SeccionApp({ app, celular, invertida, entraDesde, transicion, trasHeroe = false }: { app: App; celular: boolean; invertida: boolean; entraDesde: number; transicion: Transicion; trasHeroe?: boolean }) {
   const seccion = useRef<HTMLElement>(null);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const telefono = useRef<HTMLDivElement>(null);
@@ -157,32 +158,31 @@ function SeccionApp({ app, celular, invertida, entraDesde, transicion }: { app: 
       avance();
     };
 
-    // Transición ligada al scroll (reversible): entrada con zoom o desde la derecha, salida hacia la izquierda.
-    const transformar = (t: number) => {
+    // Transición ligada al scroll (reversible), siempre hacia el celular de la sección: entrar creciendo,
+    // salir «hacia adelante» (crece y se desvanece mientras las estrellas pasan cerca).
+    const transformar = (t: number, top: number, vh: number, k: number) => {
       const c = contenido.current;
       if (!c) return;
-      const paso = celular ? 90 : 170;
-      let x = 0;
-      let escala = 1;
-      let opacidad = 1;
-      if (transicion.entrada === "zoom") {
-        const ent = suave(0, 0.3, t);
-        escala = 0.8 + 0.2 * ent;
-        opacidad = ent;
+      let ent: number;
+      if (transicion.entrada === "heroe") {
+        // La sección ya está bajo el héroe: aparece mientras su borde superior llega arriba de la pantalla.
+        const tope = (parseFloat(getComputedStyle(el).getPropertyValue("--tope")) || 0) * k;
+        ent = 1 - Math.min(1, Math.max(0, (top - tope) / (vh * 0.45)));
+        ent = ent * ent * (3 - 2 * ent);
       } else {
-        const ent = suave(0.02, 0.3, t);
-        x = (1 - ent) * paso;
-        opacidad = ent;
+        ent = suave(0.02, 0.32, t);
       }
-      const sal = transicion.salida ? suave(0.64, 0.92, t) : 0;
-      x -= sal * paso;
-      opacidad *= 1 - 0.85 * sal;
+      const sal = transicion.salida ? suave(0.62, 0.93, t) : 0;
+      const escala = (0.84 + 0.16 * ent) * (1 + 0.22 * sal);
+      const opacidad = ent * (1 - sal);
       c.style.transformOrigin = `${origenContenido[0]}px ${origenContenido[1]}px`;
-      c.style.transform = `translate3d(${x.toFixed(1)}px,0,0) scale(${escala.toFixed(4)})`;
+      c.style.transform = `scale(${escala.toFixed(4)})`;
       c.style.opacity = opacidad.toFixed(3);
+      // Las estrellas: llegan desde más cerca (más grandes) y, al salir, pasan de largo hacia la cámara.
+      const escalaEstrellas = (1.3 - 0.3 * ent) * (1 + 0.8 * sal);
       canvas.style.transformOrigin = `${centro[0]}px ${centro[1]}px`;
-      canvas.style.transform = `translate3d(${x.toFixed(1)}px,0,0) scale(${escala.toFixed(4)})`;
-      canvas.style.opacity = (1 - 0.85 * sal).toFixed(3);
+      canvas.style.transform = `scale(${escalaEstrellas.toFixed(4)})`;
+      canvas.style.opacity = (Math.max(0.35, ent) * (1 - 0.9 * sal)).toFixed(3);
     };
 
     // Inclinación del celular 3D: de costado al entrar y de frente cuando la sección está al centro;
@@ -212,7 +212,7 @@ function SeccionApp({ app, celular, invertida, entraDesde, transicion }: { app: 
       const t = (vh - re.top) / (vh + re.height);
       ultimoT = t;
       inclinar(t);
-      transformar(t);
+      transformar(t, re.top, vh, re.width / (el.offsetWidth || 1));
       corriente?.dibujar(suave(0.04, 0.42, t), t * 1.4);
     };
     const alScroll = () => {
@@ -290,7 +290,15 @@ function SeccionApp({ app, celular, invertida, entraDesde, transicion }: { app: 
   );
 
   return (
-    <section ref={seccion} id={app.id} className="relative isolate overflow-hidden" style={{ padding: celular ? "72px 20px 80px" : "120px 64px" }}>
+    <section
+      ref={seccion}
+      id={app.id}
+      className="relative isolate overflow-hidden"
+      style={{
+        padding: celular ? "72px 20px 80px" : "120px 64px",
+        marginTop: trasHeroe ? (celular ? "calc(-1 * clamp(640px, 100dvh - var(--tope), 900px))" : "calc(-1 * clamp(600px, 100dvh - var(--tope), 980px))") : undefined,
+      }}
+    >
       {/* Luz concentrada cerca del producto; el fondo sigue siendo el mismo azul noche. */}
       <div
         aria-hidden
@@ -382,13 +390,13 @@ export const ESTILOS_APPS = `
 .v6 .v6-enlace-ext:hover { text-decoration-color: #fff; }
 `;
 
-export function AppsV6({ celular }: { celular: boolean }) {
+export function AppsV6({ celular, trasHeroe = false }: { celular: boolean; trasHeroe?: boolean }) {
   return (
     <div style={{ fontFamily: FIGTREE }}>
       <style>{ESTILOS_APPS}</style>
       {/* En celular la corriente entra por los bordes para no cruzar los títulos. */}
-      <SeccionApp app={APPS[0]} celular={celular} invertida={false} entraDesde={celular ? 0.03 : 0.5} transicion={{ entrada: "zoom", salida: true }} />
-      <SeccionApp app={APPS[1]} celular={celular} invertida entraDesde={celular ? 0.97 : 0.75} transicion={{ entrada: "lado", salida: false }} />
+      <SeccionApp app={APPS[0]} celular={celular} invertida={false} entraDesde={celular ? 0.03 : 0.5} trasHeroe={trasHeroe} transicion={{ entrada: trasHeroe ? "heroe" : "zoom", salida: "acercar" }} />
+      <SeccionApp app={APPS[1]} celular={celular} invertida entraDesde={celular ? 0.97 : 0.75} transicion={{ entrada: "zoom", salida: "acercar" }} />
       <FranjaVendoe celular={celular} />
     </div>
   );
