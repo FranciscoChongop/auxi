@@ -5,6 +5,7 @@ Plataforma: **Auxi Studio por Daniel Chong** (auxistudio.com). Mini apps: Auxi S
 App publicada: https://auxi-three.vercel.app (Vercel se actualiza solo al subir a `main`; el dominio propio se conecta desde Vercel → Settings → Domains).
 
 - **Plataforma:** portada con León y las tres mini apps, inicio de sesión único en `/entrar`, inicio «¿A dónde quieres entrar?» con una tarjeta por mini app, y páginas `/privacidad` y `/terminos`. `/studio/...` redirige a `/student/...` (también con una redirección permanente en `vercel.json`).
+- **Guía paso a paso para el lanzamiento (dominio, correos, Supabase, Google, PostHog):** `docs/guia-lanzamiento.md`.
 - **Pendiente del dominio:** conectar auxistudio.com en Vercel y en Latinoamérica Hosting; agregar `https://auxistudio.com/**` y `/student` a las URL de retorno de Supabase; poner el dominio en Google Cloud (marca, privacidad y condiciones: `/privacidad` y `/terminos`); verificar el dominio en Resend; cuando exista el dominio, redirigir `auxi-three.vercel.app` al nuevo; llenar `LANDING_URL` cuando la landing esté lista.
 
 ## Hecho
